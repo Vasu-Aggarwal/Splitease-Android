@@ -88,6 +88,9 @@ dependencies {
     // Navigation
     implementation(libs.navigation.compose)
     implementation(libs.hilt.navigation.compose)
+
+    //Circular progress bar
+    implementation("androidx.compose.material3:material3:1.3.0-beta04")
 }
 kapt {
     correctErrorTypes = true
