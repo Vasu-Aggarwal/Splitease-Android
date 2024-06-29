@@ -70,7 +70,8 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), navController: NavC
             }
 
             is NetworkResult.Loading -> {
-                CircularProgressIndicator()
+                Text(text = "Loading")
+//                CircularProgressIndicator()
             }
             is NetworkResult.Success -> {
                 navController.navigate("bottomBar")
@@ -80,6 +81,8 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), navController: NavC
             is NetworkResult.Error -> {
                 Text(text = result.message.toString())
             }
+
+            else -> {}
         }
     }
 }
