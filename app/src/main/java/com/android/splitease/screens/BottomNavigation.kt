@@ -38,25 +38,17 @@ fun BottomNavigationBar(){
 
     val bottomItems = listOf(
         BottomNavigationItem(
-            title = "Home",
+            title = "Groups",
             selectedIcon = Icons.Filled.Home,
             unselectedItem = Icons.Outlined.Home,
             hasNews = false
         ),
 
         BottomNavigationItem(
-            title = "Categories",
+            title = "Friends",
             selectedIcon = Icons.Filled.Menu,
             unselectedItem = Icons.Outlined.Menu,
             hasNews = false
-        ),
-
-        BottomNavigationItem(
-            title = "Cart",
-            selectedIcon = Icons.Filled.ShoppingCart,
-            unselectedItem = Icons.Outlined.ShoppingCart,
-            hasNews = false,
-            badgeCount = 0
         ),
 
         BottomNavigationItem(
@@ -77,15 +69,11 @@ fun BottomNavigationBar(){
                     selected = selectedItemIndex == index,
                     onClick = {
                         selectedItemIndex = index
-                        if(selectedItemIndex == 2){
-//                            cartViewModel.getCartDetails()
-                        }
                         navController.navigate(
                             when (index) {
-                                0 -> "home"
-//                                1 -> "category"
-//                                2 -> "cart"
-//                                3 -> "account"
+                                0 -> "groups"
+                                1 -> "friends"
+                                2 -> "account"
                                 else -> "home"
                             }
                         )
@@ -118,23 +106,19 @@ fun BottomNavigationBar(){
         }
     }){
             innerPadding ->
-        NavHost(navController = navController, startDestination = "home", modifier = Modifier.padding(innerPadding)){
+        NavHost(navController = navController, startDestination = "groups", modifier = Modifier.padding(innerPadding)){
 
-            composable(route = "home"){
-                HomeScreen()
+            composable(route = "groups"){
+                GroupScreen()
             }
-//
-//            composable(route = "cart"){
-//                CartScreen(cartViewModel = cartViewModel)
-//            }
-//
-//            composable(route = "account"){
-//                AccountScreen()
-//            }
-//
-//            composable(route = "category"){
-//                CategoryScreen()
-//            }
+
+            composable(route = "friends"){
+                FriendsScreen()
+            }
+
+            composable(route = "account"){
+                AccountScreen()
+            }
         }
     }
 }
