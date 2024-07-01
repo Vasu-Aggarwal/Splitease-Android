@@ -109,7 +109,7 @@ fun BottomNavigationBar(){
         NavHost(navController = navController, startDestination = "groups", modifier = Modifier.padding(innerPadding)){
 
             composable(route = "groups"){
-                GroupScreen()
+                GroupScreen(navController = navController)
             }
 
             composable(route = "friends"){
@@ -118,6 +118,13 @@ fun BottomNavigationBar(){
 
             composable(route = "account"){
                 AccountScreen()
+            }
+
+            composable(route = "detailedGroup/{groupId}"){ backStackEntry ->
+                val groupId = backStackEntry.arguments?.getInt("groupId")
+                groupId?.let {
+                    DetailedGroupScreen(groupId = it)
+                }
             }
         }
     }
