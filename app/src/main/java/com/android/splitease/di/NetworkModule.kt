@@ -2,6 +2,7 @@ package com.android.splitease.di
 
 import com.android.splitease.services.AuthService
 import com.android.splitease.services.GroupService
+import com.android.splitease.services.TransactionService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,5 +37,11 @@ class NetworkModule {
     @Singleton
     fun provideGroupService(retrofit: Retrofit): GroupService {
         return retrofit.create(GroupService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideTransactionService(retrofit: Retrofit): TransactionService {
+        return retrofit.create(TransactionService::class.java)
     }
 }
