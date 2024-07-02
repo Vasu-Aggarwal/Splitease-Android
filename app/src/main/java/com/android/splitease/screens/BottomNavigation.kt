@@ -27,10 +27,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.android.splitease.navigation.BottomNavigationItem
+import com.android.splitease.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -106,21 +109,23 @@ fun BottomNavigationBar(){
         }
     }){
             innerPadding ->
-        NavHost(navController = navController, startDestination = "groups", modifier = Modifier.padding(innerPadding)){
+        NavHost(navController = navController, startDestination = Screen.GroupScreen.route, modifier = Modifier.padding(innerPadding)){
 
-            composable(route = "groups"){
+            composable(route = Screen.GroupScreen.route){
                 GroupScreen(navController = navController)
             }
 
-            composable(route = "friends"){
+            composable(route = Screen.FriendsScreen.route){
                 FriendsScreen()
             }
 
-            composable(route = "account"){
+            composable(route = Screen.AccountScreen.route){
                 AccountScreen()
             }
 
-            composable(route = "detailedGroup/{groupId}"){ backStackEntry ->
+            composable(route = Screen.DetailedGroupScreen.route,
+                arguments = listOf(navArgument("groupId"){type = NavType.IntType}))
+            { backStackEntry ->
                 val groupId = backStackEntry.arguments?.getInt("groupId")
                 groupId?.let {
                     DetailedGroupScreen(groupId = it)

@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.android.splitease.models.responses.AddGroupResponse
+import com.android.splitease.navigation.Screen
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.GroupViewModel
 
@@ -42,7 +43,7 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
 fun GroupItem(group: AddGroupResponse, viewModel: GroupViewModel, navController: NavController) {
     Card(
         onClick = {
-            navController.navigate("detailedGroup/${group.groupId}")
+            navController.navigate(Screen.DetailedGroupScreen.createRoute(group.groupId))
         },
         modifier = Modifier
             .padding(4.dp)
