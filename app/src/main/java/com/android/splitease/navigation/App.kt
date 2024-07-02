@@ -35,7 +35,7 @@ sealed class Screen(val route: String){
     data object GroupScreen: Screen("groups")
     data object FriendsScreen: Screen("friends")
     data object AccountScreen: Screen("account")
-    data object DetailedGroupScreen: Screen("detailedGroup"){
+    data object DetailedGroupScreen: Screen("detailedGroup/{groupId}"){
         fun createRoute(groupId: Int) = "detailedGroup/$groupId"
     }
 
