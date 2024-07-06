@@ -50,6 +50,7 @@ fun TransactionItem(transaction: AddTransactionResponse) {
             Text(text = transaction.groupId.toString())
             Text(text = transaction.amount.toString())
             Text(text = transaction.category.categoryName)
+            Text(text = transaction.createdOn)
         }
     }
 }
