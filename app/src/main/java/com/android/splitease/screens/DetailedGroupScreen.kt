@@ -1,11 +1,13 @@
 package com.android.splitease.screens
 
-import android.widget.Toast
+import android.content.Context
+import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -14,43 +16,86 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.android.splitease.models.responses.AddTransactionResponse
+import com.android.splitease.models.responses.CreateUserResponse
+import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.utils.NetworkResult
+import com.android.splitease.utils.TokenManager
+import com.android.splitease.utils.UtilMethods
 import com.android.splitease.viewmodels.TransactionViewModel
+import com.android.splitease.viewmodels.UserViewModel
+import okhttp3.internal.Util
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel = hiltViewModel()) {
-
+fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel = hiltViewModel(), userViewModel: UserViewModel = hiltViewModel()) {
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("secure_prefs", Context.MODE_PRIVATE)
+    val tokenManager = TokenManager(sharedPreferences)
     LaunchedEffect(groupId) {
         transactionViewModel.getGroupsByUser(groupId.toString())
     }
 
-    val transactions: State<NetworkResult<List<AddTransactionResponse>>> = transactionViewModel.transactions.collectAsState()
+    val transactions: State<NetworkResult<List<GetTransactionsByGroupResponse>>> = transactionViewModel.transactions.collectAsState()
     Column {
         GroupInfo()
-        GroupTransactions(transactions)
+        GroupTransactions(transactions, tokenManager, userViewModel)
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun GroupTransactions(transactions: State<NetworkResult<List<AddTransactionResponse>>>) {
+fun GroupTransactions(
+    transactions: State<NetworkResult<List<GetTransactionsByGroupResponse>>>,
+    tokenManager: TokenManager,
+    userViewModel: UserViewModel
+) {
     LazyColumn {
+        Log.d("DGS", "GroupTransactions: Came here")
         transactions.value.data?.let { transactionList ->
             items(transactionList){transaction ->
-                TransactionItem(transaction)
+                TransactionItem(transaction, tokenManager, userViewModel)
             }
         }
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun TransactionItem(transaction: AddTransactionResponse) {
+fun TransactionItem(
+    transaction: GetTransactionsByGroupResponse,
+    tokenManager: TokenManager,
+    userViewModel: UserViewModel
+) {
+    val context = LocalContext.current
     Box{
-        Column {
-            Text(text = transaction.groupId.toString())
-            Text(text = transaction.amount.toString())
-            Text(text = transaction.category.categoryName)
-            Text(text = transaction.createdOn)
+        Row {
+            val utilMethods = UtilMethods()
+            val formattedDate = utilMethods.formatDate(transaction.createdOn)
+            Text(text = formattedDate)
+            Column {
+                Text(text = transaction.description)
+                if(transaction.userUuid == tokenManager.getUserUuid().toString()){
+                    Text(text = "You paid Rs.${transaction.amount}")
+                } else {
+                    LaunchedEffect(transaction.userUuid) {
+                        userViewModel.getUserByUuid(transaction.userUuid)
+                    }
+                    val user: State<NetworkResult<CreateUserResponse>> = userViewModel.user.collectAsState()
+                    Text(text = "${user.value.data?.name} paid Rs. ${transaction.amount}")
+                }
+            }
+            Column {
+                if (transaction.loggedInUserTransaction == null) {
+                    Text(text = " not involved")
+                } else {
+                    if (transaction.loggedInUserTransaction.owedOrLent.equals("OWED")) {
+                        Text(text = "you borrowed")
+                    } else {
+                        Text(text = "you lent")
+                    }
+                    Text(text = transaction.loggedInUserTransaction.amount.toString())
+                }
+            }
         }
     }
 }

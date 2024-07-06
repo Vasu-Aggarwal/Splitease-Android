@@ -3,6 +3,7 @@ package com.android.splitease.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.splitease.models.responses.AddTransactionResponse
+import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.repositories.TransactionRepository
 import com.android.splitease.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TransactionViewModel @Inject constructor(private val transactionRepository: TransactionRepository): ViewModel() {
-    val transactions: StateFlow<NetworkResult<List<AddTransactionResponse>>>
+    val transactions: StateFlow<NetworkResult<List<GetTransactionsByGroupResponse>>>
         get() = transactionRepository.transactions
 
     fun getGroupsByUser(groupId: String) {

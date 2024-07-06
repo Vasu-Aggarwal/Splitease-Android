@@ -1,6 +1,7 @@
 package com.android.splitease.repositories
 
 import com.android.splitease.models.responses.AddTransactionResponse
+import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.services.TransactionService
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.TokenManager
@@ -9,8 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 class TransactionRepository @Inject constructor(private val transactionService: TransactionService, private val tokenManager: TokenManager) {
-    private val _transactions = MutableStateFlow<NetworkResult<List<AddTransactionResponse>>>(NetworkResult.Idle())
-    val transactions: StateFlow<NetworkResult<List<AddTransactionResponse>>>
+    private val _transactions = MutableStateFlow<NetworkResult<List<GetTransactionsByGroupResponse>>>(NetworkResult.Idle())
+    val transactions: StateFlow<NetworkResult<List<GetTransactionsByGroupResponse>>>
         get() = _transactions
 
     suspend fun transactionByGroupId(groupId: String){
