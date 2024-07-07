@@ -24,7 +24,7 @@ class TransactionViewModel @Inject constructor(private val transactionRepository
     val deleteTransaction: StateFlow<NetworkResult<DeleteResponse>>
         get() = transactionRepository.deleteTransaction
 
-    fun getGroupsByUser(groupId: String) {
+    fun getTransactionsByUser(groupId: String) {
         viewModelScope.launch {
             transactionRepository.transactionByGroupId(groupId)
         }
