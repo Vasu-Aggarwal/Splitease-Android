@@ -18,6 +18,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -98,6 +102,7 @@ fun TransactionItem(
             navController.navigate(Screen.DetailedTransactionScreen.createRoute(transaction.transactionId))
         }
     ){
+        var userState by remember { mutableStateOf<CreateUserResponse?>(null) }
         Box {
             Row {
                 val utilMethods = UtilMethods()
@@ -108,11 +113,17 @@ fun TransactionItem(
                     if (transaction.userUuid == tokenManager.getUserUuid().toString()) {
                         Text(text = "You paid Rs.${transaction.amount}")
                     } else {
-                        LaunchedEffect(transaction.userUuid) {
-                            userViewModel.getUserByUuid(transaction.userUuid)
+                        if(userState == null) {
+                            LaunchedEffect(transaction.userUuid) {
+                                userViewModel.getUserByUuid(transaction.userUuid)
+                            }
                         }
                         val user: State<NetworkResult<CreateUserResponse>> =
                             userViewModel.user.collectAsState()
+                        val userData = userViewModel.user.collectAsState().value
+                        if (userData is NetworkResult.Success){
+                            userState = userData.data
+                        }
                         Text(text = "${user.value.data?.name} paid Rs. ${transaction.amount}")
                     }
                 }
