@@ -1,5 +1,6 @@
 package com.android.splitease.repositories
 
+import com.android.splitease.models.requests.AddTransactionRequest
 import com.android.splitease.models.responses.AddTransactionResponse
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.services.TransactionService
@@ -14,6 +15,10 @@ class TransactionRepository @Inject constructor(private val transactionService: 
     val transactions: StateFlow<NetworkResult<List<GetTransactionsByGroupResponse>>>
         get() = _transactions
 
+    private val _addTransaction = MutableStateFlow<NetworkResult<AddTransactionResponse>>(NetworkResult.Idle())
+    val addTransaction: StateFlow<NetworkResult<AddTransactionResponse>>
+        get() = _addTransaction
+
     suspend fun transactionByGroupId(groupId: String){
         val authToken = tokenManager.getAuthToken()
         val response = transactionService.getTransactionsByGroupApi("Bearer $authToken", groupId)
@@ -21,6 +26,16 @@ class TransactionRepository @Inject constructor(private val transactionService: 
             _transactions.emit(NetworkResult.Success(response.body()!!))
         } else {
             _transactions.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+        }
+    }
+
+    suspend fun addTransaction(addTransactionRequest: AddTransactionRequest){
+        val authToken = tokenManager.getAuthToken()
+        val response = transactionService.addTransactionApi("Bearer $authToken", addTransactionRequest)
+        if (response.isSuccessful && response.body()!=null){
+            _addTransaction.emit(NetworkResult.Success(response.body()!!))
+        } else {
+            _addTransaction.emit(NetworkResult.Error(response.errorBody()?.string()))
         }
     }
 }

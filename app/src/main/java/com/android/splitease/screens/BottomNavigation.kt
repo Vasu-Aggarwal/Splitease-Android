@@ -1,5 +1,7 @@
 package com.android.splitease.screens
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -35,6 +37,7 @@ import androidx.navigation.navArgument
 import com.android.splitease.navigation.BottomNavigationItem
 import com.android.splitease.navigation.Screen
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomNavigationBar(){
@@ -128,7 +131,16 @@ fun BottomNavigationBar(){
             { backStackEntry ->
                 val groupId = backStackEntry.arguments?.getInt("groupId")
                 groupId?.let {
-                    DetailedGroupScreen(groupId = it)
+                    DetailedGroupScreen(groupId = it, navController = navController)
+                }
+            }
+
+            composable(route = Screen.AddExpenseScreen.route,
+                arguments = listOf(navArgument("groupId"){type = NavType.IntType}))
+            { backStackEntry ->
+                val groupId = backStackEntry.arguments?.getInt("groupId")
+                groupId?.let {
+                    AddExpenseScreen(groupId = it, navController = navController)
                 }
             }
         }

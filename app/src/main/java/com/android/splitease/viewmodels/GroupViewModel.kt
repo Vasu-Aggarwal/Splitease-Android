@@ -3,6 +3,8 @@ package com.android.splitease.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.splitease.models.responses.AddGroupResponse
+import com.android.splitease.models.responses.CreateUserResponse
+import com.android.splitease.models.responses.GetGroupMembersV2Response
 import com.android.splitease.repositories.GroupRepository
 import com.android.splitease.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,6 +17,12 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
     val groups: StateFlow<NetworkResult<List<AddGroupResponse>>>
         get() = groupRepository.groups
 
+    val groupMembers: StateFlow<NetworkResult<Set<CreateUserResponse>>>
+        get() = groupRepository.groupMembers
+
+    val groupMembersV2: StateFlow<NetworkResult<Set<GetGroupMembersV2Response>>>
+        get() = groupRepository.groupMembersV2
+
     init {
         viewModelScope.launch {
             groupRepository.groupsByUser()
@@ -24,6 +32,18 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
     fun getGroupsByUser() {
         viewModelScope.launch {
             groupRepository.groupsByUser()
+        }
+    }
+
+    fun getGroupMembers(groupId: Int) {
+        viewModelScope.launch {
+            groupRepository.getGroupMembers(groupId)
+        }
+    }
+
+    fun getGroupMembersV2(groupId: Int) {
+        viewModelScope.launch {
+            groupRepository.getGroupMembersV2(groupId)
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.android.splitease.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.compose.NavHost
@@ -8,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import com.android.splitease.screens.BottomNavigationBar
 import com.android.splitease.screens.LoginScreen
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun App() {
     val navController = rememberNavController()
@@ -37,6 +40,9 @@ sealed class Screen(val route: String){
     data object AccountScreen: Screen("account")
     data object DetailedGroupScreen: Screen("detailedGroup/{groupId}"){
         fun createRoute(groupId: Int) = "detailedGroup/$groupId"
+    }
+    data object AddExpenseScreen: Screen("addExpense/{groupId}"){
+        fun createRoute(groupId: Int) = "addExpense/$groupId"
     }
 
 

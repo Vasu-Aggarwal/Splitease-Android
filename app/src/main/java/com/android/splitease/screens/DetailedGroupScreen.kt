@@ -7,17 +7,26 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.android.splitease.models.responses.CreateUserResponse
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
+import com.android.splitease.navigation.Screen
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.TokenManager
 import com.android.splitease.utils.UtilMethods
@@ -27,7 +36,7 @@ import okhttp3.internal.Util
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel = hiltViewModel(), userViewModel: UserViewModel = hiltViewModel()) {
+fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel = hiltViewModel(), userViewModel: UserViewModel = hiltViewModel(), navController: NavController) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("secure_prefs", Context.MODE_PRIVATE)
     val tokenManager = TokenManager(sharedPreferences)
@@ -37,8 +46,24 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
 
     val transactions: State<NetworkResult<List<GetTransactionsByGroupResponse>>> = transactionViewModel.transactions.collectAsState()
     Column {
-        GroupInfo()
-        GroupTransactions(transactions, tokenManager, userViewModel)
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                GroupInfo()
+                GroupTransactions(transactions, tokenManager, userViewModel)
+            }
+            ExtendedFloatingActionButton(
+                onClick = {
+                    navController.navigate(Screen.AddExpenseScreen.createRoute(groupId))
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+            ) {
+                Text(text = "Add Expense")
+            }
+        }
     }
 }
 
