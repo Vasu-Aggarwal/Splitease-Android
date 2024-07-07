@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,7 +32,6 @@ import com.android.splitease.utils.TokenManager
 import com.android.splitease.utils.UtilMethods
 import com.android.splitease.viewmodels.TransactionViewModel
 import com.android.splitease.viewmodels.UserViewModel
-import okhttp3.internal.Util
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -51,7 +50,7 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 GroupInfo()
-                GroupTransactions(transactions, tokenManager, userViewModel)
+                GroupTransactions(transactions, tokenManager, userViewModel, navController)
             }
             ExtendedFloatingActionButton(
                 onClick = {
@@ -72,13 +71,14 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
 fun GroupTransactions(
     transactions: State<NetworkResult<List<GetTransactionsByGroupResponse>>>,
     tokenManager: TokenManager,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    navController: NavController
 ) {
     LazyColumn {
         Log.d("DGS", "GroupTransactions: Came here")
         transactions.value.data?.let { transactionList ->
             items(transactionList){transaction ->
-                TransactionItem(transaction, tokenManager, userViewModel)
+                TransactionItem(transaction, tokenManager, userViewModel, navController)
             }
         }
     }
@@ -89,36 +89,44 @@ fun GroupTransactions(
 fun TransactionItem(
     transaction: GetTransactionsByGroupResponse,
     tokenManager: TokenManager,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    navController: NavController
 ) {
     val context = LocalContext.current
-    Box{
-        Row {
-            val utilMethods = UtilMethods()
-            val formattedDate = utilMethods.formatDate(transaction.createdOn)
-            Text(text = formattedDate)
-            Column {
-                Text(text = transaction.description)
-                if(transaction.userUuid == tokenManager.getUserUuid().toString()){
-                    Text(text = "You paid Rs.${transaction.amount}")
-                } else {
-                    LaunchedEffect(transaction.userUuid) {
-                        userViewModel.getUserByUuid(transaction.userUuid)
-                    }
-                    val user: State<NetworkResult<CreateUserResponse>> = userViewModel.user.collectAsState()
-                    Text(text = "${user.value.data?.name} paid Rs. ${transaction.amount}")
-                }
-            }
-            Column {
-                if (transaction.loggedInUserTransaction == null) {
-                    Text(text = " not involved")
-                } else {
-                    if (transaction.loggedInUserTransaction.owedOrLent.equals("OWED")) {
-                        Text(text = "you borrowed")
+    Card (
+        onClick = {
+            navController.navigate(Screen.DetailedTransactionScreen.createRoute(transaction.transactionId))
+        }
+    ){
+        Box {
+            Row {
+                val utilMethods = UtilMethods()
+                val formattedDate = utilMethods.formatDate(transaction.createdOn)
+                Text(text = formattedDate)
+                Column {
+                    Text(text = transaction.description)
+                    if (transaction.userUuid == tokenManager.getUserUuid().toString()) {
+                        Text(text = "You paid Rs.${transaction.amount}")
                     } else {
-                        Text(text = "you lent")
+                        LaunchedEffect(transaction.userUuid) {
+                            userViewModel.getUserByUuid(transaction.userUuid)
+                        }
+                        val user: State<NetworkResult<CreateUserResponse>> =
+                            userViewModel.user.collectAsState()
+                        Text(text = "${user.value.data?.name} paid Rs. ${transaction.amount}")
                     }
-                    Text(text = transaction.loggedInUserTransaction.amount.toString())
+                }
+                Column {
+                    if (transaction.loggedInUserTransaction == null) {
+                        Text(text = " not involved")
+                    } else {
+                        if (transaction.loggedInUserTransaction.owedOrLent.equals("OWED")) {
+                            Text(text = "you borrowed")
+                        } else {
+                            Text(text = "you lent")
+                        }
+                        Text(text = transaction.loggedInUserTransaction.amount.toString())
+                    }
                 }
             }
         }

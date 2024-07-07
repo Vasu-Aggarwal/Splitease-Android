@@ -143,6 +143,15 @@ fun BottomNavigationBar(){
                     AddExpenseScreen(groupId = it, navController = navController)
                 }
             }
+
+            composable(route = Screen.DetailedTransactionScreen.route,
+                arguments = listOf(navArgument("transactionId"){type = NavType.IntType}))
+            { backStackEntry ->
+                val transactionId = backStackEntry.arguments?.getInt("transactionId")
+                transactionId?.let {
+                    DetailedTransactionScreen(transactionId = it)
+                }
+            }
         }
     }
 }
