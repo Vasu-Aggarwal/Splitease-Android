@@ -4,6 +4,7 @@ import com.android.splitease.services.AuthService
 import com.android.splitease.services.GroupService
 import com.android.splitease.services.TransactionService
 import com.android.splitease.services.UserService
+import com.android.splitease.utils.AppConstants
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,14 +16,11 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 class NetworkModule {
-
-//        private val BASE_URL = "http://10.100.102.6:9090"
-    private val BASE_URL = "http://192.168.1.24:9090"
     @Provides
     @Singleton
     fun provideRetrofit(): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(AppConstants.HOME_BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build();
     }
