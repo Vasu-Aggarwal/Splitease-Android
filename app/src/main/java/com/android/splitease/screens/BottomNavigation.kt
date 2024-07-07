@@ -149,7 +149,7 @@ fun BottomNavigationBar(){
             { backStackEntry ->
                 val transactionId = backStackEntry.arguments?.getInt("transactionId")
                 transactionId?.let {
-                    DetailedTransactionScreen(transactionId = it)
+                    DetailedTransactionScreen(transactionId = it, navController = navController)
                 }
             }
         }

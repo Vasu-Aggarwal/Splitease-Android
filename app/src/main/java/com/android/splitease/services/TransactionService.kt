@@ -21,6 +21,6 @@ interface TransactionService {
     @POST("${AppConstants.TRANSACTION_URL}/addTransaction")
     suspend fun addTransactionApi(@Header("Authorization") token: String, @Body addTransactionRequest: AddTransactionRequest): Response<AddTransactionResponse>
 
-    @DELETE("${AppConstants.TRANSACTION_URL}/deleteTransaction")
+    @DELETE("${AppConstants.TRANSACTION_URL}/deleteTransaction/{transactionId}")
     suspend fun deleteTransactionApi(@Header("Authorization") token: String, @Path("transactionId") transactionId: Int): Response<DeleteResponse>
 }
