@@ -90,7 +90,19 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
 
     //Circular progress bar
-    implementation("androidx.compose.material3:material3:1.3.0-beta04")
+    implementation(libs.material3)
+
+    //room database
+    val room_version = "2.6.1"
+
+    implementation(libs.androidx.room.runtime)
+    annotationProcessor(libs.androidx.room.compiler)
+
+    // To use Kotlin Symbol Processing (KSP)
+    kapt("androidx.room:room-compiler:$room_version")
+
+    //coroutine for room db
+    implementation(libs.room.ktx)
 }
 kapt {
     correctErrorTypes = true
