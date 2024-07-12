@@ -1,7 +1,7 @@
 package com.android.splitease.utils
 
 object AppConstants {
-    const val OFFICE_BASE_URL = "http://10.100.102.6:9090"
+    const val OFFICE_BASE_URL = "http://192.168.1.15:9090"
     const val HOME_BASE_URL = "http://192.168.1.24:9090"
     const val TRANSACTION_URL = "/api/transaction"
     const val AUTH_URL = "/auth"
