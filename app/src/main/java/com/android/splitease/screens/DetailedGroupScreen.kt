@@ -112,8 +112,8 @@ fun TransactionItem(
         Box {
             Row {
                 val utilMethods = UtilMethods()
-//                val formattedDate = utilMethods.formatDate(transaction.createdOn)
-//                Text(text = formattedDate)
+                val formattedDate = utilMethods.formatDate(transaction.createdOn)
+                Text(text = formattedDate)
                 Column {
                     Text(text = transaction.description)
                     if (transaction.userUuid == tokenManager.getUserUuid().toString()) {
