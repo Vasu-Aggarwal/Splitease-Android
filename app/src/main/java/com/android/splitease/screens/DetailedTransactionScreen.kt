@@ -1,5 +1,6 @@
 package com.android.splitease.screens
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -10,11 +11,13 @@ import com.android.splitease.viewmodels.TransactionViewModel
 
 @Composable
 fun DetailedTransactionScreen(transactionId: Int, transactionViewModel: TransactionViewModel = hiltViewModel(), navController: NavController) {
-    Text(text = "This is $transactionId")
-    Button(onClick = {
-        transactionViewModel.deleteTransaction(transactionId)
-        navController.popBackStack()
-    }) {
-        Text(text = "Delete Transaction")
+    Column{
+        Text(text = "This is $transactionId")
+        Button(onClick = {
+            transactionViewModel.deleteTransaction(transactionId)
+            navController.popBackStack()
+        }) {
+            Text(text = "Delete Transaction")
+        }
     }
 }
