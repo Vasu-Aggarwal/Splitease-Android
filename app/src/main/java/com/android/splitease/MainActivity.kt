@@ -1,7 +1,9 @@
 package com.android.splitease
 
+import android.content.ContentValues.TAG
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -52,6 +54,7 @@ class MainActivity : ComponentActivity() {
             if (currentTimeMillis < refreshTokenExpiryTime) {
                 // Refresh token is still valid, refresh the access token
                 val newAccessToken = authRepository.refreshToken()
+//                tokenManager.clearTokens()
                 newAccessToken != null
             } else {
                 // Both tokens are expired, prompt the user to log in again

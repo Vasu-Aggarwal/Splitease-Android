@@ -1,5 +1,6 @@
 package com.android.splitease.services
 
+import com.android.splitease.models.requests.RefreshTokenRequest
 import com.android.splitease.models.requests.UserLoginRequest
 import com.android.splitease.models.responses.RefreshTokenResponse
 import com.android.splitease.models.responses.UserLoginResponse
@@ -13,5 +14,5 @@ interface AuthService {
     suspend fun loginUser(@Body user: UserLoginRequest): Response<UserLoginResponse>
 
     @POST("${AppConstants.AUTH_URL}/refreshToken")
-    suspend fun refreshToken(@Body refreshToken: String): Response<RefreshTokenResponse>
+    suspend fun refreshToken(@Body refreshToken: RefreshTokenRequest): Response<RefreshTokenResponse>
 }

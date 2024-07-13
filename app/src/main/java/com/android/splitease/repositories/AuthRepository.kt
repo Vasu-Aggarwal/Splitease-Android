@@ -2,6 +2,7 @@ package com.android.splitease.repositories
 
 import android.util.Log
 import com.android.splitease.di.NetworkException
+import com.android.splitease.models.requests.RefreshTokenRequest
 import com.android.splitease.models.requests.UserLoginRequest
 import com.android.splitease.models.responses.ErrorResponse
 import com.android.splitease.models.responses.UserLoginResponse
@@ -54,17 +55,19 @@ class AuthRepository @Inject constructor(private val authService: AuthService,
     }
 
     suspend fun refreshToken(){
-        val requestBody = tokenManager.getRefreshToken()
-        val response = authService.refreshToken(requestBody!!)
-        if (response.isSuccessful && response.body()!=null){
-            val authToken = response.body()!!.token
-            val refreshToken = response.body()!!.refreshToken
-            val userUuid = response.body()!!.userUuid
-            tokenManager.saveAuthToken(authToken, refreshToken, userUuid)
-        } else {
-            // Parse the error body to extract the error message
-            val rawError = response.errorBody()?.string()
-            Log.e("Refresh Token", "refreshToken: caused the error$rawError")
+        try{
+            val requestBody = RefreshTokenRequest(tokenManager.getRefreshToken()!!)
+            val response = authService.refreshToken(requestBody)
+            if (response.isSuccessful && response.body() != null) {
+                val authToken = response.body()!!.token
+                tokenManager.updateAuthToken(authToken)
+            } else {
+                // Parse the error body to extract the error message
+                val rawError = response.errorBody()?.string()
+                Log.e("Refresh Token", "refreshToken: caused the error$rawError")
+            }
+        } catch (e: Exception){
+            Log.d("Update JWT", "refreshToken: ${e.message}")
         }
     }
 }
