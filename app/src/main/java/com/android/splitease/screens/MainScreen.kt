@@ -7,6 +7,8 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,6 +17,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.android.splitease.navigation.App
@@ -57,17 +61,34 @@ fun MainScreen(context: Context, onInitializationComplete: suspend () -> Boolean
         }
     }
 
-    if (initializationFailed && isNetworkConnected) {
-        Toast.makeText(context, "Initialization failed. Please log in again.", Toast.LENGTH_SHORT).show()
-        App(isInitialized, isNetworkConnected)
-    } else if (initializationFailed && !isNetworkConnected){
-        App(isInitialized, isNetworkConnected)
-    } else if (isInitialized) {
-        // Show the main app content
-        App(isInitialized, isNetworkConnected)
-    } else {
-        // Show a loading indicator while initialization is in progress
-        CircularProgressIndicator()
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        when {
+            initializationFailed && isNetworkConnected -> {
+                Toast.makeText(
+                    context,
+                    "Initialization failed. Please log in again.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                App(isInitialized, isNetworkConnected)
+            }
+
+            initializationFailed && !isNetworkConnected -> {
+                Text("Device is not connected to Internet. Please try again!!")
+            }
+
+            isInitialized -> {
+                // Show the main app content
+                App(isInitialized, isNetworkConnected)
+            }
+
+            else -> {
+                // Show a loading indicator while initialization is in progress
+                CircularProgressIndicator()
+            }
+        }
     }
 }
 
