@@ -9,14 +9,26 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.android.splitease.screens.BottomNavigationBar
 import com.android.splitease.screens.LoginScreen
+import com.android.splitease.screens.NoNetworkScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun App() {
+fun App(isInitialized: Boolean, isNetworkConnected: Boolean) {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(navController = navController, startDestination =
+    if(isInitialized && isNetworkConnected) {
+        Screen.BottomNavigationBar.route
+    } else if (!isNetworkConnected) {
+        Screen.NoNetworkScreen.route
+    } else {
+        Screen.LoginScreen.route
+    }) {
         composable(route = Screen.LoginScreen.route) {
             LoginScreen(navController = navController)
+        }
+
+        composable(route = Screen.NoNetworkScreen.route) {
+            NoNetworkScreen()
         }
 
         composable(route = Screen.BottomNavigationBar.route) {
@@ -35,6 +47,7 @@ data class BottomNavigationItem(
 sealed class Screen(val route: String){
     data object LoginScreen: Screen("login")
     data object BottomNavigationBar: Screen("bottomBar")
+    data object NoNetworkScreen: Screen("noNetwork")
     data object GroupScreen: Screen("groups")
     data object FriendsScreen: Screen("friends")
     data object AccountScreen: Screen("account")

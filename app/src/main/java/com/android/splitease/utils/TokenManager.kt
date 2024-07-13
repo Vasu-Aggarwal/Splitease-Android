@@ -3,12 +3,19 @@ package com.android.splitease.utils
 import android.content.SharedPreferences
 
 class TokenManager (private val sharedPreferences: SharedPreferences) {
+    private val oneMonthInMillis = 30 * 24 * 60 * 60 * 1000L // Approx. 30 days
+    private val fiveHourInMillis = 5*60*60*1000L // Approx. 5 hours
 
     fun saveAuthToken(authToken: String?, refreshToken: String?, userUuid: String?) {
         with(sharedPreferences.edit()) {
+            val currentTimeMillis = System.currentTimeMillis()
             putString("auth_token", authToken)
             putString("refresh_token", refreshToken)
             putString("user_uuid", userUuid)
+            putLong("auth_token_saved_time", currentTimeMillis)
+            putLong("auth_token_expiry_time", currentTimeMillis+(fiveHourInMillis))
+            putLong("refresh_token_saved_time", currentTimeMillis)
+            putLong("refresh_token_expiry_time", currentTimeMillis+(oneMonthInMillis))
             apply()
         }
     }
@@ -25,10 +32,17 @@ class TokenManager (private val sharedPreferences: SharedPreferences) {
         return sharedPreferences.getString("user_uuid", null)
     }
 
+    fun getAuthExpiryTime(): Long {
+        return sharedPreferences.getLong("auth_token_expiry_time", 0)
+    }
+
+    fun getRefreshExpiryTime(): Long {
+        return sharedPreferences.getLong("refresh_token_expiry_time", 0)
+    }
+
     fun clearTokens() {
         with(sharedPreferences.edit()) {
             remove("auth_token")
-            remove("refresh_token")
             apply()
         }
     }

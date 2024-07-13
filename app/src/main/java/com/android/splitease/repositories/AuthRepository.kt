@@ -46,4 +46,19 @@ class AuthRepository @Inject constructor(private val authService: AuthService,
             }
         }
     }
+
+    suspend fun refreshToken(){
+        val requestBody = tokenManager.getRefreshToken()
+        val response = authService.refreshToken(requestBody!!)
+        if (response.isSuccessful && response.body()!=null){
+            val authToken = response.body()!!.token
+            val refreshToken = response.body()!!.refreshToken
+            val userUuid = response.body()!!.userUuid
+            tokenManager.saveAuthToken(authToken, refreshToken, userUuid)
+        } else {
+            // Parse the error body to extract the error message
+            val rawError = response.errorBody()?.string()
+            Log.e("Refresh Token", "refreshToken: caused the error$rawError")
+        }
+    }
 }
