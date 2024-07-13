@@ -25,4 +25,10 @@ public interface UserDao {
 
     @Query("SELECT * FROM user where uuid = :uuid")
     suspend fun getUserByUuid(uuid: String): UserEntity
+
+    @Query("SELECT * FROM user WHERE uuid = :uuid AND lastUpdated >= :minValidTimestamp")
+    suspend fun getUserByUuidWithTTL(uuid: String, minValidTimestamp: Long): UserEntity
+
+    @Query("DELETE FROM user WHERE lastUpdated <= :maxStaleTimestamp")
+    suspend fun deleteStaleUsers(maxStaleTimestamp: Long)
 }

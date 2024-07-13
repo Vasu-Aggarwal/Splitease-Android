@@ -34,6 +34,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.android.splitease.models.responses.CreateUserResponse
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
+import com.android.splitease.models.responses.GetUserByUuidResponse
 import com.android.splitease.navigation.Screen
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.TokenManager
@@ -108,7 +109,7 @@ fun TransactionItem(
             .fillMaxSize()
             .background(color = Color.Transparent)
     ){
-        var userState by remember { mutableStateOf<CreateUserResponse?>(null) }
+        var userState by remember { mutableStateOf<GetUserByUuidResponse?>(null) }
         Box {
             Row {
                 val utilMethods = UtilMethods()
@@ -124,7 +125,7 @@ fun TransactionItem(
                                 userViewModel.getUserByUuid(transaction.userUuid)
                             }
                         }
-                        val user: State<NetworkResult<CreateUserResponse>> =
+                        val user: State<NetworkResult<GetUserByUuidResponse>> =
                             userViewModel.user.collectAsState()
                         val userData = userViewModel.user.collectAsState().value
                         if (userData is NetworkResult.Success){
