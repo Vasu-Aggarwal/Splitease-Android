@@ -1,7 +1,9 @@
 package com.android.splitease.screens
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -27,15 +29,15 @@ import com.android.splitease.viewmodels.GroupViewModel
 fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavController) {
     val groups: State<NetworkResult<List<AddGroupResponse>>> = viewModel.groups.collectAsState()
     val context = LocalContext.current
-    Column{
-        LazyColumn {
-            groups.value.data?.let { groupList ->
-                items(groupList) { group ->
-                    GroupItem(group = group, viewModel, navController)
-                }
+    LazyColumn(modifier = Modifier.fillMaxSize()) { // Adjust padding as needed
+        groups.value.data?.let { groupList ->
+            items(groupList) { group ->
+                GroupItem(group = group, viewModel, navController)
             }
         }
-        StartNewGroup(navController)
+        item {
+            StartNewGroup(navController)
+        }
     }
 }
 
