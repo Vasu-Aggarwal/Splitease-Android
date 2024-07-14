@@ -51,7 +51,6 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
     var description by remember { mutableStateOf("") }
     var amount by remember { mutableDoubleStateOf(0.00) }
     var message by remember { mutableStateOf("") }
-//    val groupMembers: State<NetworkResult<Set<CreateUserResponse>>> = groupViewModel.groupMembers.collectAsState()
     val groupMembers by groupViewModel.groupMembersV2.collectAsState()
 
     Column(
@@ -79,10 +78,6 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
             onClick = {
                 if (description.isNotBlank() && amount>0.00) {
                     groupViewModel.getGroupMembersV2(groupId)
-                    val addTransactionRequest = AddTransactionRequest(
-                        amount, SplitBy.EQUAL, groupId, userUuid!!, description, "Adventure", mapOf(userUuid to amount)
-                    )
-                    transactionViewModel.addTransaction(addTransactionRequest)
                 } else {
                     message = "Please enter a valid description and amount"
                 }
