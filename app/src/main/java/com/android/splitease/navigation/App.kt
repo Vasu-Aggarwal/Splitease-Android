@@ -61,4 +61,6 @@ sealed class Screen(val route: String){
         fun createRoute(transactionId: Int) = "detailedTransaction/$transactionId"
     }
 
+    data object NewGroupScreen: Screen("newGroup")
+
 }

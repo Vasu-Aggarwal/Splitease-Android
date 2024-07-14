@@ -126,6 +126,10 @@ fun BottomNavigationBar(){
                 AccountScreen()
             }
 
+            composable(route = Screen.NewGroupScreen.route){
+                NewGroupScreen()
+            }
+
             composable(route = Screen.DetailedGroupScreen.route,
                 arguments = listOf(navArgument("groupId"){type = NavType.IntType}))
             { backStackEntry ->

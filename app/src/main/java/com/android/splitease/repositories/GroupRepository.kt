@@ -1,5 +1,6 @@
 package com.android.splitease.repositories
 
+import com.android.splitease.models.requests.AddGroupRequest
 import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.responses.CreateUserResponse
 import com.android.splitease.models.responses.GetGroupMembersV2Response
@@ -22,6 +23,10 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
     private val _groupMembersV2 = MutableStateFlow<NetworkResult<Set<GetGroupMembersV2Response>>>(NetworkResult.Idle())
     val groupMembersV2: StateFlow<NetworkResult<Set<GetGroupMembersV2Response>>>
         get() = _groupMembersV2
+
+    private val _addUpdateGroup = MutableStateFlow<NetworkResult<AddGroupResponse>>(NetworkResult.Idle())
+    val addUpdateGroup: StateFlow<NetworkResult<AddGroupResponse>>
+        get() = _addUpdateGroup
 
     suspend fun groupsByUser(){
         val authToken = tokenManager.getAuthToken()
@@ -51,6 +56,16 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
             _groupMembersV2.emit(NetworkResult.Success(response.body()!!))
         } else {
             _groupMembersV2.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+        }
+    }
+
+    suspend fun addUpdateGroup(addGroupRequest: AddGroupRequest){
+        val authToken = tokenManager.getAuthToken()!!
+        val response = groupService.addUpdateGroupApi(authToken, addGroupRequest)
+        if (response.isSuccessful && response.body()!=null){
+            _addUpdateGroup.emit(NetworkResult.Success(response.body()!!))
+        } else {
+            _addUpdateGroup.emit(NetworkResult.Error(response.errorBody()?.string()!!))
         }
     }
 }

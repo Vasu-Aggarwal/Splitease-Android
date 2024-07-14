@@ -35,7 +35,7 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                 }
             }
         }
-        StartNewGroup(viewModel)
+        StartNewGroup(navController)
     }
 }
 
@@ -59,8 +59,8 @@ fun GroupItem(group: AddGroupResponse, viewModel: GroupViewModel, navController:
 }
 
 @Composable
-fun StartNewGroup(viewModel: GroupViewModel) {
-    Button(onClick = { /*TODO*/ }) {
+fun StartNewGroup(navController: NavController) {
+    Button(onClick = { navController.navigate(Screen.NewGroupScreen.route) }) {
         Text(text = "Start a new group")
     }
 }
