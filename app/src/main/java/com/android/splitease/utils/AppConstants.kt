@@ -9,6 +9,6 @@ object AppConstants {
     const val AUTH_URL = "/auth"
     const val GROUP_URL = "/api/group"
     const val USER_URL = "/api/user"
-    const val CACHE_TTL = 60*60*1000 //1 minute
+    const val CACHE_TTL = 60*1000 //1 minute
     const val UNEXPECTED_ERROR = "Something went wrong. Please try again later !!"
 }
