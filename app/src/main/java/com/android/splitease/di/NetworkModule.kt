@@ -35,7 +35,7 @@ class NetworkModule {
         return Retrofit.Builder()
             .baseUrl(AppConstants.OFFICE_BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
-            .client(okHttpClient)
+//            .client(okHttpClient)
             .build();
     }
 

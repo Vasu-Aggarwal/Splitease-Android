@@ -61,7 +61,7 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
 
     suspend fun addUpdateGroup(addGroupRequest: AddGroupRequest){
         val authToken = tokenManager.getAuthToken()!!
-        val response = groupService.addUpdateGroupApi(authToken, addGroupRequest)
+        val response = groupService.addUpdateGroupApi("Bearer $authToken", addGroupRequest)
         if (response.isSuccessful && response.body()!=null){
             _addUpdateGroup.emit(NetworkResult.Success(response.body()!!))
         } else {

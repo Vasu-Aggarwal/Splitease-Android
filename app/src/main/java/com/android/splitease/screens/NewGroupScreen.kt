@@ -1,6 +1,5 @@
 package com.android.splitease.screens
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +11,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -20,17 +20,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.android.splitease.models.requests.AddGroupRequest
 import com.android.splitease.models.responses.AddGroupResponse
+import com.android.splitease.navigation.Screen
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.GroupViewModel
-import kotlinx.coroutines.flow.StateFlow
 
 @Composable
-fun NewGroupScreen(groupViewModel: GroupViewModel = hiltViewModel()) {
+fun NewGroupScreen(
+    groupViewModel: GroupViewModel = hiltViewModel(),
+    navController: NavController
+) {
     var groupName by remember { mutableStateOf("") }
     val addUpdateGroup : State<NetworkResult<AddGroupResponse>> = groupViewModel.addUpdateGroup.collectAsState()
 
@@ -47,16 +51,37 @@ fun NewGroupScreen(groupViewModel: GroupViewModel = hiltViewModel()) {
             label = { Text("Enter Group Name") },
             modifier = Modifier.fillMaxWidth()
         )
-    }
 
-    Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-    Button(
-        onClick = {
-            groupViewModel.addUpdateGroup(AddGroupRequest(groupName))
-        },
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text("Create Group")
+        Button(
+            onClick = {
+                groupViewModel.addUpdateGroup(AddGroupRequest(groupName))
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Create Group")
+        }
+
+        // Handling response
+        when (val result = addUpdateGroup.value) {
+            is NetworkResult.Success -> {
+                // Navigate when success response is received
+                LaunchedEffect(Unit) {
+//                    navController.popBackStack(Screen.GroupScreen.route, false) // Replace with your target screen
+                    navController.navigate(Screen.GroupScreen.route) // Replace with your target screen
+                }
+            }
+            is NetworkResult.Error -> {
+                // Handle error
+                Text(text = result.message ?: "Unknown error occurred")
+            }
+            is NetworkResult.Loading -> {
+                // Show loading state if needed
+                Text(text = "Creating group...")
+            }
+
+            is NetworkResult.Idle -> Text(text = "Idle")
+        }
     }
 }
