@@ -3,6 +3,7 @@ package com.android.splitease.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.splitease.models.requests.AddGroupRequest
+import com.android.splitease.models.requests.AddUsersToGroupRequest
 import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.responses.CreateUserResponse
 import com.android.splitease.models.responses.GetGroupMembersV2Response
@@ -54,6 +55,12 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
     fun addUpdateGroup(addGroupRequest: AddGroupRequest){
         viewModelScope.launch {
             groupRepository.addUpdateGroup(addGroupRequest)
+        }
+    }
+
+    fun addUsersToGroup(addUsersToGroupRequest: AddUsersToGroupRequest){
+        viewModelScope.launch {
+            groupRepository.addUsersToGroup(addUsersToGroupRequest)
         }
     }
 }

@@ -2,6 +2,8 @@ package com.android.splitease.services
 
 import com.android.splitease.models.requests.AddGroupRequest
 import com.android.splitease.models.responses.AddGroupResponse
+import com.android.splitease.models.requests.AddUsersToGroupRequest
+import com.android.splitease.models.responses.AddUsersToGroupResponse
 import com.android.splitease.models.responses.CreateUserResponse
 import com.android.splitease.models.responses.GetGroupMembersV2Response
 import com.android.splitease.utils.AppConstants
@@ -24,5 +26,8 @@ interface GroupService {
 
     @POST("${AppConstants.GROUP_URL}/addUpdateGroup")
     suspend fun addUpdateGroupApi(@Header("Authorization") token: String, @Body addGroupRequest: AddGroupRequest): Response<AddGroupResponse>
+
+    @POST("${AppConstants.GROUP_URL}/addUsersToGroup")
+    suspend fun addUsersToGroupApi(@Header("Authorization") token: String, @Body addUsersToGroupRequest: AddUsersToGroupRequest): Response<AddUsersToGroupResponse>
 
 }

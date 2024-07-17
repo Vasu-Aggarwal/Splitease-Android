@@ -68,8 +68,7 @@ fun NewGroupScreen(
             is NetworkResult.Success -> {
                 // Navigate when success response is received
                 LaunchedEffect(Unit) {
-//                    navController.popBackStack(Screen.GroupScreen.route, false) // Replace with your target screen
-                    navController.navigate(Screen.GroupScreen.route) // Replace with your target screen
+                    navController.navigate(Screen.DetailedGroupScreen.createRoute(result.data!!.groupId)) // Replace with your target screen
                 }
             }
             is NetworkResult.Error -> {

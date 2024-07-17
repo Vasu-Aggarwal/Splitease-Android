@@ -9,12 +9,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,7 +31,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.android.splitease.models.responses.CreateUserResponse
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.models.responses.GetUserByUuidResponse
 import com.android.splitease.navigation.Screen
@@ -44,7 +42,9 @@ import com.android.splitease.viewmodels.UserViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel = hiltViewModel(), userViewModel: UserViewModel = hiltViewModel(), navController: NavController) {
+fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel = hiltViewModel(), 
+                        userViewModel: UserViewModel = hiltViewModel(), 
+                        navController: NavController) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("secure_prefs", Context.MODE_PRIVATE)
     val tokenManager = TokenManager(sharedPreferences)
@@ -58,7 +58,7 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
             modifier = Modifier.fillMaxSize()
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                GroupInfo()
+                GroupInfo(groupId, navController)
                 GroupTransactions(transactions, tokenManager, userViewModel, navController)
             }
             ExtendedFloatingActionButton(
@@ -152,6 +152,11 @@ fun TransactionItem(
 }
 
 @Composable
-fun GroupInfo() {
-    Text(text = "groupName")
+fun GroupInfo(groupId: Int, navController: NavController) {
+    Column{
+        Text(text = "groupName: ${groupId}")
+        Button(onClick = { navController.navigate(Screen.AddUsersToGroupScreen.createRoute(groupId)) }) {
+            Text(text = "Add Users")
+        }
+    }
 }

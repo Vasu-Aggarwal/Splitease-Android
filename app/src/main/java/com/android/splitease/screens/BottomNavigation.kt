@@ -151,6 +151,15 @@ fun BottomNavigationBar(){
                     DetailedTransactionScreen(transactionId = it, navController = navController)
                 }
             }
+
+            composable(route = Screen.AddUsersToGroupScreen.route,
+                arguments = listOf(navArgument("groupId"){type = NavType.IntType}))
+            { backStackEntry ->
+                val groupId = backStackEntry.arguments?.getInt("groupId")
+                groupId?.let {
+                    AddUsersToGroupScreen(groupId = it)
+                }
+            }
         }
     }
 }
