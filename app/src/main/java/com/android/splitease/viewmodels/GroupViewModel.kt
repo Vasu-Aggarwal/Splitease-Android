@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.android.splitease.models.requests.AddGroupRequest
 import com.android.splitease.models.requests.AddUsersToGroupRequest
 import com.android.splitease.models.responses.AddGroupResponse
+import com.android.splitease.models.responses.AddUsersToGroupResponse
 import com.android.splitease.models.responses.CreateUserResponse
 import com.android.splitease.models.responses.GetGroupMembersV2Response
 import com.android.splitease.repositories.GroupRepository
@@ -27,6 +28,9 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
 
     val addUpdateGroup: StateFlow<NetworkResult<AddGroupResponse>>
         get() = groupRepository.addUpdateGroup
+
+    val addUsersToGroup: StateFlow<NetworkResult<AddUsersToGroupResponse>>
+        get() = groupRepository.addUsersToGroup
 
     init {
         viewModelScope.launch {

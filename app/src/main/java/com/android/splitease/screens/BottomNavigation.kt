@@ -157,7 +157,7 @@ fun BottomNavigationBar(){
             { backStackEntry ->
                 val groupId = backStackEntry.arguments?.getInt("groupId")
                 groupId?.let {
-                    AddUsersToGroupScreen(groupId = it)
+                    AddUsersToGroupScreen(groupId = it, navController = navController)
                 }
             }
         }
