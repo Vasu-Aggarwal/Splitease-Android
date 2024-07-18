@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.android.splitease.models.responses.CalculateDebtResponse
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.models.responses.GetUserByUuidResponse
 import com.android.splitease.navigation.Screen
@@ -50,15 +52,61 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
     val tokenManager = TokenManager(sharedPreferences)
     LaunchedEffect(groupId) {
         transactionViewModel.getTransactionsByUser(groupId.toString())
+        transactionViewModel.calculateDebt(groupId)
     }
 
     val transactions: State<NetworkResult<List<GetTransactionsByGroupResponse>>> = transactionViewModel.transactions.collectAsState()
+//    val calculateDebt: State<NetworkResult<CalculateDebtResponse>> = transactionViewModel.calculateDebt.collectAsState()
+    val calculateDebt by transactionViewModel.calculateDebt.collectAsState()
     Column {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
+//                UserDebtScreen()
                 GroupInfo(groupId, navController)
+
+                when(calculateDebt){
+                    is NetworkResult.Error -> {
+                        Text(text = "Error")
+                    }
+                    is NetworkResult.Idle -> {
+                        Text(text = "Idle")
+                    }
+                    is NetworkResult.Loading -> {
+                        CircularProgressIndicator()
+                    }
+                    is NetworkResult.Success -> {
+                        val debtData = (calculateDebt as NetworkResult.Success).data
+                        debtData?.let { data ->
+                            LazyColumn(modifier = Modifier.padding(16.dp)) {
+                                item {
+                                    Text(text = "Creditor List", modifier = Modifier.padding(vertical = 8.dp))
+                                }
+                                items(data.creditorList) { creditor ->
+                                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                                        Text(text = "Creditor: ${creditor.uuid} gets back ${creditor.getsBack}")
+                                        creditor.lentTo.forEach { lentTo ->
+                                            Text(text = "  Lent to ${lentTo.uuid}: ${lentTo.amount}")
+                                        }
+                                    }
+                                }
+
+                                item {
+                                    Text(text = "Debtor List", modifier = Modifier.padding(vertical = 8.dp))
+                                }
+                                items(data.debtorList) { debtor ->
+                                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                                        Text(text = "Debtor: ${debtor.uuid}")
+                                        debtor.lentFrom.forEach { lentFrom ->
+                                            Text(text = "  Lent from ${lentFrom.uuid}: ${lentFrom.amount}")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 GroupTransactions(transactions, tokenManager, userViewModel, navController)
             }
             ExtendedFloatingActionButton(
