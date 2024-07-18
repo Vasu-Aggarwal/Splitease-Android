@@ -1,6 +1,7 @@
 package com.android.splitease.screens
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -46,7 +47,9 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
             value = email,
             onValueChange = { email = it },
             label = { Text("User Email") },
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
         )
 
         Button(
@@ -63,7 +66,23 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
 
         Text(text = "Users added to the group:")
         emailSet.forEach { addedEmail ->
-            Text(text = addedEmail, modifier = Modifier.padding(vertical = 2.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 2.dp)
+            ) {
+                Text(
+                    text = addedEmail,
+                    modifier = Modifier.weight(1f)
+                )
+                Button(
+                    onClick = {
+                        emailSet = emailSet - addedEmail
+                    }
+                ) {
+                    Text(text = "Delete")
+                }
+            }
         }
 
         Button(
