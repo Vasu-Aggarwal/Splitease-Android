@@ -2,6 +2,7 @@ package com.android.splitease.repositories
 
 import com.android.splitease.models.requests.AddTransactionRequest
 import com.android.splitease.models.responses.AddTransactionResponse
+import com.android.splitease.models.responses.CalculateDebtResponse
 import com.android.splitease.models.responses.DeleteResponse
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.services.TransactionService
@@ -23,6 +24,10 @@ class TransactionRepository @Inject constructor(private val transactionService: 
     private val _deleteTransaction = MutableStateFlow<NetworkResult<DeleteResponse>>(NetworkResult.Idle())
     val deleteTransaction: StateFlow<NetworkResult<DeleteResponse>>
         get() = _deleteTransaction
+
+    private val _calculateDebt = MutableStateFlow<NetworkResult<CalculateDebtResponse>>(NetworkResult.Idle())
+    val calculateDebt: StateFlow<NetworkResult<CalculateDebtResponse>>
+        get() = _calculateDebt
 
     suspend fun transactionByGroupId(groupId: String){
         val authToken = tokenManager.getAuthToken()
@@ -51,6 +56,16 @@ class TransactionRepository @Inject constructor(private val transactionService: 
             _deleteTransaction.emit(NetworkResult.Success(response.body()!!))
         } else {
             _deleteTransaction.emit(NetworkResult.Error(response.errorBody()?.string()))
+        }
+    }
+
+    suspend fun calculateDebt(groupId: Int){
+        val authToken = tokenManager.getAuthToken()
+        val response = transactionService.calculateDebtApi("Bearer $authToken", groupId)
+        if (response.isSuccessful && response.body()!=null){
+            _calculateDebt.emit(NetworkResult.Success(response.body()!!))
+        } else {
+            _calculateDebt.emit(NetworkResult.Error(response.errorBody()?.string()))
         }
     }
 }

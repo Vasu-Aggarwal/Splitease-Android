@@ -2,6 +2,7 @@ package com.android.splitease.services
 
 import com.android.splitease.models.requests.AddTransactionRequest
 import com.android.splitease.models.responses.AddTransactionResponse
+import com.android.splitease.models.responses.CalculateDebtResponse
 import com.android.splitease.models.responses.DeleteResponse
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.utils.AppConstants
@@ -19,6 +20,9 @@ interface TransactionService {
 
     @POST("${AppConstants.TRANSACTION_URL}/addTransaction")
     suspend fun addTransactionApi(@Header("Authorization") token: String, @Body addTransactionRequest: AddTransactionRequest): Response<AddTransactionResponse>
+
+    @POST("${AppConstants.TRANSACTION_URL}/calculateDebt/{groupId}")
+    suspend fun calculateDebtApi(@Header("Authorization") token: String, @Path("groupId") groupId: Int): Response<CalculateDebtResponse>
 
     @DELETE("${AppConstants.TRANSACTION_URL}/deleteTransaction/{transactionId}")
     suspend fun deleteTransactionApi(@Header("Authorization") token: String, @Path("transactionId") transactionId: Int): Response<DeleteResponse>

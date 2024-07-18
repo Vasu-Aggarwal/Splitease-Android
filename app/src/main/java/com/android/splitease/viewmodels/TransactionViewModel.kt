@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.splitease.models.requests.AddTransactionRequest
 import com.android.splitease.models.responses.AddTransactionResponse
+import com.android.splitease.models.responses.CalculateDebtResponse
 import com.android.splitease.models.responses.DeleteResponse
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.repositories.TransactionRepository
@@ -24,6 +25,9 @@ class TransactionViewModel @Inject constructor(private val transactionRepository
     val deleteTransaction: StateFlow<NetworkResult<DeleteResponse>>
         get() = transactionRepository.deleteTransaction
 
+    val calculateDebt: StateFlow<NetworkResult<CalculateDebtResponse>>
+        get() = transactionRepository.calculateDebt
+
     fun getTransactionsByUser(groupId: String) {
         viewModelScope.launch {
             transactionRepository.transactionByGroupId(groupId)
@@ -39,6 +43,12 @@ class TransactionViewModel @Inject constructor(private val transactionRepository
     fun deleteTransaction(transactionId: Int){
         viewModelScope.launch {
             transactionRepository.deleteTransaction(transactionId)
+        }
+    }
+
+    fun calculateDebt(groupId: Int){
+        viewModelScope.launch {
+            transactionRepository.calculateDebt(groupId)
         }
     }
 }
