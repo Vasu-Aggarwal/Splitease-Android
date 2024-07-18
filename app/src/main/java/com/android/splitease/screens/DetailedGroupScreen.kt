@@ -8,7 +8,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -56,58 +58,16 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
     }
 
     val transactions: State<NetworkResult<List<GetTransactionsByGroupResponse>>> = transactionViewModel.transactions.collectAsState()
-//    val calculateDebt: State<NetworkResult<CalculateDebtResponse>> = transactionViewModel.calculateDebt.collectAsState()
     val calculateDebt by transactionViewModel.calculateDebt.collectAsState()
     Column {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-//                UserDebtScreen()
                 GroupInfo(groupId, navController)
-
-                when(calculateDebt){
-                    is NetworkResult.Error -> {
-                        Text(text = "Error")
-                    }
-                    is NetworkResult.Idle -> {
-                        Text(text = "Idle")
-                    }
-                    is NetworkResult.Loading -> {
-                        CircularProgressIndicator()
-                    }
-                    is NetworkResult.Success -> {
-                        val debtData = (calculateDebt as NetworkResult.Success).data
-                        debtData?.let { data ->
-                            LazyColumn(modifier = Modifier.padding(16.dp)) {
-                                item {
-                                    Text(text = "Creditor List", modifier = Modifier.padding(vertical = 8.dp))
-                                }
-                                items(data.creditorList) { creditor ->
-                                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                                        Text(text = "Creditor: ${creditor.uuid} gets back ${creditor.getsBack}")
-                                        creditor.lentTo.forEach { lentTo ->
-                                            Text(text = "  Lent to ${lentTo.uuid}: ${lentTo.amount}")
-                                        }
-                                    }
-                                }
-
-                                item {
-                                    Text(text = "Debtor List", modifier = Modifier.padding(vertical = 8.dp))
-                                }
-                                items(data.debtorList) { debtor ->
-                                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                                        Text(text = "Debtor: ${debtor.uuid}")
-                                        debtor.lentFrom.forEach { lentFrom ->
-                                            Text(text = "  Lent from ${lentFrom.uuid}: ${lentFrom.amount}")
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                DebtSection(calculateDebt)
                 GroupTransactions(transactions, tokenManager, userViewModel, navController)
+
             }
             ExtendedFloatingActionButton(
                 onClick = {
@@ -119,6 +79,24 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
             ) {
                 Text(text = "Add Expense")
             }
+        }
+    }
+}
+
+@Composable
+fun DebtSection(calculateDebt: NetworkResult<CalculateDebtResponse>) {
+    when(calculateDebt){
+        is NetworkResult.Error -> {
+            Text(text = "Error")
+        }
+        is NetworkResult.Idle -> {
+            Text(text = "Idle")
+        }
+        is NetworkResult.Loading -> {
+            CircularProgressIndicator()
+        }
+        is NetworkResult.Success -> {
+            UserDebtScreen(calculateDebt = calculateDebt)
         }
     }
 }
@@ -200,7 +178,10 @@ fun TransactionItem(
 }
 
 @Composable
-fun GroupInfo(groupId: Int, navController: NavController) {
+fun GroupInfo(
+    groupId: Int,
+    navController: NavController
+) {
     Column{
         Text(text = "groupName: ${groupId}")
         Button(onClick = { navController.navigate(Screen.AddUsersToGroupScreen.createRoute(groupId)) }) {

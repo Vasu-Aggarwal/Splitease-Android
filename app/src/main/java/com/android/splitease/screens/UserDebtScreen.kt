@@ -18,30 +18,31 @@ import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.TransactionViewModel
 
 @Composable
-fun UserDebtScreen(transactionViewModel: TransactionViewModel = hiltViewModel()) {
-    val calculateDebt: State<NetworkResult<CalculateDebtResponse>> = transactionViewModel.calculateDebt.collectAsState()
-
-    LazyColumn(modifier = Modifier.padding(16.dp)) {
-        item {
-            Text(text = "Creditor List", modifier = Modifier.padding(vertical = 8.dp))
-        }
-        items(calculateDebt.value.data!!.creditorList){ creditor ->
-            Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                Text(text = "Creditor: ${creditor.uuid} gets back ${creditor.getsBack}")
-                creditor.lentTo.forEach { lentTo ->
-                    Text(text = "  Lent to ${lentTo.uuid}: ${lentTo.amount}")
+fun UserDebtScreen(calculateDebt: NetworkResult<CalculateDebtResponse>) {
+    val debtData = (calculateDebt as NetworkResult.Success).data
+    debtData?.let { data ->
+        LazyColumn(modifier = Modifier.padding(16.dp)) {
+            item {
+                Text(text = "Creditor List", modifier = Modifier.padding(vertical = 8.dp))
+            }
+            items(data.creditorList) { creditor ->
+                Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                    Text(text = "Creditor: ${creditor.name} gets back ${creditor.getsBack}")
+                    creditor.lentTo.forEach { lentTo ->
+                        Text(text = "  Lent to ${lentTo.name}: ${lentTo.amount}")
+                    }
                 }
             }
-        }
 
-        item {
-            Text(text = "Debtor List", modifier = Modifier.padding(vertical = 8.dp))
-        }
-        items(calculateDebt.value.data!!.debtorList) { debtor ->
-            Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                Text(text = "Debtor: ${debtor.uuid}")
-                debtor.lentFrom.forEach { lentFrom ->
-                    Text(text = "  Lent from ${lentFrom.uuid}: ${lentFrom.amount}")
+            item {
+                Text(text = "Debtor List", modifier = Modifier.padding(vertical = 8.dp))
+            }
+            items(data.debtorList) { debtor ->
+                Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                    Text(text = "Debtor: ${debtor.name}")
+                    debtor.lentFrom.forEach { lentFrom ->
+                        Text(text = "  Lent from ${lentFrom.name}: ${lentFrom.amount}")
+                    }
                 }
             }
         }

@@ -29,8 +29,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.android.splitease.models.responses.CalculateDebtResponse
 import com.android.splitease.navigation.BottomNavigationItem
 import com.android.splitease.navigation.Screen
+import com.android.splitease.utils.NetworkResult
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)

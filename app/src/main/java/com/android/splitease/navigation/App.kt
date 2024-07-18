@@ -7,9 +7,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.android.splitease.models.responses.CalculateDebtResponse
 import com.android.splitease.screens.BottomNavigationBar
 import com.android.splitease.screens.LoginScreen
 import com.android.splitease.screens.NoNetworkScreen
+import com.android.splitease.utils.NetworkResult
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -65,6 +67,9 @@ sealed class Screen(val route: String){
 
     data object AddUsersToGroupScreen: Screen("addUsersToGroup/{groupId}"){
         fun createRoute(groupId: Int) = "addUsersToGroup/$groupId"
+    }
+    data object UserDebtScreen: Screen("userDebt/{calculateDebt}"){
+        fun createRoute(calculateDebt: NetworkResult<CalculateDebtResponse>) = "userDebt/$calculateDebt"
     }
 
 }
