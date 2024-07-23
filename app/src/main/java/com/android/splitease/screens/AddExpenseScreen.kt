@@ -123,24 +123,58 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
 
             is NetworkResult.Idle -> message = "Idle"
         }
-        Row {
-            Text(text = "Paid by")
-            Button(modifier = Modifier.padding(8.dp)
-                .shadow(5.dp),
-                shape = RoundedCornerShape(15),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
-                onClick = { navController.navigate(Screen.SelectPayingUserScreen.createRoute(groupId)) }) {
-                Text(text = "${selectedUserName?.value}")
+//        Row {
+//            Text(text = "Paid by")
+//            Button(modifier = Modifier.padding(8.dp)
+//                .shadow(5.dp),
+//                shape = RoundedCornerShape(15),
+//                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
+//                onClick = { navController.navigate(Screen.SelectPayingUserScreen.createRoute(groupId)) }) {
+//                Text(text = "${selectedUserName?.value}")
+//            }
+//            Text(text = "and split")
+//            Button(modifier = Modifier.padding(8.dp)
+//                .shadow(5.dp),
+//                shape = RoundedCornerShape(15),
+//                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
+//                onClick = { navController.navigate(Screen.SelectPayingUserScreen.createRoute(groupId)) }) {
+//                Text(text = "Equally")
+//            }
+//        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = "Paid by", modifier = Modifier.padding(end = 8.dp))
+                Button(
+                    modifier = Modifier.padding(8.dp)
+                        .shadow(5.dp)
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(15),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
+                    onClick = { navController.navigate(Screen.SelectPayingUserScreen.createRoute(groupId)) }
+                ) {
+                    Text(text = selectedUserName?.value ?: "You", maxLines = 1)
+                }
             }
-            Text(text = "and split")
-            Button(modifier = Modifier.padding(8.dp)
-                .shadow(5.dp),
-                shape = RoundedCornerShape(15),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
-                onClick = { navController.navigate(Screen.SelectPayingUserScreen.createRoute(groupId)) }) {
-                Text(text = "Equally")
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = "and split", modifier = Modifier.padding(end = 8.dp))
+                Button(
+                    modifier = Modifier.padding(8.dp)
+                        .shadow(5.dp)
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(15),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
+                    onClick = { navController.navigate(Screen.SelectPayingUserScreen.createRoute(groupId)) }
+                ) {
+                    Text(text = "Equally", maxLines = 1)
+                }
             }
         }
+
     }
     
     LaunchedEffect(groupMembers) {
