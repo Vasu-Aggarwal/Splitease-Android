@@ -29,10 +29,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.android.splitease.models.responses.CalculateDebtResponse
 import com.android.splitease.navigation.BottomNavigationItem
 import com.android.splitease.navigation.Screen
-import com.android.splitease.utils.NetworkResult
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -169,6 +167,14 @@ fun BottomNavigationBar(){
                 val groupId = backStackEntry.arguments?.getInt("groupId")
                 groupId?.let {
                     UserDebtScreen(groupId = it)
+                }
+            }
+
+            composable(route = Screen.SelectPayingUserScreen.route,
+                arguments = listOf(navArgument("groupId"){type = NavType.IntType})){ backStackEntry ->
+                val groupId = backStackEntry.arguments?.getInt("groupId")
+                groupId?.let {
+                    SelectPayingUserScreen(groupId = it, navController = navController)
                 }
             }
         }

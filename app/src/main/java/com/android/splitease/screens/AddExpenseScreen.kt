@@ -2,6 +2,7 @@ package com.android.splitease.screens
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -17,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -24,11 +27,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.android.splitease.models.requests.AddTransactionRequest
 import com.android.splitease.models.responses.AddTransactionResponse
 import com.android.splitease.models.responses.CreateUserResponse
@@ -52,6 +63,10 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
     var amount by remember { mutableDoubleStateOf(0.00) }
     var message by remember { mutableStateOf("") }
     val groupMembers by groupViewModel.groupMembersV2.collectAsState()
+
+    // Retrieve the selected user's name and UUID from the savedStateHandle
+    val selectedUserName = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedUserName", " ")?.collectAsState()
+    val selectedUserUuid = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedUserUuid", " ")?.collectAsState()
 
     Column(
         modifier = Modifier
@@ -104,6 +119,41 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
 
             is NetworkResult.Idle -> message = "Idle"
         }
+        val annotatedString = buildAnnotatedString {
+            withStyle(style = SpanStyle(fontSize = 16.sp, color = Color.White)) {
+                append("Paid by ")
+            }
+            withStyle(style = SpanStyle(fontSize = 16.sp, color = Color.White, textDecoration = TextDecoration.None)) {
+                pushStringAnnotation(tag = "Clickable", annotation = "selectUser")
+                append(selectedUserName?.value ?:  "NULL" )
+                pop()
+            }
+        }
+
+        BasicText(
+            text = annotatedString,
+            modifier = Modifier
+                .padding(16.dp)
+                .clickable {
+                    // Handle the click action
+                    annotatedString
+                        .getStringAnnotations(
+                            tag = "Clickable",
+                            start = 0,
+                            end = annotatedString.length
+                        )
+                        .firstOrNull()
+                        ?.let {
+                            if (it.item == "selectUser") {
+                                navController.navigate(
+                                    Screen.SelectPayingUserScreen.createRoute(
+                                        groupId
+                                    )
+                                )
+                            }
+                        }
+                }
+        )
     }
     
     LaunchedEffect(groupMembers) {
