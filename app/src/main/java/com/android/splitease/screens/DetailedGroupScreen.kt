@@ -8,9 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -65,7 +63,6 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 GroupInfo(groupId, navController)
-                DebtSection(calculateDebt)
                 GroupTransactions(transactions, tokenManager, userViewModel, navController)
 
             }
@@ -79,24 +76,6 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
             ) {
                 Text(text = "Add Expense")
             }
-        }
-    }
-}
-
-@Composable
-fun DebtSection(calculateDebt: NetworkResult<CalculateDebtResponse>) {
-    when(calculateDebt){
-        is NetworkResult.Error -> {
-            Text(text = "Error")
-        }
-        is NetworkResult.Idle -> {
-            Text(text = "Idle")
-        }
-        is NetworkResult.Loading -> {
-            CircularProgressIndicator()
-        }
-        is NetworkResult.Success -> {
-            UserDebtScreen(calculateDebt = calculateDebt)
         }
     }
 }
@@ -182,10 +161,12 @@ fun GroupInfo(
     groupId: Int,
     navController: NavController
 ) {
-    Column{
-        Text(text = "groupName: ${groupId}")
+    Row{
         Button(onClick = { navController.navigate(Screen.AddUsersToGroupScreen.createRoute(groupId)) }) {
             Text(text = "Add Users")
+        }
+        Button(onClick = { navController.navigate(Screen.UserDebtScreen.createRoute(groupId)) }) {
+            Text(text = "Balances")
         }
     }
 }

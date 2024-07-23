@@ -68,8 +68,8 @@ sealed class Screen(val route: String){
     data object AddUsersToGroupScreen: Screen("addUsersToGroup/{groupId}"){
         fun createRoute(groupId: Int) = "addUsersToGroup/$groupId"
     }
-    data object UserDebtScreen: Screen("userDebt/{calculateDebt}"){
-        fun createRoute(calculateDebt: NetworkResult<CalculateDebtResponse>) = "userDebt/$calculateDebt"
+    data object UserDebtScreen: Screen("userDebt/{groupId}"){
+        fun createRoute(groupId: Int) = "userDebt/$groupId"
     }
 
 }

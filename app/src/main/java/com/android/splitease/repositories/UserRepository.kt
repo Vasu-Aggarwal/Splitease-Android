@@ -4,6 +4,7 @@ import com.android.splitease.di.NetworkException
 import com.android.splitease.local.dao.UserDao
 import com.android.splitease.local.entity.UserEntity
 import com.android.splitease.models.responses.CreateUserResponse
+import com.android.splitease.models.responses.GetOverallUserBalance
 import com.android.splitease.models.responses.GetUserByUuidResponse
 import com.android.splitease.services.UserService
 import com.android.splitease.utils.AppConstants
@@ -23,6 +24,11 @@ class UserRepository @Inject constructor(private val userService: UserService,
         NetworkResult.Idle())
     val user: StateFlow<NetworkResult<GetUserByUuidResponse>>
         get() = _user
+
+    private val _userBalance = MutableStateFlow<NetworkResult<GetOverallUserBalance>>(
+        NetworkResult.Idle())
+    val userBalance: StateFlow<NetworkResult<GetOverallUserBalance>>
+        get() = _userBalance
 
     suspend fun getUserByUuid(userUuid: String){
         try {// Try fetching from local cache first
@@ -55,6 +61,18 @@ class UserRepository @Inject constructor(private val userService: UserService,
             _user.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
+
+    suspend fun getOverallUserBalance(){
+        val authToken = tokenManager.getAuthToken()
+        val userUuid = tokenManager.getUserUuid()
+        val response = userService.getOverallUserBalanceApi("Bearer $authToken", userUuid!!)
+        if (response.isSuccessful && response.body() != null) {
+            _userBalance.emit(NetworkResult.Success(response.body()!!))
+        } else {
+            _userBalance.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+        }
+    }
+
 
     private suspend fun deleteStaleUsers() {
         val maxStaleTimestamp = System.currentTimeMillis() - AppConstants.CACHE_TTL

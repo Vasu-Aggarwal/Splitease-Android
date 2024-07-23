@@ -22,22 +22,55 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.android.splitease.models.responses.AddGroupResponse
+import com.android.splitease.models.responses.GetOverallUserBalance
 import com.android.splitease.navigation.Screen
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.GroupViewModel
+import com.android.splitease.viewmodels.UserViewModel
+import kotlin.math.abs
 
 @Composable
-fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavController) {
+fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavController, userViewModel: UserViewModel = hiltViewModel()) {
     val groups: State<NetworkResult<List<AddGroupResponse>>> = viewModel.groups.collectAsState()
+    val userBalance: State<NetworkResult<GetOverallUserBalance>> = userViewModel.userBalance.collectAsState()
     val context = LocalContext.current
-    LazyColumn(modifier = Modifier.fillMaxSize()) { // Adjust padding as needed
-        groups.value.data?.let { groupList ->
-            items(groupList) { group ->
-                GroupItem(group = group, viewModel, navController)
+    LaunchedEffect(Unit) {
+        userViewModel.getOverallUserBalance()
+    }
+    Column{
+        when (val result = userBalance.value) {
+            is NetworkResult.Success -> {
+                val balance = result.data!!.netBalance
+                Text(
+                    text = when {
+                        balance < 0 -> "Overall, you are owed Rs.${abs(balance)}"
+                        balance > 0 -> "Overall, you owe Rs.${abs(balance)}"
+                        else -> ""
+                    }
+                )
+            }
+
+            is NetworkResult.Error -> {
+                Text(text = "Error loading balance")
+            }
+
+            is NetworkResult.Loading -> {
+                Text(text = "")
+            }
+
+            is NetworkResult.Idle -> {
+                // Do nothing or show some idle state
             }
         }
-        item {
-            StartNewGroup(navController)
+        LazyColumn(modifier = Modifier.fillMaxSize()) { // Adjust padding as needed
+            groups.value.data?.let { groupList ->
+                items(groupList) { group ->
+                    GroupItem(group = group, viewModel, navController)
+                }
+            }
+            item {
+                StartNewGroup(navController)
+            }
         }
     }
 }
