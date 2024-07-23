@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -119,41 +120,16 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
 
             is NetworkResult.Idle -> message = "Idle"
         }
-        val annotatedString = buildAnnotatedString {
-            withStyle(style = SpanStyle(fontSize = 16.sp, color = Color.White)) {
-                append("Paid by ")
+        Row {
+            Text(text = "Paid by")
+            Button(onClick = { navController.navigate(Screen.SelectPayingUserScreen.createRoute(groupId)) }) {
+                Text(text = "${selectedUserName?.value}")
             }
-            withStyle(style = SpanStyle(fontSize = 16.sp, color = Color.White, textDecoration = TextDecoration.None)) {
-                pushStringAnnotation(tag = "Clickable", annotation = "selectUser")
-                append(selectedUserName?.value ?:  "NULL" )
-                pop()
+            Text(text = "and split")
+            Button(onClick = { /*TODO*/ }) {
+                Text(text = "Equally")
             }
         }
-
-        BasicText(
-            text = annotatedString,
-            modifier = Modifier
-                .padding(16.dp)
-                .clickable {
-                    // Handle the click action
-                    annotatedString
-                        .getStringAnnotations(
-                            tag = "Clickable",
-                            start = 0,
-                            end = annotatedString.length
-                        )
-                        .firstOrNull()
-                        ?.let {
-                            if (it.item == "selectUser") {
-                                navController.navigate(
-                                    Screen.SelectPayingUserScreen.createRoute(
-                                        groupId
-                                    )
-                                )
-                            }
-                        }
-                }
-        )
     }
     
     LaunchedEffect(groupMembers) {
