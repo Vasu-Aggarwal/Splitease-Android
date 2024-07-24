@@ -179,10 +179,14 @@ fun BottomNavigationBar(){
             }
 
             composable(route = Screen.SplitMethodScreen.route,
-                arguments = listOf(navArgument("groupId"){type = NavType.IntType})){ backStackEntry ->
+                arguments = listOf(navArgument("groupId"){type = NavType.IntType},
+                    navArgument("amount"){type = NavType.StringType}
+                )){ backStackEntry ->
                 val groupId = backStackEntry.arguments?.getInt("groupId")
+                val amountString = backStackEntry.arguments?.getString("amount")
+                val amount = amountString?.toDoubleOrNull() // Convert String back to Double
                 groupId?.let {
-                    SplitMethodsScreen(groupId = it, navController = navController)
+                    SplitMethodsScreen(groupId = it, navController = navController, amount = amount!!)
                 }
             }
         }
