@@ -18,12 +18,12 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
     val groups: StateFlow<NetworkResult<List<AddGroupResponse>>>
         get() =_groups
 
-    private val _groupMembers = MutableStateFlow<NetworkResult<Set<CreateUserResponse>>>(NetworkResult.Idle())
-    val groupMembers: StateFlow<NetworkResult<Set<CreateUserResponse>>>
+    private val _groupMembers = MutableStateFlow<NetworkResult<List<CreateUserResponse>>>(NetworkResult.Idle())
+    val groupMembers: StateFlow<NetworkResult<List<CreateUserResponse>>>
         get() = _groupMembers
 
-    private val _groupMembersV2 = MutableStateFlow<NetworkResult<Set<GetGroupMembersV2Response>>>(NetworkResult.Idle())
-    val groupMembersV2: StateFlow<NetworkResult<Set<GetGroupMembersV2Response>>>
+    private val _groupMembersV2 = MutableStateFlow<NetworkResult<List<GetGroupMembersV2Response>>>(NetworkResult.Idle())
+    val groupMembersV2: StateFlow<NetworkResult<List<GetGroupMembersV2Response>>>
         get() = _groupMembersV2
 
     private val _addUpdateGroup = MutableStateFlow<NetworkResult<AddGroupResponse>>(NetworkResult.Idle())

@@ -24,10 +24,10 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
     val groups: StateFlow<NetworkResult<List<AddGroupResponse>>>
         get() = groupRepository.groups
 
-    val groupMembers: StateFlow<NetworkResult<Set<CreateUserResponse>>>
+    val groupMembers: StateFlow<NetworkResult<List<CreateUserResponse>>>
         get() = groupRepository.groupMembers
 
-    val groupMembersV2: StateFlow<NetworkResult<Set<GetGroupMembersV2Response>>>
+    val groupMembersV2: StateFlow<NetworkResult<List<GetGroupMembersV2Response>>>
         get() = groupRepository.groupMembersV2
 
     val addUpdateGroup: StateFlow<NetworkResult<AddGroupResponse>>

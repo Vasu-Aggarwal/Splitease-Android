@@ -99,7 +99,8 @@ fun Tabs(pagerState: PagerState) {
 }
 
 @Composable
-fun SplitEquallyScreen(groupMembers: NetworkResult<Set<GetGroupMembersV2Response>>) {
+fun SplitEquallyScreen(groupMembers: NetworkResult<List<GetGroupMembersV2Response>>) {
+    val checkedStates = remember { mutableStateMapOf<String, Boolean>() }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -122,7 +123,7 @@ fun SplitEquallyScreen(groupMembers: NetworkResult<Set<GetGroupMembersV2Response
 }
 
 @Composable
-fun SplitUnequallyScreen(groupMembers: NetworkResult<Set<GetGroupMembersV2Response>>) {
+fun SplitUnequallyScreen(groupMembers: NetworkResult<List<GetGroupMembersV2Response>>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -145,7 +146,7 @@ fun SplitUnequallyScreen(groupMembers: NetworkResult<Set<GetGroupMembersV2Respon
 }
 
 @Composable
-fun SplitByPercentageScreen(groupMembers: NetworkResult<Set<GetGroupMembersV2Response>>) {
+fun SplitByPercentageScreen(groupMembers: NetworkResult<List<GetGroupMembersV2Response>>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -168,7 +169,7 @@ fun SplitByPercentageScreen(groupMembers: NetworkResult<Set<GetGroupMembersV2Res
 }
 
 @Composable
-fun SplitBySharesScreen(groupMembers: NetworkResult<Set<GetGroupMembersV2Response>>) {
+fun SplitBySharesScreen(groupMembers: NetworkResult<List<GetGroupMembersV2Response>>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -191,7 +192,7 @@ fun SplitBySharesScreen(groupMembers: NetworkResult<Set<GetGroupMembersV2Respons
 }
 
 @Composable
-fun SplitMembersList(groupMembers: NetworkResult<Set<GetGroupMembersV2Response>>) {
+fun SplitMembersList(groupMembers: NetworkResult<List<GetGroupMembersV2Response>>) {
 
     when (groupMembers) {
         is NetworkResult.Success -> {
