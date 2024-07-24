@@ -104,6 +104,9 @@ dependencies {
 
     //coroutine for room db
     implementation(libs.room.ktx)
+
+    //pager
+    implementation ("com.google.accompanist:accompanist-pager:0.24.13-rc")
 }
 kapt {
     correctErrorTypes = true

@@ -83,6 +83,7 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
             value = description,
             onValueChange = { description = it },
             label = { Text("Enter a description") },
+            maxLines = 1,
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -90,6 +91,7 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
             value = if (amount == 0.0) "" else amount.toString(),
             onValueChange = { it.toDoubleOrNull()?.let { amt -> amount = amt } },
             label = { Text("Amount") },
+            maxLines = 1,
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -123,24 +125,6 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
 
             is NetworkResult.Idle -> message = "Idle"
         }
-//        Row {
-//            Text(text = "Paid by")
-//            Button(modifier = Modifier.padding(8.dp)
-//                .shadow(5.dp),
-//                shape = RoundedCornerShape(15),
-//                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
-//                onClick = { navController.navigate(Screen.SelectPayingUserScreen.createRoute(groupId)) }) {
-//                Text(text = "${selectedUserName?.value}")
-//            }
-//            Text(text = "and split")
-//            Button(modifier = Modifier.padding(8.dp)
-//                .shadow(5.dp),
-//                shape = RoundedCornerShape(15),
-//                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
-//                onClick = { navController.navigate(Screen.SelectPayingUserScreen.createRoute(groupId)) }) {
-//                Text(text = "Equally")
-//            }
-//        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -150,8 +134,7 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                 Text(text = "Paid by", modifier = Modifier.padding(end = 8.dp))
                 Button(
                     modifier = Modifier.padding(8.dp)
-                        .shadow(5.dp)
-                        .fillMaxWidth(),
+                        .shadow(5.dp),
                     shape = RoundedCornerShape(15),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
                     onClick = { navController.navigate(Screen.SelectPayingUserScreen.createRoute(groupId)) }
@@ -164,11 +147,10 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                 Text(text = "and split", modifier = Modifier.padding(end = 8.dp))
                 Button(
                     modifier = Modifier.padding(8.dp)
-                        .shadow(5.dp)
-                        .fillMaxWidth(),
+                        .shadow(5.dp),
                     shape = RoundedCornerShape(15),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
-                    onClick = { navController.navigate(Screen.SelectPayingUserScreen.createRoute(groupId)) }
+                    onClick = { navController.navigate(Screen.SelectSplitTechScreen.route) }
                 ) {
                     Text(text = "Equally", maxLines = 1)
                 }

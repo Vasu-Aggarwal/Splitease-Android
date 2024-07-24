@@ -177,6 +177,10 @@ fun BottomNavigationBar(){
                     SelectPayingUserScreen(groupId = it, navController = navController)
                 }
             }
+
+            composable(route = Screen.SelectSplitTechScreen.route){
+                SplitMethodsScreen()
+            }
         }
     }
 }

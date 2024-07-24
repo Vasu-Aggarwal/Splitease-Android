@@ -76,4 +76,6 @@ sealed class Screen(val route: String){
         fun createRoute(groupId: Int) = "selectPayingUserScreen/$groupId"
     }
 
+    data object SelectSplitTechScreen: Screen("selectSplitTechScreen")
+
 }
