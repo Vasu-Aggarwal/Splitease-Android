@@ -58,6 +58,16 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
     val selectedUserName = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedUserName", " ")?.collectAsState()
     val selectedUserUuid = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedUserUuid", " ")?.collectAsState()
 
+    var contributions by remember { mutableStateOf<Map<String, Double>>(emptyMap()) }
+//    val contri = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedData", emptyMap<String, Double>())?.collectAsState()
+    // Update contributions whenever contri changes
+//    LaunchedEffect(contributions) {
+//        if (contri != null && contri.value.isNotEmpty()) {
+//            contributions = contri.value
+//        }
+//    }
+    Log.d("contri", "AddExpenseScreen: ${contributions.keys.size}")
+    contributions.keys.forEach { key-> Log.d("contri", "AddExpenseScreen: $key") }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -119,7 +129,8 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = "Paid by", modifier = Modifier.padding(end = 8.dp))
                 Button(
-                    modifier = Modifier.padding(8.dp)
+                    modifier = Modifier
+                        .padding(8.dp)
                         .shadow(5.dp),
                     shape = RoundedCornerShape(15),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
@@ -132,7 +143,8 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = "and split", modifier = Modifier.padding(end = 8.dp))
                 Button(
-                    modifier = Modifier.padding(8.dp)
+                    modifier = Modifier
+                        .padding(8.dp)
                         .shadow(5.dp),
                     shape = RoundedCornerShape(15),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
