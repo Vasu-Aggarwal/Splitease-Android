@@ -1,5 +1,7 @@
 package com.android.splitease.screens
 
+import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -16,26 +18,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.android.splitease.models.responses.GetGroupMembersV2Response
+import com.android.splitease.utils.NetworkResult
+import com.android.splitease.viewmodels.GroupViewModel
 import com.google.accompanist.pager.*
 import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun SplitMethodsScreen() {
-//    val pagerState = rememberPagerState()
-//
-//    Column(modifier = Modifier.fillMaxSize()) {
-//        Tabs(pagerState = pagerState)
-//        HorizontalPager(count = 4, state = pagerState, userScrollEnabled = true) { page ->
-//            when (page) {
-//                0 -> SplitEquallyScreen()
-//                1 -> SplitUnequallyScreen()
-//                2 -> SplitByPercentageScreen()
-//                3 -> SplitBySharesScreen()
-//            }
-//        }
-//    }
+fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewModel = hiltViewModel(), groupId: Int) {
+
+    LaunchedEffect(Unit) {
+        groupViewModel.getGroupMembersV2(groupId)
+    }
+
+    val groupMembers by groupViewModel.groupMembersV2.collectAsState()
     val pagerState = rememberPagerState()
 
     Scaffold(
@@ -63,10 +63,10 @@ fun SplitMethodsScreen() {
             Tabs(pagerState = pagerState)
             HorizontalPager(count = 4, state = pagerState, userScrollEnabled = true) { page ->
                 when (page) {
-                    0 -> SplitEquallyScreen()
-                    1 -> SplitUnequallyScreen()
-                    2 -> SplitByPercentageScreen()
-                    3 -> SplitBySharesScreen()
+                    0 -> SplitEquallyScreen(groupMembers)
+                    1 -> SplitUnequallyScreen(groupMembers)
+                    2 -> SplitByPercentageScreen(groupMembers)
+                    3 -> SplitBySharesScreen(groupMembers)
                 }
             }
         }
@@ -99,7 +99,7 @@ fun Tabs(pagerState: PagerState) {
 }
 
 @Composable
-fun SplitEquallyScreen() {
+fun SplitEquallyScreen(groupMembers: NetworkResult<Set<GetGroupMembersV2Response>>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -117,12 +117,12 @@ fun SplitEquallyScreen() {
             color = Color.White,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-        SplitMembersList()
+        SplitMembersList(groupMembers)
     }
 }
 
 @Composable
-fun SplitUnequallyScreen() {
+fun SplitUnequallyScreen(groupMembers: NetworkResult<Set<GetGroupMembersV2Response>>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -140,12 +140,12 @@ fun SplitUnequallyScreen() {
             color = Color.White,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-        SplitMembersList()
+        SplitMembersList(groupMembers)
     }
 }
 
 @Composable
-fun SplitByPercentageScreen() {
+fun SplitByPercentageScreen(groupMembers: NetworkResult<Set<GetGroupMembersV2Response>>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -163,12 +163,12 @@ fun SplitByPercentageScreen() {
             color = Color.White,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-        SplitMembersList()
+        SplitMembersList(groupMembers)
     }
 }
 
 @Composable
-fun SplitBySharesScreen() {
+fun SplitBySharesScreen(groupMembers: NetworkResult<Set<GetGroupMembersV2Response>>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -186,49 +186,72 @@ fun SplitBySharesScreen() {
             color = Color.White,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-        SplitMembersList()
+        SplitMembersList(groupMembers)
     }
 }
 
 @Composable
-fun SplitMembersList() {
-    val members = listOf("Vasu Aggarwal", "3", "1", "4", "2", "5")
-    val checkedStates = remember { mutableStateMapOf<String, Boolean>().apply { members.forEach { this[it] = true } } }
+fun SplitMembersList(groupMembers: NetworkResult<Set<GetGroupMembersV2Response>>) {
 
-    LazyColumn {
-        items(members) { member ->
+    when (groupMembers) {
+        is NetworkResult.Success -> {
+            val members = groupMembers.data
+            // Ensure a unique identifier (like member ID) is used for state management
+            val checkedStates = remember {
+                mutableStateMapOf<String, Boolean>().apply {
+                    members!!.forEach { this[it.userUuid] = true }
+                }
+            }
+
+            LazyColumn {
+                items(members!!.toList()) { member ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = member.name,
+                            modifier = Modifier.weight(1f),
+                            color = Color.White
+                        )
+                        Checkbox(
+                            checked = checkedStates[member.userUuid] ?: false,
+                            onCheckedChange = { isChecked ->
+                                checkedStates[member.userUuid] = isChecked
+                            }
+                        )
+                    }
+                }
+            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp),
+                    .padding(top = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = member,
-                    modifier = Modifier.weight(1f),
-                    color = Color.White
-                )
+                Text(text = "₹0.00/person", color = Color.White)
+                Text(text = "(${members!!.size} people)", color = Color.White)
                 Checkbox(
-                    checked = checkedStates[member] ?: false,
-                    onCheckedChange = { isChecked -> checkedStates[member] = isChecked }
+                    checked = checkedStates.values.all { it },
+                    onCheckedChange = { isChecked ->
+                        checkedStates.keys.forEach { checkedStates[it] = isChecked }
+                    }
                 )
             }
         }
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = "₹0.00/person", color = Color.White)
-        Text(text = "(6 people)", color = Color.White)
-        Checkbox(
-            checked = true,
-            onCheckedChange = { /* handle All checked change */ }
-        )
+        is NetworkResult.Error -> {
+            Text(text = "Error loading members")
+        }
+        is NetworkResult.Loading -> {
+            Text(text = "Loading members...")
+        }
+        is NetworkResult.Idle -> {
+            // Handle idle state if necessary
+            Text(text = "Idle")
+        }
     }
 }
 

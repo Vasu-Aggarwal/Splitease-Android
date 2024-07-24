@@ -178,8 +178,12 @@ fun BottomNavigationBar(){
                 }
             }
 
-            composable(route = Screen.SelectSplitTechScreen.route){
-                SplitMethodsScreen()
+            composable(route = Screen.SplitMethodScreen.route,
+                arguments = listOf(navArgument("groupId"){type = NavType.IntType})){ backStackEntry ->
+                val groupId = backStackEntry.arguments?.getInt("groupId")
+                groupId?.let {
+                    SplitMethodsScreen(groupId = it, navController = navController)
+                }
             }
         }
     }

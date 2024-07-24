@@ -150,7 +150,7 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                         .shadow(5.dp),
                     shape = RoundedCornerShape(15),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
-                    onClick = { navController.navigate(Screen.SelectSplitTechScreen.route) }
+                    onClick = { navController.navigate(Screen.SplitMethodScreen.createRoute(groupId)) }
                 ) {
                     Text(text = "Equally", maxLines = 1)
                 }
