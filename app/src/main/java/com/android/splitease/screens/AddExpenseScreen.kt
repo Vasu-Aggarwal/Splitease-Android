@@ -59,15 +59,13 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
     val selectedUserUuid = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedUserUuid", " ")?.collectAsState()
 
     var contributions by remember { mutableStateOf<Map<String, Double>>(emptyMap()) }
-//    val contri = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedData", emptyMap<String, Double>())?.collectAsState()
+    val contri = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedData", emptyMap<String, Double>())?.collectAsState()
     // Update contributions whenever contri changes
-//    LaunchedEffect(contributions) {
-//        if (contri != null && contri.value.isNotEmpty()) {
-//            contributions = contri.value
-//        }
-//    }
-    Log.d("contri", "AddExpenseScreen: ${contributions.keys.size}")
-    contributions.keys.forEach { key-> Log.d("contri", "AddExpenseScreen: $key") }
+    LaunchedEffect(contri?.value) {
+        if (contri != null && contri.value.isNotEmpty()) {
+            contributions = contri.value
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()

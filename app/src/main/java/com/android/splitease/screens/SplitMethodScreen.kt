@@ -493,8 +493,11 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                 actions = {
                     IconButton(onClick = {
                         // Collect data from the current page and navigate to the next screen
-                        val data = getSelectedDataForCurrentPage(pagerState.currentPage, selectedData)
-                        Log.d("contri", "SplitMethodsScreen: ${data.keys.size}")
+                        val data = getSelectedDataForCurrentPage(pagerState.currentPage, selectedData, amount)
+                        data.forEach({
+                            Log.d("contri", "selected final data: ${it.key} -> ${it.value}")
+                        })
+                        Log.d("contri", "Wah data: ${data.keys.size}")
                         navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
                         navController.popBackStack()
                     }) {
@@ -675,10 +678,9 @@ fun SplitMembersList(
             LaunchedEffect(members) {
                 val checkedCount = checkedStates.count { it.value }
                 val amountPerPerson = if (checkedCount > 0) amount / checkedCount else 0.0
-
                 members?.forEach { member ->
                     if (checkedStates[member.userUuid] == true) {
-                        selectedData[member.name] = amountPerPerson
+                        selectedData["username_"+member.name] = amountPerPerson
                     }
                 }
             }
@@ -891,17 +893,16 @@ fun SplitMembersListByPercentage(
     }
 }
 
-private fun getSelectedDataForCurrentPage(currentPage: Int, dataMap: SnapshotStateMap<String, Double>): Map<String, Double> {
+private fun getSelectedDataForCurrentPage(currentPage: Int, dataMap: SnapshotStateMap<String, Double>, amount: Double): Map<String, Double> {
     return when (currentPage) {
         0 -> {
             // Split Equally
-            dataMap.keys.forEach { key-> Log.d("contri", "getSelectedDataForCurrentPage: $key") }
-            Log.d("contri", "getSelectedDataForCurrentPage: ${dataMap.keys.forEach { key ->  }}")
-            val checkedStates = dataMap["checkedStates"] as? Map<String, Boolean> ?: emptyMap()
-            val amount = (dataMap["amount"] as? Double) ?: 0.0
-            val amountPerPerson = if (checkedStates.isNotEmpty()) amount / checkedStates.count { it.value } else 0.0
+            val totalAmount = amount ?: 0.0
+            val userNames = dataMap.filterKeys { it.startsWith("username_") } // Filter user names
+            val amountPerPerson = if (userNames.isNotEmpty()) totalAmount / userNames.size else 0.0
 
-            checkedStates.filter { it.value }.mapValues { amountPerPerson }
+            userNames.mapKeys { it.key.removePrefix("username_") } // Remove prefix if necessary
+                .mapValues { amountPerPerson }
         }
         1 -> {
             // Split Unequally
@@ -922,14 +923,7 @@ private fun getSelectedDataForCurrentPage(currentPage: Int, dataMap: SnapshotSta
             individualShares.mapValues { if (totalShares > 0) (it.value.toDoubleOrNull() ?: 0.0) * amount / totalShares else 0.0 }
         }
         else -> {
-            Log.d("contri", "getSelectedDataForCurrentPage: ${dataMap.keys.forEach { key ->  }}")
-            dataMap.keys.forEach { key-> Log.d("contri", "getSelectedDataForCurrentPage: $key") }
-            Log.d("contri", "getSelectedDataForCurrentPage: ${dataMap.keys.forEach { key ->  }}")
-            val checkedStates = dataMap["checkedStates"] as? Map<String, Boolean> ?: emptyMap()
-            val amount = (dataMap["amount"] as? Double) ?: 0.0
-            val amountPerPerson = if (checkedStates.isNotEmpty()) amount / checkedStates.count { it.value } else 0.0
-
-            checkedStates.filter { it.value }.mapValues { amountPerPerson }
+            emptyMap()
         }
     }
 }
