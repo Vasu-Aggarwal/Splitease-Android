@@ -44,6 +44,7 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
     // State to hold selected data from each page
     val selectedData = remember { mutableStateMapOf<String, Double>() }
     val selectedDataUnequal = remember { mutableStateMapOf<String, Double>() }
+    val selectedDataByPercentage = remember { mutableStateMapOf<String, Double>() }
 
     Scaffold(
         topBar = {
@@ -80,6 +81,19 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                                 navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
                                 navController.popBackStack()
                             }
+                            2 -> {
+                                val data = getSelectedDataForCurrentPage(
+                                    pagerState.currentPage,
+                                    selectedDataByPercentage,
+                                    amount
+                                )
+                                data.forEach({
+                                    Log.d("contri", "selected final data: ${it.key} -> ${it.value}")
+                                })
+                                Log.d("contri", "Wah data: ${data.keys.size}")
+                                navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
+                                navController.popBackStack()
+                            }
                         }
                     }) {
                         Icon(Icons.Default.Check, contentDescription = "Save")
@@ -98,7 +112,7 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                 when (page) {
                     0 -> SplitEquallyScreen(groupMembers, amount, selectedData)
                     1 -> SplitUnequallyScreen(groupMembers, amount, selectedDataUnequal)
-                    2 -> SplitByPercentageScreen(groupMembers, amount, selectedData)
+                    2 -> SplitByPercentageScreen(groupMembers, amount, selectedDataByPercentage)
                     3 -> SplitBySharesScreen(groupMembers, amount, selectedData)
                 }
             }
@@ -185,7 +199,7 @@ fun SplitUnequallyScreen(
 fun SplitByPercentageScreen(
     groupMembers: NetworkResult<List<GetGroupMembersV2Response>>,
     amount: Double,
-    selectedData: MutableMap<String, Double>
+    selectedDataByPercentage: MutableMap<String, Double>
 ) {
     Column(
         modifier = Modifier
@@ -204,7 +218,7 @@ fun SplitByPercentageScreen(
             color = Color.White,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-        SplitMembersListByPercentage(groupMembers, amount, selectedData)
+        SplitMembersListByPercentage(groupMembers, amount, selectedDataByPercentage)
     }
 }
 
@@ -426,12 +440,24 @@ fun SplitMembersListUnequal(
 fun SplitMembersListByPercentage(
     groupMembers: NetworkResult<List<GetGroupMembersV2Response>>,
     amount: Double,
-    selectedData: MutableMap<String, Double>
+    selectedDataByPercentage: MutableMap<String, Double>
 ) {
     when (groupMembers) {
         is NetworkResult.Success -> {
             val members = groupMembers.data
             val individualPercentages = remember { mutableStateMapOf<String, String>() }
+
+            // Initialize selectedData with initial values from individualPercentages
+            LaunchedEffect(members) {
+                individualPercentages.forEach { (uuid, percentageStr) ->
+                    val member = members!!.find { it.userUuid == uuid }
+                    if (member != null) {
+                        val percentage = percentageStr.toDoubleOrNull() ?: 0.0
+                        selectedDataByPercentage["username_" + member.name] = amount * percentage / 100
+                    }
+                }
+            }
+
             val totalPercentage by remember {
                 derivedStateOf {
                     individualPercentages.values.sumOf { it.toDoubleOrNull() ?: 0.0 }
@@ -453,10 +479,14 @@ fun SplitMembersListByPercentage(
                         )
                         OutlinedTextField(
                             value = individualPercentages[member.userUuid] ?: "",
-                            onValueChange = {
-                                individualPercentages[member.userUuid] = it
-                                val percentage = it.toDoubleOrNull() ?: 0.0
-                                selectedData[member.userUuid] = amount * percentage / 100
+                            onValueChange = { newPercentage ->
+                                individualPercentages[member.userUuid] = newPercentage
+                                val percentage = newPercentage.toDoubleOrNull() ?: 1.0
+                                selectedDataByPercentage["username_" + member.name] = amount * percentage / 100
+                                // Remove the user from selectedData if the percentage is zero
+                                if (percentage == 0.0) {
+                                    selectedDataByPercentage.remove("username_" + member.name)
+                                }
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             keyboardActions = KeyboardActions.Default,
@@ -494,6 +524,7 @@ fun SplitMembersListByPercentage(
     }
 }
 
+
 private fun getSelectedDataForCurrentPage(currentPage: Int, dataMap: SnapshotStateMap<String, Double>, amount: Double): Map<String, Double> {
     return when (currentPage) {
         0 -> {
@@ -513,9 +544,9 @@ private fun getSelectedDataForCurrentPage(currentPage: Int, dataMap: SnapshotSta
         }
         2 -> {
             // Split by Percentages
-            val individualPercentages = dataMap["individualPercentages"] as? Map<String, String> ?: emptyMap()
-            val amount = (dataMap["amount"] as? Double) ?: 0.0
-            individualPercentages.mapValues { (it.value.toDoubleOrNull() ?: 0.0) * amount / 100 }
+            val userNames = dataMap.filterKeys { it.startsWith("username_") }
+            userNames.mapKeys { it.key.removePrefix("username_") }
+                .mapValues { it.value }
         }
         3 -> {
             // Split by Shares
