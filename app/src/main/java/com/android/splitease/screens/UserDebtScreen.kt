@@ -44,27 +44,6 @@ fun UserDebtScreen(groupId: Int, transactionViewModel: TransactionViewModel = hi
         is NetworkResult.Idle -> Text(text = "idle")
         is NetworkResult.Loading -> Text(text = "loading")
         is NetworkResult.Success -> {
-//            val debtData = (calculateDebt as NetworkResult.Success).data
-//            debtData?.let { data ->
-//                LazyColumn(modifier = Modifier.padding(16.dp)) {
-//                    items(data.creditorList) { creditor ->
-//                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-//                            Text(text = "${creditor.name} gets back Rs.${creditor.getsBack}")
-//                            creditor.lentTo.forEach { lentTo ->
-//                                Text(text = "${lentTo.name} pays Rs.${lentTo.amount}")
-//                            }
-//                        }
-//                    }
-//
-//                    items(data.debtorList) { debtor ->
-//                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-//                            debtor.lentFrom.forEach { lentFrom ->
-//                                Text(text = "${debtor.name} owes to ${lentFrom.name} Rs.${lentFrom.amount}")
-//                            }
-//                        }
-//                    }
-//                }
-//            }
             val debtData = (calculateDebt as NetworkResult.Success).data
             debtData?.let { data ->
                 LazyColumn(modifier = Modifier.padding(16.dp)) {
