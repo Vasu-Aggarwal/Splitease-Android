@@ -168,5 +168,8 @@ fun GroupInfo(
         Button(onClick = { navController.navigate(Screen.UserDebtScreen.createRoute(groupId)) }) {
             Text(text = "Balances")
         }
+        Button(onClick = { navController.navigate(Screen.SettleUpScreen.route) }) {
+            Text(text = "Settle Up")
+        }
     }
 }

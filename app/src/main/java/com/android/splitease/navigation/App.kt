@@ -78,4 +78,6 @@ sealed class Screen(val route: String){
         fun createRoute(groupId: Int, amount: Double) = "splitMethodScreen/$groupId/$amount"
     }
 
+    data object SettleUpScreen: Screen("settleUpScreen")
+
 }

@@ -125,6 +125,10 @@ fun BottomNavigationBar(){
                 NewGroupScreen(navController = navController)
             }
 
+            composable(route = Screen.SettleUpScreen.route){
+                SettleUpScreen(navController = navController)
+            }
+
             composable(route = Screen.DetailedGroupScreen.route,
                 arguments = listOf(navArgument("groupId"){type = NavType.IntType}))
             { backStackEntry ->
