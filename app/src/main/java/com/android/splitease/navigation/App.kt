@@ -78,6 +78,16 @@ sealed class Screen(val route: String){
         fun createRoute(groupId: Int, amount: Double) = "splitMethodScreen/$groupId/$amount"
     }
 
-    data object SettleUpScreen: Screen("settleUpScreen")
+    data object SettleUpPayerScreen: Screen("settleUpPayerScreen/{groupId}"){
+        fun createRoute(groupId: Int) = "settleUpPayerScreen/$groupId"
+    }
+
+    data object SettleUpReceiverScreen: Screen("settleUpReceiverScreen/{groupId}/{payerUuid}"){
+        fun createRoute(groupId: Int, payerUuid: String) = "settleUpReceiverScreen/$groupId/$payerUuid"
+    }
+
+    data object SettleUpScreen: Screen("settleUpScreen/{groupId}/{payerUuid}/{receiverUuid}"){
+        fun createRoute(groupId: Int, payerUuid: String, receiverUuid: String) = "settleUpScreen/$groupId/$payerUuid/$receiverUuid"
+    }
 
 }

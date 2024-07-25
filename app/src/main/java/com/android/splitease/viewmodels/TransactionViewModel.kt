@@ -3,6 +3,7 @@ package com.android.splitease.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.splitease.models.requests.AddTransactionRequest
+import com.android.splitease.models.requests.SettleUpRequest
 import com.android.splitease.models.responses.AddTransactionResponse
 import com.android.splitease.models.responses.CalculateDebtResponse
 import com.android.splitease.models.responses.DeleteResponse
@@ -49,6 +50,12 @@ class TransactionViewModel @Inject constructor(private val transactionRepository
     fun calculateDebt(groupId: Int){
         viewModelScope.launch {
             transactionRepository.calculateDebt(groupId)
+        }
+    }
+
+    fun settleUp(settleUpRequest: SettleUpRequest){
+        viewModelScope.launch {
+            transactionRepository.settleUp(settleUpRequest)
         }
     }
 }

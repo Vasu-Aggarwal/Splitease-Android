@@ -125,9 +125,6 @@ fun BottomNavigationBar(){
                 NewGroupScreen(navController = navController)
             }
 
-            composable(route = Screen.SettleUpScreen.route){
-                SettleUpScreen(navController = navController)
-            }
 
             composable(route = Screen.DetailedGroupScreen.route,
                 arguments = listOf(navArgument("groupId"){type = NavType.IntType}))
@@ -191,6 +188,47 @@ fun BottomNavigationBar(){
                 val amount = amountString?.toDoubleOrNull() // Convert String back to Double
                 groupId?.let {
                     SplitMethodsScreen(groupId = it, navController = navController, amount = amount!!)
+                }
+            }
+
+            composable(route = Screen.SettleUpPayerScreen.route,
+                arguments = listOf(navArgument("groupId"){type = NavType.IntType}))
+            { backStackEntry ->
+                val groupId = backStackEntry.arguments?.getInt("groupId")
+                groupId?.let {
+                    SettleUpPayerScreen(groupId = it, navController = navController)
+                }
+            }
+
+            composable(
+                route = Screen.SettleUpReceiverScreen.route,
+                arguments = listOf(
+                    navArgument("groupId") { type = NavType.IntType },
+                    navArgument("payerUuid") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val groupId = backStackEntry.arguments?.getInt("groupId")
+                val payerUuid = backStackEntry.arguments?.getString("payerUuid")
+
+                if (groupId != null && payerUuid != null) {
+                    SettleUpReceiverScreen(groupId = groupId, navController = navController, payerUuid = payerUuid)
+                }
+            }
+
+            composable(
+                route = Screen.SettleUpScreen.route,
+                arguments = listOf(
+                    navArgument("groupId") { type = NavType.IntType },
+                    navArgument("payerUuid") { type = NavType.StringType },
+                    navArgument("receiverUuid") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val groupId = backStackEntry.arguments?.getInt("groupId")
+                val payerUuid = backStackEntry.arguments?.getString("payerUuid")
+                val receiverUuid = backStackEntry.arguments?.getString("receiverUuid")
+
+                if (groupId != null && payerUuid != null && receiverUuid != null) {
+                    SettleUpScreen(groupId = groupId, navController = navController, payerUuid = payerUuid, receiverUuid = receiverUuid)
                 }
             }
         }

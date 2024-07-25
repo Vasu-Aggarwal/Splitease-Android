@@ -116,39 +116,43 @@ fun TransactionItem(
     ){
         var userState by remember { mutableStateOf<GetUserByUuidResponse?>(null) }
         Box {
-            Row {
-                val utilMethods = UtilMethods()
-                val formattedDate = utilMethods.formatDate(transaction.createdOn)
-                Text(text = formattedDate)
-                Column {
-                    Text(text = transaction.description)
-                    if (transaction.userUuid == tokenManager.getUserUuid().toString()) {
-                        Text(text = "You paid Rs.${transaction.amount}")
-                    } else {
-                        if(userState == null) {
-                            LaunchedEffect(transaction.userUuid) {
-                                userViewModel.getUserByUuid(transaction.userUuid)
-                            }
-                        }
-                        val user: State<NetworkResult<GetUserByUuidResponse>> =
-                            userViewModel.user.collectAsState()
-                        val userData = userViewModel.user.collectAsState().value
-                        if (userData is NetworkResult.Success){
-                            userState = userData.data
-                        }
-                        Text(text = "${user.value.data?.name} paid Rs. ${transaction.amount}")
-                    }
-                }
-                Column {
-                    if (transaction.loggedInUserTransaction == null) {
-                        Text(text = " not involved")
-                    } else {
-                        if (transaction.loggedInUserTransaction.owedOrLent.equals("OWED")) {
-                            Text(text = "you borrowed")
+            if (transaction.description == null){
+                SettleUpTransaction()
+            } else {
+                Row {
+                    val utilMethods = UtilMethods()
+                    val formattedDate = utilMethods.formatDate(transaction.createdOn)
+                    Text(text = formattedDate)
+                    Column {
+                        Text(text = transaction.description)
+                        if (transaction.userUuid == tokenManager.getUserUuid().toString()) {
+                            Text(text = "You paid Rs.${transaction.amount}")
                         } else {
-                            Text(text = "you lent")
+                            if(userState == null) {
+                                LaunchedEffect(transaction.userUuid) {
+                                    userViewModel.getUserByUuid(transaction.userUuid)
+                                }
+                            }
+                            val user: State<NetworkResult<GetUserByUuidResponse>> =
+                                userViewModel.user.collectAsState()
+                            val userData = userViewModel.user.collectAsState().value
+                            if (userData is NetworkResult.Success){
+                                userState = userData.data
+                            }
+                            Text(text = "${user.value.data?.name} paid Rs. ${transaction.amount}")
                         }
-                        Text(text = transaction.loggedInUserTransaction.amount.toString())
+                    }
+                    Column {
+                        if (transaction.loggedInUserTransaction == null) {
+                            Text(text = " not involved")
+                        } else {
+                            if (transaction.loggedInUserTransaction.owedOrLent.equals("OWED")) {
+                                Text(text = "you borrowed")
+                            } else {
+                                Text(text = "you lent")
+                            }
+                            Text(text = transaction.loggedInUserTransaction.amount.toString())
+                        }
                     }
                 }
             }
@@ -168,8 +172,13 @@ fun GroupInfo(
         Button(onClick = { navController.navigate(Screen.UserDebtScreen.createRoute(groupId)) }) {
             Text(text = "Balances")
         }
-        Button(onClick = { navController.navigate(Screen.SettleUpScreen.route) }) {
+        Button(onClick = { navController.navigate(Screen.SettleUpPayerScreen.createRoute(groupId)) }) {
             Text(text = "Settle Up")
         }
     }
+}
+
+@Composable
+fun SettleUpTransaction(){
+    Text(text = "This is a settle up transaction")
 }
