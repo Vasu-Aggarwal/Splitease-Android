@@ -43,6 +43,7 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
 
     // State to hold selected data from each page
     val selectedData = remember { mutableStateMapOf<String, Double>() }
+    val selectedDataUnequal = remember { mutableStateMapOf<String, Double>() }
 
     Scaffold(
         topBar = {
@@ -52,13 +53,34 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                 actions = {
                     IconButton(onClick = {
                         // Collect data from the current page and navigate to the next screen
-                        val data = getSelectedDataForCurrentPage(pagerState.currentPage, selectedData, amount)
-                        data.forEach({
-                            Log.d("contri", "selected final data: ${it.key} -> ${it.value}")
-                        })
-                        Log.d("contri", "Wah data: ${data.keys.size}")
-                        navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
-                        navController.popBackStack()
+                        when(pagerState.currentPage){
+                            0 -> {
+                                val data = getSelectedDataForCurrentPage(
+                                    pagerState.currentPage,
+                                    selectedData,
+                                    amount
+                                )
+                                data.forEach({
+                                    Log.d("contri", "selected final data: ${it.key} -> ${it.value}")
+                                })
+                                Log.d("contri", "Wah data: ${data.keys.size}")
+                                navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
+                                navController.popBackStack()
+                            }
+                            1 -> {
+                                val data = getSelectedDataForCurrentPage(
+                                    pagerState.currentPage,
+                                    selectedDataUnequal,
+                                    amount
+                                )
+                                data.forEach({
+                                    Log.d("contri", "selected final data: ${it.key} -> ${it.value}")
+                                })
+                                Log.d("contri", "Wah data: ${data.keys.size}")
+                                navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
+                                navController.popBackStack()
+                            }
+                        }
                     }) {
                         Icon(Icons.Default.Check, contentDescription = "Save")
                     }
@@ -75,7 +97,7 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
             HorizontalPager(count = 4, state = pagerState, userScrollEnabled = true) { page ->
                 when (page) {
                     0 -> SplitEquallyScreen(groupMembers, amount, selectedData)
-                    1 -> SplitUnequallyScreen(groupMembers, amount, selectedData)
+                    1 -> SplitUnequallyScreen(groupMembers, amount, selectedDataUnequal)
                     2 -> SplitByPercentageScreen(groupMembers, amount, selectedData)
                     3 -> SplitBySharesScreen(groupMembers, amount, selectedData)
                 }
@@ -128,7 +150,7 @@ fun SplitEquallyScreen(groupMembers: NetworkResult<List<GetGroupMembersV2Respons
             color = Color.White,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-        SplitMembersList(groupMembers, amount, selectedData)
+        SplitEqually(groupMembers, amount, selectedData)
     }
 }
 
@@ -136,7 +158,7 @@ fun SplitEquallyScreen(groupMembers: NetworkResult<List<GetGroupMembersV2Respons
 fun SplitUnequallyScreen(
     groupMembers: NetworkResult<List<GetGroupMembersV2Response>>,
     amount: Double,
-    selectedData: MutableMap<String, Double>
+    selectedDataUnequal: MutableMap<String, Double>
 ) {
     Column(
         modifier = Modifier
@@ -155,7 +177,7 @@ fun SplitUnequallyScreen(
             color = Color.White,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-        SplitMembersListUnequal(groupMembers, amount, selectedData)
+        SplitMembersListUnequal(groupMembers, amount, selectedDataUnequal)
     }
 }
 
@@ -214,7 +236,7 @@ fun SplitBySharesScreen(
 }
 
 @Composable
-fun SplitMembersList(
+fun SplitEqually(
     groupMembers: NetworkResult<List<GetGroupMembersV2Response>>,
     amount: Double,
     selectedData: MutableMap<String, Double>
@@ -312,12 +334,28 @@ fun SplitMembersList(
 fun SplitMembersListUnequal(
     groupMembers: NetworkResult<List<GetGroupMembersV2Response>>,
     amount: Double,
-    selectedData: MutableMap<String, Double>
+    selectedDataUnequal: MutableMap<String, Double>
 ) {
     when (groupMembers) {
         is NetworkResult.Success -> {
             val members = groupMembers.data
             val individualAmounts = remember { mutableStateMapOf<String, String>() }
+
+            // Initialize selectedData with initial values from individualAmounts
+            LaunchedEffect(members) {
+                individualAmounts.forEach { (uuid, amountStr) ->
+                    val member = members!!.find { it.userUuid == uuid }
+                    if (member != null) {
+                        val amountValue = amountStr.toDoubleOrNull()
+                        if (amountValue != null) {
+                            selectedDataUnequal["username_" + member.name] = amountValue
+                        } else {
+                            selectedDataUnequal.remove("username_" + member.name)
+                        }
+                    }
+                }
+            }
+
             val totalAmount by remember {
                 derivedStateOf {
                     individualAmounts.values.sumOf { it.toDoubleOrNull() ?: 0.0 }
@@ -339,9 +377,14 @@ fun SplitMembersListUnequal(
                         )
                         OutlinedTextField(
                             value = individualAmounts[member.userUuid] ?: "",
-                            onValueChange = {
-                                individualAmounts[member.userUuid] = it
-                                selectedData[member.userUuid] = it.toDoubleOrNull() ?: 0.0
+                            onValueChange = { newAmount ->
+                                individualAmounts[member.userUuid] = newAmount
+                                val amountValue = newAmount.toDoubleOrNull()
+                                if (amountValue != null && amountValue > 0.0) {
+                                    selectedDataUnequal["username_" + member.name] = amountValue
+                                } else {
+                                    selectedDataUnequal.remove("username_" + member.name)
+                                }
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             keyboardActions = KeyboardActions.Default,
@@ -464,8 +507,9 @@ private fun getSelectedDataForCurrentPage(currentPage: Int, dataMap: SnapshotSta
         }
         1 -> {
             // Split Unequally
-            val individualAmounts = dataMap["individualAmounts"] as? Map<String, String> ?: emptyMap()
-            individualAmounts.mapValues { it.value.toDoubleOrNull() ?: 0.0 }
+            val userNames = dataMap.filterKeys { it.startsWith("username_") }
+            userNames.mapKeys { it.key.removePrefix("username_") }
+                .mapValues { it.value }
         }
         2 -> {
             // Split by Percentages
