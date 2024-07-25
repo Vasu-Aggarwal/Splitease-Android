@@ -45,6 +45,7 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
     val selectedData = remember { mutableStateMapOf<String, Double>() }
     val selectedDataUnequal = remember { mutableStateMapOf<String, Double>() }
     val selectedDataByPercentage = remember { mutableStateMapOf<String, Double>() }
+    val selectedDataByShares = remember { mutableStateMapOf<String, Double>() }
 
     Scaffold(
         topBar = {
@@ -94,6 +95,19 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                                 navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
                                 navController.popBackStack()
                             }
+                            3 -> {
+                                val data = getSelectedDataForCurrentPage(
+                                    pagerState.currentPage,
+                                    selectedDataByShares,
+                                    amount
+                                )
+                                data.forEach({
+                                    Log.d("contri", "selected final data: ${it.key} -> ${it.value}")
+                                })
+                                Log.d("contri", "Wah data: ${data.keys.size}")
+                                navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
+                                navController.popBackStack()
+                            }
                         }
                     }) {
                         Icon(Icons.Default.Check, contentDescription = "Save")
@@ -113,7 +127,7 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                     0 -> SplitEquallyScreen(groupMembers, amount, selectedData)
                     1 -> SplitUnequallyScreen(groupMembers, amount, selectedDataUnequal)
                     2 -> SplitByPercentageScreen(groupMembers, amount, selectedDataByPercentage)
-                    3 -> SplitBySharesScreen(groupMembers, amount, selectedData)
+                    3 -> SplitBySharesScreen(groupMembers, amount, selectedDataByShares)
                 }
             }
         }
@@ -146,7 +160,10 @@ fun Tabs(pagerState: PagerState) {
 }
 
 @Composable
-fun SplitEquallyScreen(groupMembers: NetworkResult<List<GetGroupMembersV2Response>>, amount: Double, selectedData: MutableMap<String, Double>) {
+fun SplitEquallyScreen(
+    groupMembers: NetworkResult<List<GetGroupMembersV2Response>>,
+    amount: Double,
+    selectedData: MutableMap<String, Double>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -226,7 +243,7 @@ fun SplitByPercentageScreen(
 fun SplitBySharesScreen(
     groupMembers: NetworkResult<List<GetGroupMembersV2Response>>,
     amount: Double,
-    selectedData: MutableMap<String, Double>
+    selectedDataByShares: MutableMap<String, Double>
 ) {
     Column(
         modifier = Modifier
@@ -245,7 +262,7 @@ fun SplitBySharesScreen(
             color = Color.White,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-//        SplitMembersList(groupMembers, amount, selectedData, checkedStates)
+        SplitMembersListByShares(groupMembers, amount, selectedDataByShares)
     }
 }
 
@@ -524,6 +541,109 @@ fun SplitMembersListByPercentage(
     }
 }
 
+@Composable
+fun SplitMembersListByShares(
+    groupMembers: NetworkResult<List<GetGroupMembersV2Response>>,
+    amount: Double,
+    selectedDataByShares: MutableMap<String, Double>
+) {
+    when (groupMembers) {
+        is NetworkResult.Success -> {
+            val members = groupMembers.data
+            val individualShares = remember { mutableStateMapOf<String, String>() }
+
+            // Initialize selectedData with initial values from individualShares
+            LaunchedEffect(members) {
+                individualShares.forEach { (uuid, sharesStr) ->
+                    val member = members!!.find { it.userUuid == uuid }
+                    if (member != null) {
+                        val shares = sharesStr.toDoubleOrNull() ?: 0.0
+                        selectedDataByShares["username_" + member.name] = shares
+                    }
+                }
+            }
+
+            val totalShares by remember {
+                derivedStateOf {
+                    individualShares.values.sumOf { it.toDoubleOrNull() ?: 0.0 }
+                }
+            }
+
+            val singleSharePrice = if (totalShares > 0) amount / totalShares else 0.0
+
+            LazyColumn {
+                items(members!!.toList()) { member ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = member.name,
+                            modifier = Modifier.weight(1f),
+                            color = Color.White
+                        )
+                        OutlinedTextField(
+                            value = individualShares[member.userUuid] ?: "",
+                            onValueChange = { newShares ->
+                                individualShares[member.userUuid] = newShares
+                                val shares = newShares.toDoubleOrNull() ?: 0.0
+                                val newTotalShares = individualShares.values.sumOf { it.toDoubleOrNull() ?: 0.0 }
+                                val updatedSingleSharePrice = if (newTotalShares > 0) amount / newTotalShares else 0.0
+                                selectedDataByShares["username_" + member.name] = shares * updatedSingleSharePrice
+
+                                // Update all values in selectedDataByShares
+                                individualShares.forEach { (uuid, sharesStr) ->
+                                    val mem = members.find { it.userUuid == uuid }
+                                    if (mem != null) {
+                                        val shareValue = sharesStr.toDoubleOrNull() ?: 0.0
+                                        selectedDataByShares["username_" + mem.name] = shareValue * updatedSingleSharePrice
+                                    }
+                                }
+
+                                // Remove the user from selectedData if the shares are zero
+                                if (shares == 0.0) {
+                                    selectedDataByShares.remove("username_" + member.name)
+                                }
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            keyboardActions = KeyboardActions.Default,
+                            singleLine = true,
+                            modifier = Modifier.width(100.dp)
+                        )
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "Total shares: ${String.format("%.2f", totalShares)}", color = Color.White)
+                Text(text = "Single share price: ₹${String.format("%.2f", singleSharePrice)}", color = Color.White)
+            }
+        }
+        is NetworkResult.Error -> {
+            Text(
+                text = "Failed to fetch group members",
+                color = Color.White
+            )
+        }
+        is NetworkResult.Loading -> {
+            CircularProgressIndicator(
+                color = Color.White
+            )
+        }
+
+        is NetworkResult.Idle -> Text(text = "Idle")
+    }
+}
+
+
 
 private fun getSelectedDataForCurrentPage(currentPage: Int, dataMap: SnapshotStateMap<String, Double>, amount: Double): Map<String, Double> {
     return when (currentPage) {
@@ -550,10 +670,10 @@ private fun getSelectedDataForCurrentPage(currentPage: Int, dataMap: SnapshotSta
         }
         3 -> {
             // Split by Shares
-            val individualShares = dataMap["individualShares"] as? Map<String, String> ?: emptyMap()
-            val amount = (dataMap["amount"] as? Double) ?: 0.0
-            val totalShares = (dataMap["totalShares"] as? Double) ?: 0.0
-            individualShares.mapValues { if (totalShares > 0) (it.value.toDoubleOrNull() ?: 0.0) * amount / totalShares else 0.0 }
+            val userShares = dataMap.filterKeys { it.startsWith("username_") }
+            val totalShares = userShares.values.sum()
+            userShares.mapKeys { it.key.removePrefix("username_") } // Remove prefix if necessary
+                .mapValues { entry -> if (totalShares > 0) (entry.value / totalShares) * amount else 0.0 }
         }
         else -> {
             emptyMap()
