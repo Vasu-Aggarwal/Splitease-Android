@@ -44,15 +44,10 @@ import com.google.gson.Gson
 
 @Composable
 fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = hiltViewModel(), groupViewModel: GroupViewModel = hiltViewModel(), navController: NavController){
-    val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences("secure_prefs", Context.MODE_PRIVATE)
-    val tokenManager = TokenManager(sharedPreferences)
-    val userUuid = tokenManager.getUserUuid()
     val addTransaction: State<NetworkResult<AddTransactionResponse>> = transactionViewModel.addTransaction.collectAsState()
-//    var description by remember { mutableStateOf("") }
-//    var amount by remember { mutableDoubleStateOf(0.00) }
     var message by remember { mutableStateOf("") }
     val groupMembers by groupViewModel.groupMembersV2.collectAsState()
+
     // Retrieve saved description and amount
     val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
     var description by remember { mutableStateOf(savedStateHandle?.get<String>("description") ?: "") }
@@ -64,19 +59,23 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
 
     var contributions by remember { mutableStateOf<Map<String, Double>>(emptyMap()) }
     val contri = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedData", emptyMap<String, Double>())?.collectAsState()
+
     // Update contributions whenever contri changes
     LaunchedEffect(contri?.value) {
         if (contri != null && contri.value.isNotEmpty()) {
             contributions = contri.value
         }
     }
+
     // Update savedStateHandle whenever description or amount changes
     LaunchedEffect(description) {
         savedStateHandle?.set("description", description)
     }
+
     LaunchedEffect(amount) {
         savedStateHandle?.set("amount", amount)
     }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -186,5 +185,4 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
             }
         }
     }
-    
 }
