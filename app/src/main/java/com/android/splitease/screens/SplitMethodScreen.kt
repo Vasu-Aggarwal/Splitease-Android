@@ -680,7 +680,3 @@ private fun getSelectedDataForCurrentPage(currentPage: Int, dataMap: SnapshotSta
         }
     }
 }
-
-
-
-
