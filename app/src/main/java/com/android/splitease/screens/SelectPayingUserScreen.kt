@@ -46,7 +46,7 @@ fun SelectPayingUserScreen(navController: NavController,
                             .clickable {
                                 navController.previousBackStackEntry?.savedStateHandle?.set("selectedUserName", member.name)
                                 navController.previousBackStackEntry?.savedStateHandle?.set("selectedUserUuid", member.userUuid)
-                                Log.d("SelectPayingUserScreen", "Selected user name: ${member.name}")
+                                Log.d("SelectPayingUserScreen", "Selected user name: ${member.userUuid}")
                                 navController.popBackStack()
                             }
                             .padding(16.dp)

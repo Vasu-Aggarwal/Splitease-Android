@@ -49,10 +49,14 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
     val tokenManager = TokenManager(sharedPreferences)
     val userUuid = tokenManager.getUserUuid()
     val addTransaction: State<NetworkResult<AddTransactionResponse>> = transactionViewModel.addTransaction.collectAsState()
-    var description by remember { mutableStateOf("") }
-    var amount by remember { mutableDoubleStateOf(0.00) }
+//    var description by remember { mutableStateOf("") }
+//    var amount by remember { mutableDoubleStateOf(0.00) }
     var message by remember { mutableStateOf("") }
     val groupMembers by groupViewModel.groupMembersV2.collectAsState()
+    // Retrieve saved description and amount
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+    var description by remember { mutableStateOf(savedStateHandle?.get<String>("description") ?: "") }
+    var amount by remember { mutableDoubleStateOf(savedStateHandle?.get<Double>("amount") ?: 0.0) }
 
     // Retrieve the selected user's name and UUID from the savedStateHandle
     val selectedUserName = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedUserName", " ")?.collectAsState()
@@ -65,6 +69,13 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
         if (contri != null && contri.value.isNotEmpty()) {
             contributions = contri.value
         }
+    }
+    // Update savedStateHandle whenever description or amount changes
+    LaunchedEffect(description) {
+        savedStateHandle?.set("description", description)
+    }
+    LaunchedEffect(amount) {
+        savedStateHandle?.set("amount", amount)
     }
     Column(
         modifier = Modifier
@@ -154,32 +165,19 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
         }
 
     }
-    
-    LaunchedEffect(groupMembers) {
-        if (groupMembers is NetworkResult.Success){
+
+    LaunchedEffect(groupMembers, contributions, selectedUserUuid) {
+        if (groupMembers is NetworkResult.Success && contributions.isNotEmpty()) {
             val members = (groupMembers as NetworkResult.Success).data
             if (!members.isNullOrEmpty()) {
-                val equalAmount = amount / members.size
-                val contributions = mutableMapOf<String, Double>()
-
-                // Distribute the amount equally
-                members.forEachIndexed { index, member ->
-                    contributions[member.email] = if (index == members.size - 1) {
-                        // Adjust the last member's contribution to ensure the total is correct
-                        amount - contributions.values.sum()
-                    } else {
-                        equalAmount
-                    }
-                }
-
                 val addTransactionRequest = AddTransactionRequest(
                     amount = amount,
                     splitBy = SplitBy.EQUAL,
                     group = groupId,
-                    userUuid = userUuid!!,
+                    userUuid = selectedUserUuid!!.value,
                     description = description,
                     category = "Adventure",
-                    usersInvolved = contributions!!
+                    usersInvolved = contributions
                 )
                 val gson = Gson()
                 val json = gson.toJson(addTransactionRequest)

@@ -273,9 +273,9 @@ fun SplitEqually(
                 val amountPerPerson = if (checkedCount > 0) amount / checkedCount else 0.0
                 members?.forEach { member ->
                     if (checkedStates[member.userUuid] == true) {
-                        selectedData["username_" + member.name] = amountPerPerson
+                        selectedData["username_" + member.email] = amountPerPerson
                     } else {
-                        selectedData.remove("username_" + member.name)
+                        selectedData.remove("username_" + member.email)
                     }
                 }
             }
@@ -309,9 +309,9 @@ fun SplitEqually(
                             onCheckedChange = { isChecked ->
                                 checkedStates[member.userUuid] = isChecked
                                 if (isChecked) {
-                                    selectedData["username_" + member.name] = amountPerPerson
+                                    selectedData["username_" + member.email] = amountPerPerson
                                 } else {
-                                    selectedData.remove("username_" + member.name)
+                                    selectedData.remove("username_" + member.email)
                                 }
                             }
                         )
@@ -362,9 +362,9 @@ fun SplitMembersListUnequal(
                     if (member != null) {
                         val amountValue = amountStr.toDoubleOrNull()
                         if (amountValue != null) {
-                            selectedDataUnequal["username_" + member.name] = amountValue
+                            selectedDataUnequal["username_" + member.email] = amountValue
                         } else {
-                            selectedDataUnequal.remove("username_" + member.name)
+                            selectedDataUnequal.remove("username_" + member.email)
                         }
                     }
                 }
@@ -395,9 +395,9 @@ fun SplitMembersListUnequal(
                                 individualAmounts[member.userUuid] = newAmount
                                 val amountValue = newAmount.toDoubleOrNull()
                                 if (amountValue != null && amountValue > 0.0) {
-                                    selectedDataUnequal["username_" + member.name] = amountValue
+                                    selectedDataUnequal["username_" + member.email] = amountValue
                                 } else {
-                                    selectedDataUnequal.remove("username_" + member.name)
+                                    selectedDataUnequal.remove("username_" + member.email)
                                 }
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -453,7 +453,7 @@ fun SplitMembersListByPercentage(
                     val member = members!!.find { it.userUuid == uuid }
                     if (member != null) {
                         val percentage = percentageStr.toDoubleOrNull() ?: 0.0
-                        selectedDataByPercentage["username_" + member.name] = amount * percentage / 100
+                        selectedDataByPercentage["username_" + member.email] = amount * percentage / 100
                     }
                 }
             }
@@ -482,10 +482,10 @@ fun SplitMembersListByPercentage(
                             onValueChange = { newPercentage ->
                                 individualPercentages[member.userUuid] = newPercentage
                                 val percentage = newPercentage.toDoubleOrNull() ?: 1.0
-                                selectedDataByPercentage["username_" + member.name] = amount * percentage / 100
+                                selectedDataByPercentage["username_" + member.email] = amount * percentage / 100
                                 // Remove the user from selectedData if the percentage is zero
                                 if (percentage == 0.0) {
-                                    selectedDataByPercentage.remove("username_" + member.name)
+                                    selectedDataByPercentage.remove("username_" + member.email)
                                 }
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -541,7 +541,7 @@ fun SplitMembersListByShares(
                     val member = members!!.find { it.userUuid == uuid }
                     if (member != null) {
                         val shares = sharesStr.toDoubleOrNull() ?: 0.0
-                        selectedDataByShares["username_" + member.name] = shares
+                        selectedDataByShares["username_" + member.email] = shares
                     }
                 }
             }
@@ -574,7 +574,7 @@ fun SplitMembersListByShares(
                                 val shares = newShares.toDoubleOrNull() ?: 0.0
                                 val newTotalShares = individualShares.values.sumOf { it.toDoubleOrNull() ?: 0.0 }
                                 val updatedSingleSharePrice = if (newTotalShares > 0) amount / newTotalShares else 0.0
-                                selectedDataByShares["username_" + member.name] = shares * updatedSingleSharePrice
+                                selectedDataByShares["username_" + member.email] = shares * updatedSingleSharePrice
 
                                 // Update all values in selectedDataByShares
                                 individualShares.forEach { (uuid, sharesStr) ->
@@ -587,7 +587,7 @@ fun SplitMembersListByShares(
 
                                 // Remove the user from selectedData if the shares are zero
                                 if (shares == 0.0) {
-                                    selectedDataByShares.remove("username_" + member.name)
+                                    selectedDataByShares.remove("username_" + member.email)
                                 }
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
