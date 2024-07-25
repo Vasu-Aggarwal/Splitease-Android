@@ -1,6 +1,5 @@
 package com.android.splitease.screens
 
-import android.util.Log
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -62,10 +61,6 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                                     selectedData,
                                     amount
                                 )
-                                data.forEach({
-                                    Log.d("contri", "selected final data: ${it.key} -> ${it.value}")
-                                })
-                                Log.d("contri", "Wah data: ${data.keys.size}")
                                 navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
                                 navController.popBackStack()
                             }
@@ -75,10 +70,6 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                                     selectedDataUnequal,
                                     amount
                                 )
-                                data.forEach({
-                                    Log.d("contri", "selected final data: ${it.key} -> ${it.value}")
-                                })
-                                Log.d("contri", "Wah data: ${data.keys.size}")
                                 navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
                                 navController.popBackStack()
                             }
@@ -88,10 +79,6 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                                     selectedDataByPercentage,
                                     amount
                                 )
-                                data.forEach({
-                                    Log.d("contri", "selected final data: ${it.key} -> ${it.value}")
-                                })
-                                Log.d("contri", "Wah data: ${data.keys.size}")
                                 navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
                                 navController.popBackStack()
                             }
@@ -101,10 +88,6 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                                     selectedDataByShares,
                                     amount
                                 )
-                                data.forEach({
-                                    Log.d("contri", "selected final data: ${it.key} -> ${it.value}")
-                                })
-                                Log.d("contri", "Wah data: ${data.keys.size}")
                                 navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
                                 navController.popBackStack()
                             }
@@ -649,7 +632,7 @@ private fun getSelectedDataForCurrentPage(currentPage: Int, dataMap: SnapshotSta
     return when (currentPage) {
         0 -> {
             // Split Equally
-            val totalAmount = amount ?: 0.0
+            val totalAmount = amount
             val userNames = dataMap.filterKeys { it.startsWith("username_") } // Filter user names
             val amountPerPerson = if (userNames.isNotEmpty()) totalAmount / userNames.size else 0.0
 
