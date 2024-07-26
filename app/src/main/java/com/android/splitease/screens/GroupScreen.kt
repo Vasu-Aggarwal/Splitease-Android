@@ -82,34 +82,23 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
 
 @Composable
 fun GroupItem(group: AddGroupResponse, viewModel: GroupViewModel, navController: NavController) {
-    Card(
-        onClick = {
-            navController.navigate(Screen.DetailedGroupScreen.createRoute(group.groupId))
-        },
-        modifier = Modifier
-            .padding(4.dp)
-            .height(100.dp)
-            .fillMaxWidth()
-    ) {
-        Row(modifier = Modifier.padding(8.dp)) {
-            group.imageUrl?.let { url ->
-                Image(
-                    painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current).data(data = url).apply(block = fun ImageRequest.Builder.() {
-                            crossfade(true)
-//                            placeholder(R.drawable.placeholder) // Replace with your placeholder drawable
-                        }).build()
-                    ),
-                    contentDescription = "Image",
-                    modifier = Modifier
-                        .size(80.dp) // Adjust size as needed
-                        .padding(end = 8.dp)
-                )
-            }
-            Column {
-                Text(text = group.name, modifier = Modifier.padding(bottom = 4.dp))
-                // You can add more details if needed
-            }
+    Row(modifier = Modifier.padding(8.dp)) {
+        group.imageUrl?.let { url ->
+            Image(
+                painter = rememberAsyncImagePainter(
+                    ImageRequest.Builder(LocalContext.current).data(data = url).apply(block = fun ImageRequest.Builder.() {
+                        crossfade(true)
+                    }).build()
+                ),
+                contentDescription = "Image",
+                modifier = Modifier
+                    .size(100.dp) // Adjust size as needed
+                    .padding(end = 8.dp)
+            )
+        }
+        Column {
+            Text(text = group.name, modifier = Modifier.padding(bottom = 4.dp))
+            // You can add more details if needed
         }
     }
 }
