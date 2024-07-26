@@ -1,5 +1,6 @@
 package com.android.splitease.repositories
 
+import android.util.Log
 import com.android.splitease.models.requests.AddGroupRequest
 import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.requests.AddUsersToGroupRequest
@@ -11,6 +12,12 @@ import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.TokenManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
 import javax.inject.Inject
 
 class GroupRepository @Inject constructor(private val groupService: GroupService, private val tokenManager: TokenManager) {
@@ -65,13 +72,31 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
         }
     }
 
-    suspend fun addUpdateGroup(addGroupRequest: AddGroupRequest){
-        val authToken = tokenManager.getAuthToken()!!
-        val response = groupService.addUpdateGroupApi("Bearer $authToken", addGroupRequest)
-        if (response.isSuccessful && response.body()!=null){
-            _addUpdateGroup.emit(NetworkResult.Success(response.body()!!))
-        } else {
-            _addUpdateGroup.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+    suspend fun addUpdateGroup(name: String, id: Int, image: File){
+        try {// Create request body for text data
+            val nameRequestBody = RequestBody.create(MultipartBody.FORM, name)
+            val idRequestBody = RequestBody.create(MultipartBody.FORM, id.toString())
+            // Create multipart body for image
+            Log.d("img address", "addUpdateGroup: ${image.canonicalPath}")
+            val imagePart = image.let {
+                val imageRequestBody = it.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                MultipartBody.Part.createFormData("image", it.name, imageRequestBody)
+            }
+
+            val authToken = tokenManager.getAuthToken()!!
+            val response = groupService.addUpdateGroupApi(
+                "Bearer $authToken",
+                imagePart,
+                nameRequestBody,
+                idRequestBody
+            )
+            if (response.isSuccessful && response.body() != null) {
+                _addUpdateGroup.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _addUpdateGroup.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+            }
+        } catch (e: Exception){
+            Log.e("addUpdateGroup", "addUpdateGroup: ", e.cause)
         }
     }
 

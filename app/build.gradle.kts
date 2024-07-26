@@ -107,6 +107,8 @@ dependencies {
 
     //pager
     implementation ("com.google.accompanist:accompanist-pager:0.24.13-rc")
+    implementation ("com.squareup.okhttp3:okhttp:4.10.0")
+
 }
 kapt {
     correctErrorTypes = true

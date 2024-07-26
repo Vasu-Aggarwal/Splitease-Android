@@ -1,5 +1,9 @@
 package com.android.splitease.screens
 
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -20,15 +24,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import com.android.splitease.models.requests.AddGroupRequest
 import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.navigation.Screen
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.GroupViewModel
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.io.InputStream
 
 @Composable
 fun NewGroupScreen(
@@ -37,6 +44,16 @@ fun NewGroupScreen(
 ) {
     var groupName by remember { mutableStateOf("") }
     val addUpdateGroup : State<NetworkResult<AddGroupResponse>> = groupViewModel.addUpdateGroup.collectAsState()
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+
+    // Activity result launcher for image picking
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            imageUri = uri
+            // Optionally, you can convert uri to File or upload it directly
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -56,7 +73,26 @@ fun NewGroupScreen(
 
         Button(
             onClick = {
-                groupViewModel.addUpdateGroup(AddGroupRequest(groupName))
+                launcher.launch("image/*") // Open image picker
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Pick Image")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                // Convert Uri to File if necessary and pass it to the ViewModel
+                val imageFile = imageUri?.let { uri ->
+                    convertUriToFile(context, uri)
+                }
+                imageFile?.let {
+                    groupViewModel.addUpdateGroup(groupName, 1, it)
+                } ?: run {
+                    // Handle the case where imageFile is null
+                }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -84,3 +120,23 @@ fun NewGroupScreen(
         }
     }
 }
+
+fun convertUriToFile(context: Context, uri: Uri): File? {
+    val inputStream = getInputStreamFromUri(context, uri) ?: return null
+    val tempFile = File(context.cacheDir, "temp_image.jpg")
+    val outputStream = FileOutputStream(tempFile)
+    inputStream.copyTo(outputStream)
+    inputStream.close()
+    outputStream.close()
+    return tempFile
+}
+
+fun getInputStreamFromUri(context: Context, uri: Uri): InputStream? {
+    return try {
+        context.contentResolver.openInputStream(uri)
+    } catch (e: FileNotFoundException) {
+        e.printStackTrace()
+        null
+    }
+}
+
