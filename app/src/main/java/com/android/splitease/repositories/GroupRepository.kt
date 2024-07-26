@@ -72,12 +72,16 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
         }
     }
 
-    suspend fun addUpdateGroup(name: String, id: Int, image: File){
-        try {// Create request body for text data
+    suspend fun addUpdateGroup(name: String, id: Int?, image: File){
+        try {
+
+            // Create request body for text data
             val nameRequestBody = RequestBody.create(MultipartBody.FORM, name)
-            val idRequestBody = RequestBody.create(MultipartBody.FORM, id.toString())
+
+            // Create request body for id if id is not null
+            val idRequestBody = id?.let { RequestBody.create(MultipartBody.FORM, it.toString()) }
+
             // Create multipart body for image
-            Log.d("img address", "addUpdateGroup: ${image.canonicalPath}")
             val imagePart = image.let {
                 val imageRequestBody = it.asRequestBody("image/jpeg".toMediaTypeOrNull())
                 MultipartBody.Part.createFormData("image", it.name, imageRequestBody)

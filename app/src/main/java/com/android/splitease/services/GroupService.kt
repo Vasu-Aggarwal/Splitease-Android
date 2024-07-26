@@ -34,7 +34,7 @@ interface GroupService {
         @Header("Authorization") token: String,
         @Part image: MultipartBody.Part?,
         @Part("name") name: RequestBody,
-        @Part("id") id: RequestBody
+        @Part("id") id: RequestBody?
         ): Response<AddGroupResponse>
 
     @POST("${AppConstants.GROUP_URL}/addUsersToGroup")

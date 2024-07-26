@@ -1,5 +1,6 @@
 package com.android.splitease.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -21,6 +23,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.responses.GetOverallUserBalance
 import com.android.splitease.navigation.Screen
@@ -86,9 +91,24 @@ fun GroupItem(group: AddGroupResponse, viewModel: GroupViewModel, navController:
             .height(100.dp)
             .fillMaxWidth()
     ) {
-        Row {
+        Row(modifier = Modifier.padding(8.dp)) {
+            group.imageUrl?.let { url ->
+                Image(
+                    painter = rememberAsyncImagePainter(
+                        ImageRequest.Builder(LocalContext.current).data(data = url).apply(block = fun ImageRequest.Builder.() {
+                            crossfade(true)
+//                            placeholder(R.drawable.placeholder) // Replace with your placeholder drawable
+                        }).build()
+                    ),
+                    contentDescription = "Image",
+                    modifier = Modifier
+                        .size(80.dp) // Adjust size as needed
+                        .padding(end = 8.dp)
+                )
+            }
             Column {
-                Text(text = group.name)
+                Text(text = group.name, modifier = Modifier.padding(bottom = 4.dp))
+                // You can add more details if needed
             }
         }
     }

@@ -89,9 +89,7 @@ fun NewGroupScreen(
                     convertUriToFile(context, uri)
                 }
                 imageFile?.let {
-                    groupViewModel.addUpdateGroup(groupName, 1, it)
-                } ?: run {
-                    // Handle the case where imageFile is null
+                    groupViewModel.addUpdateGroup(groupName, null, it)
                 }
             },
             modifier = Modifier.fillMaxWidth()

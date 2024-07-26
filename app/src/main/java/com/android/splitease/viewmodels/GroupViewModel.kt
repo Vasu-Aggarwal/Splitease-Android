@@ -56,7 +56,7 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
         }
     }
 
-    fun addUpdateGroup(name: String, id: Int, image: File){
+    fun addUpdateGroup(name: String, id: Int?, image: File){
         viewModelScope.launch {
             groupRepository.addUpdateGroup(name, id, image)
         }
