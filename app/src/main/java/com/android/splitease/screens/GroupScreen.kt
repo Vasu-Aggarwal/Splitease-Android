@@ -1,8 +1,6 @@
 package com.android.splitease.screens
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
@@ -24,15 +21,31 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.responses.GetOverallUserBalance
 import com.android.splitease.navigation.Screen
+import com.android.splitease.ui.theme.DeepOrange200
+import com.android.splitease.ui.theme.DeepOrange300
+import com.android.splitease.ui.theme.DeepOrange400
+import com.android.splitease.ui.theme.Green200
+import com.android.splitease.ui.theme.LightBlue500
+import com.android.splitease.ui.theme.LightGreen
+import com.android.splitease.ui.theme.LightGreen500
+import com.android.splitease.ui.theme.LightGreenA200
+import com.android.splitease.ui.theme.MoneyGreen
+import com.android.splitease.ui.theme.MoneyRed
+import com.android.splitease.ui.theme.Orange800
+import com.android.splitease.ui.theme.OrangeA400
+import com.android.splitease.ui.theme.Red300
+import com.android.splitease.ui.theme.Red400
 import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.GroupViewModel
@@ -51,10 +64,22 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
             is NetworkResult.Success -> {
                 val balance = result.data!!.netBalance
                 Text(
-                    text = when {
-                        balance < 0 -> "Overall, you are owed ${AppConstants.RUPEE+abs(balance)}"
-                        balance > 0 -> "Overall, you owe ${AppConstants.RUPEE+abs(balance)}"
-                        else -> ""
+                    text = buildAnnotatedString {
+                        when {
+                            balance < 0 -> {
+                                append("Overall, you are owed ")
+                                withStyle(style = SpanStyle(color = DeepOrange400)) {
+                                    append("${AppConstants.RUPEE}${abs(balance)}")
+                                }
+                            }
+                            balance > 0 -> {
+                                append("Overall, you owe ")
+                                withStyle(style = SpanStyle(color = MoneyRed)) {
+                                    append("${AppConstants.RUPEE}${abs(balance)}")
+                                }
+                            }
+                            else -> ""
+                        }
                     }
                 )
             }
