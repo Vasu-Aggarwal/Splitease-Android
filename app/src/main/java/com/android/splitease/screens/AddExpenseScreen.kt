@@ -2,6 +2,7 @@ package com.android.splitease.screens
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,14 +49,19 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
     var message by remember { mutableStateOf("") }
     val groupMembers by groupViewModel.groupMembersV2.collectAsState()
 
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("secure_prefs", Context.MODE_PRIVATE)
+    val tokenManager = TokenManager(sharedPreferences)
+    val userUuid = tokenManager.getUserUuid()
+
     // Retrieve saved description and amount
     val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
     var description by remember { mutableStateOf(savedStateHandle?.get<String>("description") ?: "") }
     var amount by remember { mutableDoubleStateOf(savedStateHandle?.get<Double>("amount") ?: 0.0) }
 
     // Retrieve the selected user's name and UUID from the savedStateHandle
-    val selectedUserName = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedUserName", " ")?.collectAsState()
-    val selectedUserUuid = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedUserUuid", " ")?.collectAsState()
+    val selectedUserName = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedUserName", "You")?.collectAsState()
+    val selectedUserUuid = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedUserUuid", "")?.collectAsState()
 
     var contributions by remember { mutableStateOf<Map<String, Double>>(emptyMap()) }
     val contri = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedData", emptyMap<String, Double>())?.collectAsState()
@@ -126,7 +132,7 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                                 amount = amount,
                                 splitBy = SplitBy.EQUAL,
                                 group = groupId,
-                                userUuid = selectedUserUuid!!.value,
+                                userUuid = if (selectedUserName!!.value.equals("You", ignoreCase = true)) userUuid!! else selectedUserUuid!!.value,
                                 description = description,
                                 category = "Adventure",
                                 usersInvolved = contributionsEqual
@@ -192,7 +198,7 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
                     onClick = { navController.navigate(Screen.SelectPayingUserScreen.createRoute(groupId)) }
                 ) {
-                    Text(text = selectedUserName?.value ?: "You", maxLines = 1)
+                    Text(text = if(userUuid == selectedUserUuid!!.value) "You" else selectedUserName!!.value, maxLines = 1)
                 }
             }
 
