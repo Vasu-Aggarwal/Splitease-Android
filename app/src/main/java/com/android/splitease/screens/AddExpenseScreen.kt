@@ -2,7 +2,6 @@ package com.android.splitease.screens
 
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -64,12 +63,12 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
     val selectedUserUuid = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedUserUuid", "")?.collectAsState()
 
     var contributions by remember { mutableStateOf<Map<String, Double>>(emptyMap()) }
-    val contri = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedData", emptyMap<String, Double>())?.collectAsState()
+    val contributionsState = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedData", emptyMap<String, Double>())?.collectAsState()
 
     // Update contributions whenever contri changes
-    LaunchedEffect(contri?.value) {
-        if (contri != null && contri.value.isNotEmpty()) {
-            contributions = contri.value
+    LaunchedEffect(contributionsState?.value) {
+        if (contributionsState != null && contributionsState.value.isNotEmpty()) {
+            contributions = contributionsState.value
         }
     }
 
