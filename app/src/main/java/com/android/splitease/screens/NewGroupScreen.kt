@@ -1,5 +1,6 @@
 package com.android.splitease.screens
 
+import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -32,6 +33,7 @@ import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.navigation.Screen
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.GroupViewModel
+import com.yalantis.ucrop.UCrop
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
@@ -48,10 +50,24 @@ fun NewGroupScreen(
 
     // Activity result launcher for image picking
     val context = LocalContext.current
+    val cropLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val resultUri = UCrop.getOutput(result.data!!)
+            if (resultUri != null) {
+                imageUri = resultUri
+            }
+        }
+    }
+
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
             imageUri = uri
-            // Optionally, you can convert uri to File or upload it directly
+            // Start UCrop activity for cropping
+            val destinationUri = Uri.fromFile(File(context.cacheDir, "cropped_image.jpg"))
+            val uCropIntent = UCrop.of(it, destinationUri)
+                .withAspectRatio(1f, 1f) // Set aspect ratio here if needed
+                .getIntent(context)
+            cropLauncher.launch(uCropIntent)
         }
     }
 
