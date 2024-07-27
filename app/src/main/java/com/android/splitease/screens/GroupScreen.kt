@@ -42,7 +42,6 @@ import kotlin.math.abs
 fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavController, userViewModel: UserViewModel = hiltViewModel()) {
     val groups: State<NetworkResult<List<AddGroupResponse>>> = viewModel.groups.collectAsState()
     val userBalance: State<NetworkResult<GetOverallUserBalance>> = userViewModel.userBalance.collectAsState()
-    val context = LocalContext.current
     LaunchedEffect(Unit) {
         userViewModel.getOverallUserBalance()
     }
@@ -113,7 +112,6 @@ fun GroupItem(group: AddGroupResponse, viewModel: GroupViewModel, navController:
             }
             Column {
                 Text(text = group.name, modifier = Modifier.padding(bottom = 4.dp))
-                // You can add more details if needed
             }
         }
     }

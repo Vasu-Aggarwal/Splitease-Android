@@ -2,19 +2,22 @@ package com.android.splitease.screens
 
 import android.content.Context
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,7 +35,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.android.splitease.models.responses.CalculateDebtResponse
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.models.responses.GetUserByUuidResponse
 import com.android.splitease.navigation.Screen
@@ -89,7 +91,6 @@ fun GroupTransactions(
     navController: NavController
 ) {
     LazyColumn {
-        Log.d("DGS", "GroupTransactions: Came here")
         transactions.value.data?.let { transactionList ->
             items(transactionList){transaction ->
                 TransactionItem(transaction, tokenManager, userViewModel, navController)
@@ -165,13 +166,22 @@ fun GroupInfo(
     groupId: Int,
     navController: NavController
 ) {
-    Row{
+    val scrollState = rememberScrollState()
+    Text(modifier = Modifier.padding(10.dp), text = "Good")
+    Spacer(modifier = Modifier.height(10.dp))
+    Row(
+        modifier = Modifier
+            .horizontalScroll(scrollState)
+            .padding(16.dp) // Optional padding for better layout
+    ) {
         Button(onClick = { navController.navigate(Screen.AddUsersToGroupScreen.createRoute(groupId)) }) {
             Text(text = "Add Users")
         }
+        Spacer(modifier = Modifier.width(8.dp)) // Optional spacing between buttons
         Button(onClick = { navController.navigate(Screen.UserDebtScreen.createRoute(groupId)) }) {
             Text(text = "Balances")
         }
+        Spacer(modifier = Modifier.width(8.dp))
         Button(onClick = { navController.navigate(Screen.SettleUpPayerScreen.createRoute(groupId)) }) {
             Text(text = "Settle Up")
         }
