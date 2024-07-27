@@ -101,8 +101,20 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
-                if (description.isNotBlank() && amount>0.00) {
-                    groupViewModel.getGroupMembersV2(groupId)
+                if (description.isNotBlank() && amount>0.00 && contributions.isNotEmpty()) {
+                    val addTransactionRequest = AddTransactionRequest(
+                        amount = amount,
+                        splitBy = SplitBy.EQUAL,
+                        group = groupId,
+                        userUuid = selectedUserUuid!!.value,
+                        description = description,
+                        category = "Adventure",
+                        usersInvolved = contributions
+                    )
+                    val gson = Gson()
+                    val json = gson.toJson(addTransactionRequest)
+                    Log.d("AES", "AddExpenseScreen: $json")
+                    transactionViewModel.addTransaction(addTransactionRequest)
                 } else {
                     message = "Please enter a valid description and amount"
                 }
@@ -163,26 +175,5 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
             }
         }
 
-    }
-
-    LaunchedEffect(groupMembers, contributions, selectedUserUuid) {
-        if (groupMembers is NetworkResult.Success && contributions.isNotEmpty()) {
-            val members = (groupMembers as NetworkResult.Success).data
-            if (!members.isNullOrEmpty()) {
-                val addTransactionRequest = AddTransactionRequest(
-                    amount = amount,
-                    splitBy = SplitBy.EQUAL,
-                    group = groupId,
-                    userUuid = selectedUserUuid!!.value,
-                    description = description,
-                    category = "Adventure",
-                    usersInvolved = contributions
-                )
-                val gson = Gson()
-                val json = gson.toJson(addTransactionRequest)
-                Log.d("AES", "AddExpenseScreen: $json")
-                transactionViewModel.addTransaction(addTransactionRequest)
-            }
-        }
     }
 }
