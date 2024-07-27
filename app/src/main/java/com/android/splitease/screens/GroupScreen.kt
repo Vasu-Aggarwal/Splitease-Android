@@ -32,20 +32,8 @@ import coil.request.ImageRequest
 import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.responses.GetOverallUserBalance
 import com.android.splitease.navigation.Screen
-import com.android.splitease.ui.theme.DeepOrange200
-import com.android.splitease.ui.theme.DeepOrange300
 import com.android.splitease.ui.theme.DeepOrange400
-import com.android.splitease.ui.theme.Green200
-import com.android.splitease.ui.theme.LightBlue500
-import com.android.splitease.ui.theme.LightGreen
-import com.android.splitease.ui.theme.LightGreen500
-import com.android.splitease.ui.theme.LightGreenA200
-import com.android.splitease.ui.theme.MoneyGreen
-import com.android.splitease.ui.theme.MoneyRed
-import com.android.splitease.ui.theme.Orange800
-import com.android.splitease.ui.theme.OrangeA400
-import com.android.splitease.ui.theme.Red300
-import com.android.splitease.ui.theme.Red400
+import com.android.splitease.ui.theme.Green300
 import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.GroupViewModel
@@ -68,13 +56,13 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                         when {
                             balance < 0 -> {
                                 append("Overall, you are owed ")
-                                withStyle(style = SpanStyle(color = DeepOrange400)) {
+                                withStyle(style = SpanStyle(color = Green300)) {
                                     append("${AppConstants.RUPEE}${abs(balance)}")
                                 }
                             }
                             balance > 0 -> {
                                 append("Overall, you owe ")
-                                withStyle(style = SpanStyle(color = MoneyRed)) {
+                                withStyle(style = SpanStyle(color = DeepOrange400)) {
                                     append("${AppConstants.RUPEE}${abs(balance)}")
                                 }
                             }
