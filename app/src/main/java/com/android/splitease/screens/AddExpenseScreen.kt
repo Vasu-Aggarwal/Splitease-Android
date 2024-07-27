@@ -76,6 +76,11 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
         savedStateHandle?.set("amount", amount)
     }
 
+    // Fetch group members when the groupId changes
+    LaunchedEffect(groupId) {
+        groupViewModel.getGroupMembersV2(groupId)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -101,7 +106,38 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = {
-                if (description.isNotBlank() && amount>0.00 && contributions.isNotEmpty()) {
+                if(contributions.isEmpty() && description.isNotBlank() && amount>0.00){
+                    if (groupMembers is NetworkResult.Success) {
+                        val members = (groupMembers as NetworkResult.Success).data
+                        if (!members.isNullOrEmpty()) {
+                            val equalAmount = amount / members.size
+                            val contributionsEqual = mutableMapOf<String, Double>()
+                            // Distribute the amount equally
+                            members.forEachIndexed { index, member ->
+                                contributionsEqual[member.email] = if (index == members.size - 1) {
+                                    // Adjust the last member's contribution to ensure the total is correct
+                                    amount - contributionsEqual.values.sum()
+                                } else {
+                                    equalAmount
+                                }
+                            }
+
+                            val addTransactionRequest = AddTransactionRequest(
+                                amount = amount,
+                                splitBy = SplitBy.EQUAL,
+                                group = groupId,
+                                userUuid = selectedUserUuid!!.value,
+                                description = description,
+                                category = "Adventure",
+                                usersInvolved = contributionsEqual
+                            )
+                            val gson = Gson()
+                            val json = gson.toJson(addTransactionRequest)
+                            Log.d("AES", "AddExpenseScreen: $json")
+                            transactionViewModel.addTransaction(addTransactionRequest)
+                        }
+                    }
+                } else if (description.isNotBlank() && amount>0.00 && contributions.isNotEmpty()) {
                     val addTransactionRequest = AddTransactionRequest(
                         amount = amount,
                         splitBy = SplitBy.EQUAL,
@@ -174,6 +210,5 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                 }
             }
         }
-
     }
 }
