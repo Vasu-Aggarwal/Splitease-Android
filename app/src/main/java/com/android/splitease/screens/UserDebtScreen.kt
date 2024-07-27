@@ -1,5 +1,6 @@
 package com.android.splitease.screens
 
+import android.content.res.Resources
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,6 +31,7 @@ import com.android.splitease.models.responses.CalculateDebtResponse
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.models.util.Creditor
 import com.android.splitease.models.util.Debtor
+import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.TransactionViewModel
 
@@ -93,14 +95,14 @@ fun CreditorItem(creditor: Creditor) {
     ExpandableItem(
         header = {
             Text(
-                text = "${creditor.name} gets back ₹${String.format("%.2f", creditor.getsBack)}",
+                text = "${creditor.name} gets back ${AppConstants.RUPEE+String.format("%.2f", creditor.getsBack)}",
                 style = MaterialTheme.typography.titleMedium
             )
         },
         expandedContent = {
             creditor.lentTo.forEach { lentTo ->
                 Text(
-                    text = "${lentTo.name} pays ₹${String.format("%.2f", lentTo.amount)}",
+                    text = "${lentTo.name} pays ₹${AppConstants.RUPEE+String.format("%.2f", lentTo.amount)}",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(start = 16.dp, top = 4.dp)
                 )

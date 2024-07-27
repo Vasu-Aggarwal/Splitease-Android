@@ -38,6 +38,7 @@ import androidx.navigation.NavController
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.models.responses.GetUserByUuidResponse
 import com.android.splitease.navigation.Screen
+import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.TokenManager
 import com.android.splitease.utils.UtilMethods
@@ -127,7 +128,7 @@ fun TransactionItem(
                     Column {
                         Text(text = transaction.description)
                         if (transaction.userUuid == tokenManager.getUserUuid().toString()) {
-                            Text(text = "You paid Rs.${transaction.amount}")
+                            Text(text = "You paid ${AppConstants.RUPEE+transaction.amount}")
                         } else {
                             if(userState == null) {
                                 LaunchedEffect(transaction.userUuid) {
@@ -140,7 +141,7 @@ fun TransactionItem(
                             if (userData is NetworkResult.Success){
                                 userState = userData.data
                             }
-                            Text(text = "${user.value.data?.name} paid Rs. ${transaction.amount}")
+                            Text(text = "${user.value.data?.name} paid ${AppConstants.RUPEE+transaction.amount}")
                         }
                     }
                     Column {

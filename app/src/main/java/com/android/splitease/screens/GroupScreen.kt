@@ -33,6 +33,7 @@ import coil.request.ImageRequest
 import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.responses.GetOverallUserBalance
 import com.android.splitease.navigation.Screen
+import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.GroupViewModel
 import com.android.splitease.viewmodels.UserViewModel
@@ -51,8 +52,8 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                 val balance = result.data!!.netBalance
                 Text(
                     text = when {
-                        balance < 0 -> "Overall, you are owed Rs.${abs(balance)}"
-                        balance > 0 -> "Overall, you owe Rs.${abs(balance)}"
+                        balance < 0 -> "Overall, you are owed ${AppConstants.RUPEE+abs(balance)}"
+                        balance > 0 -> "Overall, you owe ${AppConstants.RUPEE+abs(balance)}"
                         else -> ""
                     }
                 )

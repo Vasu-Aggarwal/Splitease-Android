@@ -11,4 +11,5 @@ object AppConstants {
     const val USER_URL = "/api/user"
     const val CACHE_TTL = 60*1000 //1 minute
     const val UNEXPECTED_ERROR = "Something went wrong. Please try again later !!"
+    const val RUPEE = "₹"
 }
