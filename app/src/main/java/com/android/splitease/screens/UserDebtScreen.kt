@@ -33,6 +33,7 @@ import com.android.splitease.models.util.Creditor
 import com.android.splitease.models.util.Debtor
 import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.NetworkResult
+import com.android.splitease.utils.UtilMethods
 import com.android.splitease.viewmodels.TransactionViewModel
 
 @Composable
@@ -95,14 +96,14 @@ fun CreditorItem(creditor: Creditor) {
     ExpandableItem(
         header = {
             Text(
-                text = "${creditor.name} gets back ${AppConstants.RUPEE+String.format("%.2f", creditor.getsBack)}",
+                text = "${creditor.name} gets back ${UtilMethods.formatAmount(creditor.getsBack)}",
                 style = MaterialTheme.typography.titleMedium
             )
         },
         expandedContent = {
             creditor.lentTo.forEach { lentTo ->
                 Text(
-                    text = "${lentTo.name} pays ₹${AppConstants.RUPEE+String.format("%.2f", lentTo.amount)}",
+                    text = "${lentTo.name} pays ₹${UtilMethods.formatAmount(lentTo.amount)}",
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(start = 16.dp, top = 4.dp)
                 )

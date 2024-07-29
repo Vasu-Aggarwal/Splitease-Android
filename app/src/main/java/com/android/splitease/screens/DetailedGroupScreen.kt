@@ -127,7 +127,7 @@ fun TransactionItem(
                     Column {
                         Text(text = transaction.description)
                         if (transaction.userUuid == tokenManager.getUserUuid().toString()) {
-                            Text(text = "You paid ${AppConstants.RUPEE+transaction.amount}")
+                            Text(text = "You paid ${UtilMethods.formatAmount(transaction.amount)}")
                         } else {
                             if(userState == null) {
                                 LaunchedEffect(transaction.userUuid) {
@@ -140,7 +140,7 @@ fun TransactionItem(
                             if (userData is NetworkResult.Success){
                                 userState = userData.data
                             }
-                            Text(text = "${user.value.data?.name} paid ${AppConstants.RUPEE+transaction.amount}")
+                            Text(text = "${user.value.data?.name} paid ${UtilMethods.formatAmount(transaction.amount)}")
                         }
                     }
                     Column {

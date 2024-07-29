@@ -59,13 +59,13 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                             balance < 0 -> {
                                 append("Overall, you are owed ")
                                 withStyle(style = SpanStyle(color = Green300)) {
-                                    append("${AppConstants.RUPEE}${abs(balance)}")
+                                    append(UtilMethods.formatAmount(abs(balance)))
                                 }
                             }
                             balance > 0 -> {
                                 append("Overall, you owe ")
                                 withStyle(style = SpanStyle(color = DeepOrange400)) {
-                                    append("${AppConstants.RUPEE}${abs(balance)}")
+                                    append(UtilMethods.formatAmount(abs(balance)))
                                 }
                             }
                             else -> ""
