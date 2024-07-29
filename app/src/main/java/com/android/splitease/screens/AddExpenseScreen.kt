@@ -72,6 +72,32 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
         }
     }
 
+    contributions.forEach { _ ->
+        if (groupMembers is NetworkResult.Success) {
+            val members = groupMembers.data
+            var payingEmail: String = ""
+
+            // Find the paying user’s email
+            members?.forEach { member ->
+                if (member.userUuid == selectedUserUuid?.value) {
+                    payingEmail = member.email
+                }
+            }
+
+            // If the paying user's email is found, ensure it's present in the contributions map
+            payingEmail.let { email ->
+                // Create a new map with the updated entry
+                val updatedContributions = contributions.toMutableMap().apply {
+                    if (!containsKey(email)) {
+                        this[email] = 0.0
+                    }
+                }
+                // Update the state with the new map
+                contributions = updatedContributions
+            }
+        }
+    }
+
     // Update savedStateHandle whenever description or amount changes
     LaunchedEffect(description) {
         savedStateHandle?.set("description", description)
