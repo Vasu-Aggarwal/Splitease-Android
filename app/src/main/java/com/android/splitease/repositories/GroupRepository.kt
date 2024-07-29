@@ -8,6 +8,7 @@ import com.android.splitease.models.responses.AddUsersToGroupResponse
 import com.android.splitease.models.responses.CreateUserResponse
 import com.android.splitease.models.responses.GetGroupMembersV2Response
 import com.android.splitease.models.responses.GetGroupSummaryResponse
+import com.android.splitease.models.responses.GetGroupsByUserResponse
 import com.android.splitease.services.GroupService
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.TokenManager
@@ -22,8 +23,8 @@ import java.io.File
 import javax.inject.Inject
 
 class GroupRepository @Inject constructor(private val groupService: GroupService, private val tokenManager: TokenManager) {
-    private val _groups = MutableStateFlow<NetworkResult<List<AddGroupResponse>>>(NetworkResult.Idle())
-    val groups: StateFlow<NetworkResult<List<AddGroupResponse>>>
+    private val _groups = MutableStateFlow<NetworkResult<List<GetGroupsByUserResponse>>>(NetworkResult.Idle())
+    val groups: StateFlow<NetworkResult<List<GetGroupsByUserResponse>>>
         get() =_groups
 
     private val _groupMembers = MutableStateFlow<NetworkResult<List<CreateUserResponse>>>(NetworkResult.Idle())

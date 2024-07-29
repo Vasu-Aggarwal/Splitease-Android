@@ -8,7 +8,7 @@ import java.time.format.TextStyle
 import java.util.Date
 import java.util.Locale
 
-class UtilMethods {
+object UtilMethods {
     @RequiresApi(Build.VERSION_CODES.O)
     fun formatDate(originalDate: String): String {
         // Define the input and output date formats
@@ -20,5 +20,9 @@ class UtilMethods {
 
         // Format the date into the desired output format
         return outputFormat.format(date)
+    }
+
+    fun formatAmount(amount: Double): String{
+        return AppConstants.RUPEE+String.format("%.2f", amount)
     }
 }

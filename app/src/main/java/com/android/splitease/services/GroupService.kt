@@ -7,6 +7,7 @@ import com.android.splitease.models.responses.AddUsersToGroupResponse
 import com.android.splitease.models.responses.CreateUserResponse
 import com.android.splitease.models.responses.GetGroupMembersV2Response
 import com.android.splitease.models.responses.GetGroupSummaryResponse
+import com.android.splitease.models.responses.GetGroupsByUserResponse
 import com.android.splitease.utils.AppConstants
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -21,7 +22,7 @@ import retrofit2.http.Path
 
 interface GroupService {
     @GET("${AppConstants.GROUP_URL}/getGroupsByUser/{userUuid}")
-    suspend fun getGroupsByUser(@Header("Authorization") token: String, @Path("userUuid") userUuid: String): Response<List<AddGroupResponse>>
+    suspend fun getGroupsByUser(@Header("Authorization") token: String, @Path("userUuid") userUuid: String): Response<List<GetGroupsByUserResponse>>
 
     @GET("${AppConstants.GROUP_URL}/getGroupMembers/{groupId}")
     suspend fun getGroupMembersApi(@Header("Authorization") token: String, @Path("groupId") groupId: Int): Response<List<CreateUserResponse>>

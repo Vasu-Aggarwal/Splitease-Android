@@ -30,19 +30,21 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.android.splitease.models.responses.AddGroupResponse
+import com.android.splitease.models.responses.GetGroupsByUserResponse
 import com.android.splitease.models.responses.GetOverallUserBalance
 import com.android.splitease.navigation.Screen
 import com.android.splitease.ui.theme.DeepOrange400
 import com.android.splitease.ui.theme.Green300
 import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.NetworkResult
+import com.android.splitease.utils.UtilMethods
 import com.android.splitease.viewmodels.GroupViewModel
 import com.android.splitease.viewmodels.UserViewModel
 import kotlin.math.abs
 
 @Composable
 fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavController, userViewModel: UserViewModel = hiltViewModel()) {
-    val groups: State<NetworkResult<List<AddGroupResponse>>> = viewModel.groups.collectAsState()
+    val groups: State<NetworkResult<List<GetGroupsByUserResponse>>> = viewModel.groups.collectAsState()
     val userBalance: State<NetworkResult<GetOverallUserBalance>> = userViewModel.userBalance.collectAsState()
     LaunchedEffect(Unit) {
         userViewModel.getOverallUserBalance()
@@ -98,7 +100,7 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
 }
 
 @Composable
-fun GroupItem(group: AddGroupResponse, viewModel: GroupViewModel, navController: NavController) {
+fun GroupItem(group: GetGroupsByUserResponse, viewModel: GroupViewModel, navController: NavController) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         onClick = {
@@ -126,6 +128,14 @@ fun GroupItem(group: AddGroupResponse, viewModel: GroupViewModel, navController:
             }
             Column {
                 Text(text = group.name, modifier = Modifier.padding(bottom = 4.dp))
+                Text(text =
+                    if(group.userBalance<0.0)
+                        "you are owed " + UtilMethods.formatAmount(group.userBalance)
+                    else if(group.userBalance>0.0)
+                        "you owe " + UtilMethods.formatAmount(group.userBalance)
+                    else
+                        "no expenses"
+                    , modifier = Modifier.padding(bottom = 4.dp))
             }
         }
     }

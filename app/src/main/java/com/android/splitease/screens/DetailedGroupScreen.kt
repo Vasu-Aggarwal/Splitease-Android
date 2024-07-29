@@ -122,8 +122,7 @@ fun TransactionItem(
                 SettleUpTransaction()
             } else {
                 Row {
-                    val utilMethods = UtilMethods()
-                    val formattedDate = utilMethods.formatDate(transaction.createdOn)
+                    val formattedDate = UtilMethods.formatDate(transaction.createdOn)
                     Text(text = formattedDate)
                     Column {
                         Text(text = transaction.description)
