@@ -6,6 +6,7 @@ import com.android.splitease.models.requests.AddUsersToGroupRequest
 import com.android.splitease.models.responses.AddUsersToGroupResponse
 import com.android.splitease.models.responses.CreateUserResponse
 import com.android.splitease.models.responses.GetGroupMembersV2Response
+import com.android.splitease.models.responses.GetGroupSummaryResponse
 import com.android.splitease.utils.AppConstants
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -39,5 +40,8 @@ interface GroupService {
 
     @POST("${AppConstants.GROUP_URL}/addUsersToGroup")
     suspend fun addUsersToGroupApi(@Header("Authorization") token: String, @Body addUsersToGroupRequest: AddUsersToGroupRequest): Response<AddUsersToGroupResponse>
+
+    @GET("${AppConstants.GROUP_URL}/getGroupSpendingSummary/{groupId}")
+    suspend fun getGroupSpendingSummaryApi(@Header("Authorization") token: String, @Path("groupId") groupId: Int): Response<GetGroupSummaryResponse>
 
 }

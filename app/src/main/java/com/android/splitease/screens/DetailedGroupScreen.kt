@@ -186,6 +186,10 @@ fun GroupInfo(
         Button(onClick = { navController.navigate(Screen.SettleUpPayerScreen.createRoute(groupId)) }) {
             Text(text = "Settle Up")
         }
+        Spacer(modifier = Modifier.width(8.dp))
+        Button(onClick = { navController.navigate(Screen.GroupSummaryScreen.createRoute(groupId)) }) {
+            Text(text = "Totals")
+        }
     }
 }
 

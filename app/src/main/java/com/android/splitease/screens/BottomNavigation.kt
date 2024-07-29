@@ -231,6 +231,15 @@ fun BottomNavigationBar(){
                     SettleUpScreen(groupId = groupId, navController = navController, payerUuid = payerUuid, receiverUuid = receiverUuid)
                 }
             }
+
+            composable(route = Screen.GroupSummaryScreen.route,
+                arguments = listOf(navArgument("groupId"){type = NavType.IntType}))
+            { backStackEntry ->
+                val groupId = backStackEntry.arguments?.getInt("groupId")
+                groupId?.let {
+                    GroupSummaryScreen(groupId = it)
+                }
+            }
         }
     }
 }

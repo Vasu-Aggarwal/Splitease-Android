@@ -7,6 +7,7 @@ import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.responses.AddUsersToGroupResponse
 import com.android.splitease.models.responses.CreateUserResponse
 import com.android.splitease.models.responses.GetGroupMembersV2Response
+import com.android.splitease.models.responses.GetGroupSummaryResponse
 import com.android.splitease.repositories.GroupRepository
 import com.android.splitease.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,6 +32,9 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
 
     val addUsersToGroup: StateFlow<NetworkResult<AddUsersToGroupResponse>>
         get() = groupRepository.addUsersToGroup
+
+    val groupSummary: StateFlow<NetworkResult<GetGroupSummaryResponse>>
+        get() = groupRepository.groupSummary
 
     init {
         viewModelScope.launch {
@@ -65,6 +69,12 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
     fun addUsersToGroup(addUsersToGroupRequest: AddUsersToGroupRequest){
         viewModelScope.launch {
             groupRepository.addUsersToGroup(addUsersToGroupRequest)
+        }
+    }
+
+    fun getGroupSummary(groupId: Int){
+        viewModelScope.launch {
+            groupRepository.getGroupSummary(groupId)
         }
     }
 }

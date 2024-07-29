@@ -90,4 +90,8 @@ sealed class Screen(val route: String){
         fun createRoute(groupId: Int, payerUuid: String, receiverUuid: String) = "settleUpScreen/$groupId/$payerUuid/$receiverUuid"
     }
 
+    data object GroupSummaryScreen: Screen("groupSummary/{groupId}"){
+        fun createRoute(groupId: Int) = "groupSummary/$groupId"
+    }
+
 }
