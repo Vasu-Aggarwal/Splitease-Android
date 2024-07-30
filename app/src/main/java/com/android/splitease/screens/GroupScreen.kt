@@ -1,6 +1,7 @@
 package com.android.splitease.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +52,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
@@ -104,6 +106,7 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 8.dp) // Adjust padding as needed
+                .zIndex(1f)
         )
         Column()
         {
