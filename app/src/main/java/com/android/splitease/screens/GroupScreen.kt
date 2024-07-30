@@ -1,6 +1,7 @@
 package com.android.splitease.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,14 +11,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -35,6 +41,8 @@ import com.android.splitease.models.responses.GetOverallUserBalance
 import com.android.splitease.navigation.Screen
 import com.android.splitease.ui.theme.DeepOrange400
 import com.android.splitease.ui.theme.Green300
+import com.android.splitease.ui.theme.Grey400
+import com.android.splitease.ui.theme.Grey600
 import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.UtilMethods
@@ -53,25 +61,49 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
         when (val result = userBalance.value) {
             is NetworkResult.Success -> {
                 val balance = result.data!!.netBalance
-                Text(
-                    text = buildAnnotatedString {
-                        when {
-                            balance < 0 -> {
-                                append("Overall, you are owed ")
-                                withStyle(style = SpanStyle(color = Green300)) {
-                                    append(UtilMethods.formatAmount(abs(balance)))
+                Card (
+                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .height(60.dp)
+                        .fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ){
+                        Text(
+                            modifier = Modifier.padding(8.dp)
+                                .align(Alignment.CenterVertically),
+                            text = buildAnnotatedString {
+                                when {
+                                    balance < 0 -> {
+                                        append("Overall, you are owed ")
+                                        withStyle(style = SpanStyle(color = AppConstants.LENT_COLOR)) {
+                                            append(UtilMethods.formatAmount(abs(balance)))
+                                        }
+                                    }
+
+                                    balance > 0 -> {
+                                        append("Overall, you owe ")
+                                        withStyle(style = SpanStyle(color = AppConstants.OWE_COLOR)) {
+                                            append(UtilMethods.formatAmount(abs(balance)))
+                                        }
+                                    }
+
+                                    else -> ""
                                 }
                             }
-                            balance > 0 -> {
-                                append("Overall, you owe ")
-                                withStyle(style = SpanStyle(color = DeepOrange400)) {
-                                    append(UtilMethods.formatAmount(abs(balance)))
-                                }
-                            }
-                            else -> ""
+                        )
+
+                        IconButton(
+                            onClick = { /*TODO*/ },
+                            modifier = Modifier.align(Alignment.CenterVertically)
+                        ) {
+                            Icon(imageVector = Icons.Outlined.Settings, contentDescription = "Filters")
                         }
                     }
-                )
+                }
             }
 
             is NetworkResult.Error -> {
@@ -128,14 +160,21 @@ fun GroupItem(group: GetGroupsByUserResponse, viewModel: GroupViewModel, navCont
             }
             Column {
                 Text(text = group.name, modifier = Modifier.padding(bottom = 4.dp))
-                Text(text =
-                    if(group.userBalance<0.0)
-                        "you are owed " + UtilMethods.formatAmount(group.userBalance)
-                    else if(group.userBalance>0.0)
-                        "you owe " + UtilMethods.formatAmount(group.userBalance)
-                    else
-                        "no expenses"
-                    , modifier = Modifier.padding(bottom = 4.dp))
+                Text(text = buildAnnotatedString {
+                    if(group.userBalance<0.0) {
+                        withStyle(style = SpanStyle(color = AppConstants.OWE_COLOR)){
+                            append("you are owed " + UtilMethods.formatAmount(group.userBalance) )
+                        }
+                    } else if(group.userBalance>0.0) {
+                        withStyle(style = SpanStyle(color = AppConstants.LENT_COLOR)){
+                            append("you owe " + UtilMethods.formatAmount(group.userBalance))
+                        }
+                    } else {
+                        withStyle(style = SpanStyle(color = Grey400)){
+                            append("no expenses")
+                        }
+                    }
+                }, modifier = Modifier.padding(bottom = 4.dp))
             }
         }
     }
