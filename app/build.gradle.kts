@@ -113,6 +113,8 @@ dependencies {
     //image crop
     implementation("com.github.yalantis:ucrop:2.2.9")
 
+    implementation("androidx.compose.material:material:1.6.8")
+
 }
 kapt {
     correctErrorTypes = true
