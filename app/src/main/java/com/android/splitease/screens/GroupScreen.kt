@@ -1,5 +1,6 @@
 package com.android.splitease.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -86,12 +87,15 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
         isRefreshing = true
         // Simulate a network refresh or other long-running operation
         coroutineScope.launch {
+            userViewModel.getOverallUserBalance()
+            viewModel.getGroupsByUser()
             delay(500)
             isRefreshing = false
         }
     })
 
     LaunchedEffect(Unit) {
+        viewModel.getGroupsByUser()
         userViewModel.getOverallUserBalance()
     }
 
@@ -110,79 +114,78 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
         )
         Column()
         {
-            if (!isRefreshing){
-                when (val result = userBalance.value) {
-                    is NetworkResult.Success -> {
-                        val balance = result.data!!.netBalance
-                        Card (
-                            colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .height(60.dp)
-                                .fillMaxWidth()
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxSize(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ){
-                                Text(
-                                    modifier = Modifier
-                                        .padding(8.dp)
-                                        .align(Alignment.CenterVertically),
-                                    text = buildAnnotatedString {
-                                        when {
-                                            balance < 0 -> {
-                                                append("Overall, you are owed ")
-                                                withStyle(style = SpanStyle(color = AppConstants.LENT_COLOR)) {
-                                                    append(UtilMethods.formatAmount(abs(balance)))
-                                                }
+            when (val result = userBalance.value) {
+                is NetworkResult.Success -> {
+                    val balance = result.data!!.netBalance
+                    Card (
+                        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .height(60.dp)
+                            .fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ){
+                            Text(
+                                modifier = Modifier
+                                    .padding(8.dp)
+                                    .align(Alignment.CenterVertically),
+                                text = buildAnnotatedString {
+                                    when {
+                                        balance < 0 -> {
+                                            append("Overall, you are owed ")
+                                            withStyle(style = SpanStyle(color = AppConstants.LENT_COLOR)) {
+                                                append(UtilMethods.formatAmount(abs(balance)))
                                             }
-
-                                            balance > 0 -> {
-                                                append("Overall, you owe ")
-                                                withStyle(style = SpanStyle(color = AppConstants.OWE_COLOR)) {
-                                                    append(UtilMethods.formatAmount(abs(balance)))
-                                                }
-                                            }
-
-                                            else -> ""
                                         }
-                                    }
-                                )
 
-                                IconButton(
-                                    onClick = { /*TODO*/ },
-                                    modifier = Modifier.align(Alignment.CenterVertically)
-                                ) {
-                                    Icon(imageVector = Icons.Outlined.Settings, contentDescription = "Filters")
+                                        balance > 0 -> {
+                                            append("Overall, you owe ")
+                                            withStyle(style = SpanStyle(color = AppConstants.OWE_COLOR)) {
+                                                append(UtilMethods.formatAmount(abs(balance)))
+                                            }
+                                        }
+
+                                        else -> ""
+                                    }
                                 }
+                            )
+
+                            IconButton(
+                                onClick = { /*TODO*/ },
+                                modifier = Modifier.align(Alignment.CenterVertically)
+                            ) {
+                                Icon(imageVector = Icons.Outlined.Settings, contentDescription = "Filters")
                             }
                         }
                     }
-
-                    is NetworkResult.Error -> {
-                        Text(text = "Error loading balance")
-                    }
-
-                    is NetworkResult.Loading -> {
-                        Text(text = "")
-                    }
-
-                    is NetworkResult.Idle -> {
-                        // Do nothing or show some idle state
-                    }
                 }
-                LazyColumn(modifier = Modifier.fillMaxSize()) { // Adjust padding as needed
-                    groups.value.data?.let { groupList ->
-                        items(groupList) { group ->
-                            GroupItem(group = group, viewModel, navController)
-                        }
-                    }
-                    item {
-                        StartNewGroup(navController)
-                    }
+
+                is NetworkResult.Error -> {
+                    Text(text = "Error loading balance")
+                }
+
+                is NetworkResult.Loading -> {
+                    Text(text = "")
+                }
+
+                is NetworkResult.Idle -> {
+                    // Do nothing or show some idle state
                 }
             }
+            LazyColumn(modifier = Modifier.fillMaxSize()) { // Adjust padding as needed
+                groups.value.data?.let { groupList ->
+                    items(groupList) { group ->
+                        GroupItem(group = group, viewModel, navController)
+                    }
+                }
+                item {
+                    StartNewGroup(navController)
+                }
+            }
+
         }
     }
 }
