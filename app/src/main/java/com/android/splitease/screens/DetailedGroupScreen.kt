@@ -42,17 +42,20 @@ import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.TokenManager
 import com.android.splitease.utils.UtilMethods
+import com.android.splitease.viewmodels.GroupViewModel
 import com.android.splitease.viewmodels.TransactionViewModel
 import com.android.splitease.viewmodels.UserViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel = hiltViewModel(), 
-                        userViewModel: UserViewModel = hiltViewModel(), 
+                        userViewModel: UserViewModel = hiltViewModel(),
                         navController: NavController) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("secure_prefs", Context.MODE_PRIVATE)
     val tokenManager = TokenManager(sharedPreferences)
+    val groupName = remember { mutableStateOf("") }
+
     LaunchedEffect(groupId) {
         transactionViewModel.getTransactionsByUser(groupId.toString())
         transactionViewModel.calculateDebt(groupId)

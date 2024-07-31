@@ -29,7 +29,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.containerColor
@@ -99,101 +102,136 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
         viewModel.getGroupsByUser()
         userViewModel.getOverallUserBalance()
     }
-    
-    ScreenWrapper(title = "", navigationIcon = { /*TODO*/ }, actions = {
-        IconButton(onClick = { /* Handle settings */ }) {
-            Icon(imageVector = Icons.Default.Settings, contentDescription = "Settings")
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "",
+                        style = MaterialTheme.typography.titleLarge, // Adjust text style if needed
+                    )
+                },
+                navigationIcon = { /* TODO */ },
+                actions = {
+                    IconButton(onClick = { /* Handle settings */ }) {
+                        Icon(imageVector = Icons.Filled.Settings, contentDescription = "Settings", modifier = Modifier.size(44.dp))
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().height(50.dp)
+            )
         }
-    }) {
-        Box(
+    ){ padding ->
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .pullRefresh(pullRefreshState) // Enable pull-to-refresh on this Box
-        ) {
-            PullRefreshIndicator(
-                refreshing = isRefreshing,
-                state = pullRefreshState,
+                .padding(padding)
+        ){
+            Box(
                 modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 8.dp) // Adjust padding as needed
-                    .zIndex(1f)
-            )
-            Column()
-            {
-                LazyColumn(modifier = Modifier.fillMaxSize()) { // Adjust padding as needed
-                    item {
-                        when (val result = userBalance.value) {
-                            is NetworkResult.Success -> {
-                                val balance = result.data!!.netBalance
-                                Card (
-                                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                                    modifier = Modifier
-                                        .padding(4.dp, 4.dp, 4.dp, 0.dp)
-                                        .height(60.dp)
-                                        .fillMaxWidth()
-                                ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxSize(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ){
-                                        Text(
-                                            modifier = Modifier
-                                                .padding(8.dp)
-                                                .align(Alignment.CenterVertically),
-                                            text = buildAnnotatedString {
-                                                when {
-                                                    balance < 0 -> {
-                                                        append("Overall, you are owed ")
-                                                        withStyle(style = SpanStyle(color = AppConstants.LENT_COLOR)) {
-                                                            append(UtilMethods.formatAmount(abs(balance)))
-                                                        }
-                                                    }
-
-                                                    balance > 0 -> {
-                                                        append("Overall, you owe ")
-                                                        withStyle(style = SpanStyle(color = AppConstants.OWE_COLOR)) {
-                                                            append(UtilMethods.formatAmount(abs(balance)))
-                                                        }
-                                                    }
-
-                                                    else -> ""
-                                                }
-                                            }
-                                        )
-
-                                        IconButton(
-                                            onClick = { /*TODO*/ },
-                                            modifier = Modifier.align(Alignment.CenterVertically)
+                    .fillMaxSize()
+                    .pullRefresh(pullRefreshState) // Enable pull-to-refresh on this Box
+            ) {
+                PullRefreshIndicator(
+                    refreshing = isRefreshing,
+                    state = pullRefreshState,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 8.dp) // Adjust padding as needed
+                        .zIndex(1f)
+                )
+                Column()
+                {
+                    LazyColumn(modifier = Modifier.fillMaxSize()) { // Adjust padding as needed
+                        item {
+                            when (val result = userBalance.value) {
+                                is NetworkResult.Success -> {
+                                    val balance = result.data!!.netBalance
+                                    Card(
+                                        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                                        modifier = Modifier
+                                            .padding(4.dp, 4.dp, 4.dp, 0.dp)
+                                            .height(60.dp)
+                                            .fillMaxWidth()
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.fillMaxSize(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
-                                            Icon(imageVector = Icons.Outlined.Settings, contentDescription = "Filters")
+                                            Text(
+                                                modifier = Modifier
+                                                    .padding(8.dp)
+                                                    .align(Alignment.CenterVertically),
+                                                text = buildAnnotatedString {
+                                                    when {
+                                                        balance < 0 -> {
+                                                            append("Overall, you are owed ")
+                                                            withStyle(style = SpanStyle(color = AppConstants.LENT_COLOR)) {
+                                                                append(
+                                                                    UtilMethods.formatAmount(
+                                                                        abs(
+                                                                            balance
+                                                                        )
+                                                                    )
+                                                                )
+                                                            }
+                                                        }
+
+                                                        balance > 0 -> {
+                                                            append("Overall, you owe ")
+                                                            withStyle(style = SpanStyle(color = AppConstants.OWE_COLOR)) {
+                                                                append(
+                                                                    UtilMethods.formatAmount(
+                                                                        abs(
+                                                                            balance
+                                                                        )
+                                                                    )
+                                                                )
+                                                            }
+                                                        }
+
+                                                        else -> ""
+                                                    }
+                                                }
+                                            )
+
+                                            IconButton(
+                                                onClick = { /*TODO*/ },
+                                                modifier = Modifier.align(Alignment.CenterVertically)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Outlined.Settings,
+                                                    contentDescription = "Filters"
+                                                )
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                            is NetworkResult.Error -> {
-                                Text(text = "Error loading balance")
-                            }
+                                is NetworkResult.Error -> {
+                                    Text(text = "Error loading balance")
+                                }
 
-                            is NetworkResult.Loading -> {
-                                Text(text = "")
-                            }
+                                is NetworkResult.Loading -> {
+                                    Text(text = "")
+                                }
 
-                            is NetworkResult.Idle -> {
-                                // Do nothing or show some idle state
+                                is NetworkResult.Idle -> {
+                                    // Do nothing or show some idle state
+                                }
                             }
                         }
-                    }
-                    groups.value.data?.let { groupList ->
-                        items(groupList) { group ->
-                            GroupItem(group = group, viewModel, navController)
+                        groups.value.data?.let { groupList ->
+                            items(groupList) { group ->
+                                GroupItem(group = group, viewModel, navController)
+                            }
+                        }
+                        item {
+                            StartNewGroup(navController)
                         }
                     }
-                    item {
-                        StartNewGroup(navController)
-                    }
+
                 }
-
             }
         }
     }
@@ -230,11 +268,11 @@ fun GroupItem(group: GetGroupsByUserResponse, viewModel: GroupViewModel, navCont
                 Text(text = group.name, modifier = Modifier.padding(bottom = 4.dp))
                 Text(text = buildAnnotatedString {
                     if(group.userBalance<0.0) {
-                        withStyle(style = SpanStyle(color = AppConstants.OWE_COLOR)){
-                            append("you are owed " + UtilMethods.formatAmount(group.userBalance) )
+                        withStyle(style = SpanStyle(color = AppConstants.LENT_COLOR)){
+                            append("you are owed " + UtilMethods.formatAmount(abs(group.userBalance)))
                         }
                     } else if(group.userBalance>0.0) {
-                        withStyle(style = SpanStyle(color = AppConstants.LENT_COLOR)){
+                        withStyle(style = SpanStyle(color = AppConstants.OWE_COLOR)){
                             append("you owe " + UtilMethods.formatAmount(group.userBalance))
                         }
                     } else {
