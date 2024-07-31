@@ -43,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
@@ -109,18 +110,19 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
                     modifier = Modifier
                         .fillMaxWidth()
                         .fillMaxHeight()
+                        .alpha(0.3f)
                 )
 
-                Image(
-                    painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current).data(data = groupInfo.value.data?.imageUrl)
-                            .apply(block = fun ImageRequest.Builder.() {
-                                crossfade(true)
-                            }).build()
-                    ),
-                    contentDescription = "Foreground Image",
-                    contentScale = ContentScale.Crop
-                )
+//                Image(
+//                    painter = rememberAsyncImagePainter(
+//                        ImageRequest.Builder(LocalContext.current).data(data = groupInfo.value.data?.imageUrl)
+//                            .apply(block = fun ImageRequest.Builder.() {
+//                                crossfade(true)
+//                            }).build()
+//                    ),
+//                    contentDescription = "Foreground Image",
+//                    contentScale = ContentScale.Crop
+//                )
             }
             LargeTopAppBar(
                 title = {
