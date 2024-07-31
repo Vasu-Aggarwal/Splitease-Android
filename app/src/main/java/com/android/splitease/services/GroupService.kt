@@ -45,4 +45,7 @@ interface GroupService {
     @GET("${AppConstants.GROUP_URL}/getGroupSpendingSummary/{groupId}")
     suspend fun getGroupSpendingSummaryApi(@Header("Authorization") token: String, @Path("groupId") groupId: Int): Response<GetGroupSummaryResponse>
 
+    @GET("${AppConstants.GROUP_URL}/getGroupInfo/{groupId}")
+    suspend fun getGroupInfoApi(@Header("Authorization") token: String, @Path("groupId") groupId: Int): Response<AddGroupResponse>
+
 }

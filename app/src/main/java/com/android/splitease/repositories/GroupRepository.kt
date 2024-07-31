@@ -47,6 +47,10 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
     val groupSummary: StateFlow<NetworkResult<GetGroupSummaryResponse>>
         get() = _groupSummary
 
+    private val _groupInfo = MutableStateFlow<NetworkResult<AddGroupResponse>>(NetworkResult.Idle())
+    val groupInfo: StateFlow<NetworkResult<AddGroupResponse>>
+        get() = _groupInfo
+
     suspend fun groupsByUser(){
         val authToken = tokenManager.getAuthToken()
         val userUuid = tokenManager.getUserUuid()!!
@@ -127,6 +131,16 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
             _groupSummary.emit(NetworkResult.Success(response.body()!!))
         } else {
             _groupSummary.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+        }
+    }
+
+    suspend fun getGroupInfo(groupId: Int){
+        val authToken = tokenManager.getAuthToken()!!
+        val response = groupService.getGroupInfoApi("Bearer $authToken", groupId)
+        if (response.isSuccessful && response.body()!=null){
+            _groupInfo.emit(NetworkResult.Success(response.body()!!))
+        } else {
+            _groupInfo.emit(NetworkResult.Error(response.errorBody()?.string()!!))
         }
     }
 }

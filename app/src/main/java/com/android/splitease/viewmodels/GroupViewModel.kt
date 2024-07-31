@@ -37,6 +37,9 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
     val groupSummary: StateFlow<NetworkResult<GetGroupSummaryResponse>>
         get() = groupRepository.groupSummary
 
+    val groupInfo: StateFlow<NetworkResult<AddGroupResponse>>
+        get() = groupRepository.groupInfo
+
     fun getGroupsByUser() {
         viewModelScope.launch {
             groupRepository.groupsByUser()
@@ -70,6 +73,12 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
     fun getGroupSummary(groupId: Int){
         viewModelScope.launch {
             groupRepository.getGroupSummary(groupId)
+        }
+    }
+
+    fun getGroupInfo(groupId: Int){
+        viewModelScope.launch {
+            groupRepository.getGroupInfo(groupId)
         }
     }
 }

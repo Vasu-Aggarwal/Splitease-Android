@@ -107,6 +107,7 @@ fun BottomNavigationBar(){
         }
     }){
             innerPadding ->
+
         NavHost(navController = navController, startDestination = Screen.GroupScreen.route, modifier = Modifier.padding(innerPadding)){
 
             composable(route = Screen.GroupScreen.route){
