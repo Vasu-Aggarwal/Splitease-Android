@@ -1,8 +1,13 @@
 package com.android.splitease.screens
 
 import android.os.Build
+import android.view.WindowInsets
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
@@ -24,6 +29,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -108,137 +114,170 @@ fun BottomNavigationBar(){
     }){
             innerPadding ->
 
-        NavHost(navController = navController, startDestination = Screen.GroupScreen.route, modifier = Modifier.padding(innerPadding)){
+//        val statusBarHeight = with(LocalDensity.current) { androidx.compose.foundation.layout.WindowInsets.statusBars.getTop(
+//            LocalDensity.current).toDp() }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding) // Apply inner padding from Scaffold
+        ) {
+            NavHost(
+                navController = navController,
+                startDestination = Screen.GroupScreen.route,
+                modifier = Modifier.padding(innerPadding)
+            ) {
 
-            composable(route = Screen.GroupScreen.route){
-                GroupScreen(navController = navController)
-            }
-
-            composable(route = Screen.FriendsScreen.route){
-                FriendsScreen()
-            }
-
-            composable(route = Screen.AccountScreen.route){
-                AccountScreen()
-            }
-
-            composable(route = Screen.NewGroupScreen.route){
-                NewGroupScreen(navController = navController)
-            }
-
-
-            composable(route = Screen.DetailedGroupScreen.route,
-                arguments = listOf(navArgument("groupId"){type = NavType.IntType}))
-            { backStackEntry ->
-                val groupId = backStackEntry.arguments?.getInt("groupId")
-                groupId?.let {
-                    DetailedGroupScreen(groupId = it, navController = navController)
+                composable(route = Screen.GroupScreen.route) {
+                    GroupScreen(navController = navController)
                 }
-            }
 
-            composable(route = Screen.AddExpenseScreen.route,
-                arguments = listOf(navArgument("groupId"){type = NavType.IntType}))
-            { backStackEntry ->
-                val groupId = backStackEntry.arguments?.getInt("groupId")
-                groupId?.let {
-                    AddExpenseScreen(groupId = it, navController = navController)
+                composable(route = Screen.FriendsScreen.route) {
+                    FriendsScreen()
                 }
-            }
 
-            composable(route = Screen.DetailedTransactionScreen.route,
-                arguments = listOf(navArgument("transactionId"){type = NavType.IntType}))
-            { backStackEntry ->
-                val transactionId = backStackEntry.arguments?.getInt("transactionId")
-                transactionId?.let {
-                    DetailedTransactionScreen(transactionId = it, navController = navController)
+                composable(route = Screen.AccountScreen.route) {
+                    AccountScreen()
                 }
-            }
 
-            composable(route = Screen.AddUsersToGroupScreen.route,
-                arguments = listOf(navArgument("groupId"){type = NavType.IntType}))
-            { backStackEntry ->
-                val groupId = backStackEntry.arguments?.getInt("groupId")
-                groupId?.let {
-                    AddUsersToGroupScreen(groupId = it, navController = navController)
+                composable(route = Screen.NewGroupScreen.route) {
+                    NewGroupScreen(navController = navController)
                 }
-            }
 
-            composable(route = Screen.UserDebtScreen.route,
-                arguments = listOf(navArgument("groupId"){type = NavType.IntType}))
-            { backStackEntry ->
-                val groupId = backStackEntry.arguments?.getInt("groupId")
-                groupId?.let {
-                    UserDebtScreen(groupId = it)
-                }
-            }
 
-            composable(route = Screen.SelectPayingUserScreen.route,
-                arguments = listOf(navArgument("groupId"){type = NavType.IntType})){ backStackEntry ->
-                val groupId = backStackEntry.arguments?.getInt("groupId")
-                groupId?.let {
-                    SelectPayingUserScreen(groupId = it, navController = navController)
-                }
-            }
-
-            composable(route = Screen.SplitMethodScreen.route,
-                arguments = listOf(navArgument("groupId"){type = NavType.IntType},
-                    navArgument("amount"){type = NavType.StringType}
-                )){ backStackEntry ->
-                val groupId = backStackEntry.arguments?.getInt("groupId")
-                val amountString = backStackEntry.arguments?.getString("amount")
-                val amount = amountString?.toDoubleOrNull() // Convert String back to Double
-                groupId?.let {
-                    SplitMethodsScreen(groupId = it, navController = navController, amount = amount!!)
-                }
-            }
-
-            composable(route = Screen.SettleUpPayerScreen.route,
-                arguments = listOf(navArgument("groupId"){type = NavType.IntType}))
-            { backStackEntry ->
-                val groupId = backStackEntry.arguments?.getInt("groupId")
-                groupId?.let {
-                    SettleUpPayerScreen(groupId = it, navController = navController)
-                }
-            }
-
-            composable(
-                route = Screen.SettleUpReceiverScreen.route,
-                arguments = listOf(
-                    navArgument("groupId") { type = NavType.IntType },
-                    navArgument("payerUuid") { type = NavType.StringType }
+                composable(route = Screen.DetailedGroupScreen.route,
+                    arguments = listOf(navArgument("groupId") { type = NavType.IntType })
                 )
-            ) { backStackEntry ->
-                val groupId = backStackEntry.arguments?.getInt("groupId")
-                val payerUuid = backStackEntry.arguments?.getString("payerUuid")
-
-                if (groupId != null && payerUuid != null) {
-                    SettleUpReceiverScreen(groupId = groupId, navController = navController, payerUuid = payerUuid)
+                { backStackEntry ->
+                    val groupId = backStackEntry.arguments?.getInt("groupId")
+                    groupId?.let {
+                        DetailedGroupScreen(groupId = it, navController = navController)
+                    }
                 }
-            }
 
-            composable(
-                route = Screen.SettleUpScreen.route,
-                arguments = listOf(
-                    navArgument("groupId") { type = NavType.IntType },
-                    navArgument("payerUuid") { type = NavType.StringType },
-                    navArgument("receiverUuid") { type = NavType.StringType }
+                composable(route = Screen.AddExpenseScreen.route,
+                    arguments = listOf(navArgument("groupId") { type = NavType.IntType })
                 )
-            ) { backStackEntry ->
-                val groupId = backStackEntry.arguments?.getInt("groupId")
-                val payerUuid = backStackEntry.arguments?.getString("payerUuid")
-                val receiverUuid = backStackEntry.arguments?.getString("receiverUuid")
-
-                if (groupId != null && payerUuid != null && receiverUuid != null) {
-                    SettleUpScreen(groupId = groupId, navController = navController, payerUuid = payerUuid, receiverUuid = receiverUuid)
+                { backStackEntry ->
+                    val groupId = backStackEntry.arguments?.getInt("groupId")
+                    groupId?.let {
+                        AddExpenseScreen(groupId = it, navController = navController)
+                    }
                 }
-            }
 
-            composable(route = Screen.GroupSummaryScreen.route,
-                arguments = listOf(navArgument("groupId"){type = NavType.IntType}))
-            { backStackEntry ->
-                val groupId = backStackEntry.arguments?.getInt("groupId")
-                groupId?.let {
-                    GroupSummaryScreen(groupId = it)
+                composable(route = Screen.DetailedTransactionScreen.route,
+                    arguments = listOf(navArgument("transactionId") { type = NavType.IntType })
+                )
+                { backStackEntry ->
+                    val transactionId = backStackEntry.arguments?.getInt("transactionId")
+                    transactionId?.let {
+                        DetailedTransactionScreen(transactionId = it, navController = navController)
+                    }
+                }
+
+                composable(route = Screen.AddUsersToGroupScreen.route,
+                    arguments = listOf(navArgument("groupId") { type = NavType.IntType })
+                )
+                { backStackEntry ->
+                    val groupId = backStackEntry.arguments?.getInt("groupId")
+                    groupId?.let {
+                        AddUsersToGroupScreen(groupId = it, navController = navController)
+                    }
+                }
+
+                composable(route = Screen.UserDebtScreen.route,
+                    arguments = listOf(navArgument("groupId") { type = NavType.IntType })
+                )
+                { backStackEntry ->
+                    val groupId = backStackEntry.arguments?.getInt("groupId")
+                    groupId?.let {
+                        UserDebtScreen(groupId = it)
+                    }
+                }
+
+                composable(route = Screen.SelectPayingUserScreen.route,
+                    arguments = listOf(navArgument("groupId") { type = NavType.IntType })
+                ) { backStackEntry ->
+                    val groupId = backStackEntry.arguments?.getInt("groupId")
+                    groupId?.let {
+                        SelectPayingUserScreen(groupId = it, navController = navController)
+                    }
+                }
+
+                composable(route = Screen.SplitMethodScreen.route,
+                    arguments = listOf(navArgument("groupId") { type = NavType.IntType },
+                        navArgument("amount") { type = NavType.StringType }
+                    )) { backStackEntry ->
+                    val groupId = backStackEntry.arguments?.getInt("groupId")
+                    val amountString = backStackEntry.arguments?.getString("amount")
+                    val amount = amountString?.toDoubleOrNull() // Convert String back to Double
+                    groupId?.let {
+                        SplitMethodsScreen(
+                            groupId = it,
+                            navController = navController,
+                            amount = amount!!
+                        )
+                    }
+                }
+
+                composable(route = Screen.SettleUpPayerScreen.route,
+                    arguments = listOf(navArgument("groupId") { type = NavType.IntType })
+                )
+                { backStackEntry ->
+                    val groupId = backStackEntry.arguments?.getInt("groupId")
+                    groupId?.let {
+                        SettleUpPayerScreen(groupId = it, navController = navController)
+                    }
+                }
+
+                composable(
+                    route = Screen.SettleUpReceiverScreen.route,
+                    arguments = listOf(
+                        navArgument("groupId") { type = NavType.IntType },
+                        navArgument("payerUuid") { type = NavType.StringType }
+                    )
+                ) { backStackEntry ->
+                    val groupId = backStackEntry.arguments?.getInt("groupId")
+                    val payerUuid = backStackEntry.arguments?.getString("payerUuid")
+
+                    if (groupId != null && payerUuid != null) {
+                        SettleUpReceiverScreen(
+                            groupId = groupId,
+                            navController = navController,
+                            payerUuid = payerUuid
+                        )
+                    }
+                }
+
+                composable(
+                    route = Screen.SettleUpScreen.route,
+                    arguments = listOf(
+                        navArgument("groupId") { type = NavType.IntType },
+                        navArgument("payerUuid") { type = NavType.StringType },
+                        navArgument("receiverUuid") { type = NavType.StringType }
+                    )
+                ) { backStackEntry ->
+                    val groupId = backStackEntry.arguments?.getInt("groupId")
+                    val payerUuid = backStackEntry.arguments?.getString("payerUuid")
+                    val receiverUuid = backStackEntry.arguments?.getString("receiverUuid")
+
+                    if (groupId != null && payerUuid != null && receiverUuid != null) {
+                        SettleUpScreen(
+                            groupId = groupId,
+                            navController = navController,
+                            payerUuid = payerUuid,
+                            receiverUuid = receiverUuid
+                        )
+                    }
+                }
+
+                composable(route = Screen.GroupSummaryScreen.route,
+                    arguments = listOf(navArgument("groupId") { type = NavType.IntType })
+                )
+                { backStackEntry ->
+                    val groupId = backStackEntry.arguments?.getInt("groupId")
+                    groupId?.let {
+                        GroupSummaryScreen(groupId = it)
+                    }
                 }
             }
         }
