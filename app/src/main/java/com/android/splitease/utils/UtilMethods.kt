@@ -13,7 +13,7 @@ object UtilMethods {
     fun formatDate(originalDate: String): String {
         // Define the input and output date formats
         val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSS", Locale.getDefault())
-        val outputFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("MMM\ndd", Locale.getDefault())
 
         // Parse the original date
         val date: Date = inputFormat.parse(originalDate) ?: return ""
@@ -24,5 +24,18 @@ object UtilMethods {
 
     fun formatAmount(amount: Double): String{
         return AppConstants.RUPEE+String.format("%.2f", amount)
+    }
+
+    fun abbreviateName(fullName: String): String {
+        // Split the full name into parts
+        val nameParts = fullName.split(" ")
+        // If there's only one part, return it as it is
+        if (nameParts.size == 1) return fullName
+        // Get the first name
+        val firstName = nameParts.first()
+        // Get the initial of the last name
+        val lastNameInitial = nameParts.last().firstOrNull()?.toString() ?: ""
+        // Combine them into the abbreviated form
+        return "$firstName $lastNameInitial."
     }
 }

@@ -21,8 +21,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.MediumTopAppBar
@@ -48,7 +50,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -58,6 +65,8 @@ import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.models.responses.GetUserByUuidResponse
 import com.android.splitease.navigation.Screen
+import com.android.splitease.ui.theme.Grey400
+import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.TokenManager
 import com.android.splitease.utils.UtilMethods
@@ -143,7 +152,7 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(TopAppBarDefaults.MediumAppBarExpandedHeight -(15.dp*scrollBehavior.state.collapsedFraction))
+                        .height(TopAppBarDefaults.MediumAppBarExpandedHeight - (15.dp * scrollBehavior.state.collapsedFraction))
                         .alpha(imageAlpha)
                 )
 
@@ -169,7 +178,11 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
                         modifier = Modifier
                             .fillMaxSize()
                             .clip(RoundedCornerShape(20))
-                            .border(width = 4.dp, color = Color.DarkGray, shape = RoundedCornerShape(20))
+                            .border(
+                                width = 4.dp,
+                                color = Color.DarkGray,
+                                shape = RoundedCornerShape(20)
+                            )
                     )
                 }
 
@@ -258,17 +271,29 @@ fun TransactionItem(
         },
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color.Transparent)
+            .padding(5.dp, 1.dp, 5.dp, 1.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ){
         var userState by remember { mutableStateOf<GetUserByUuidResponse?>(null) }
         Box {
             if (transaction.description == null){
                 SettleUpTransaction()
             } else {
-                Row {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
                     val formattedDate = UtilMethods.formatDate(transaction.createdOn)
-                    Text(text = formattedDate)
-                    Column {
+                    Text(text = formattedDate, modifier = Modifier
+                        .weight(0.5f)
+                        .padding(5.dp, 0.dp, 0.dp, 0.dp),
+                        textAlign = TextAlign.Justify
+                    )
+                    Column(
+                        modifier = Modifier
+                            .weight(2f)
+                            .align(Alignment.CenterVertically)
+                    ) {
                         Text(text = transaction.description)
                         if (transaction.userUuid == tokenManager.getUserUuid().toString()) {
                             Text(text = "You paid ${UtilMethods.formatAmount(transaction.amount)}")
@@ -284,19 +309,47 @@ fun TransactionItem(
                             if (userData is NetworkResult.Success){
                                 userState = userData.data
                             }
-                            Text(text = "${user.value.data?.name} paid ${UtilMethods.formatAmount(transaction.amount)}")
+                            Text(text = "${UtilMethods.abbreviateName(user.value.data?.name.toString())} paid ${UtilMethods.formatAmount(transaction.amount)}")
                         }
                     }
-                    Column {
-                        if (transaction.loggedInUserTransaction == null) {
-                            Text(text = " not involved")
-                        } else {
-                            if (transaction.loggedInUserTransaction.owedOrLent.equals("OWED")) {
-                                Text(text = "you borrowed")
+                    Column(modifier = Modifier
+                        .weight(1.2f)
+                        .align(Alignment.CenterVertically)
+                    ) {
+                        Text(text = buildAnnotatedString {
+                            if (transaction.loggedInUserTransaction == null) {
+                                withStyle(style = SpanStyle(color = Grey400)){
+                                    append("not involved")
+                                }
                             } else {
-                                Text(text = "you lent")
+                                if (transaction.loggedInUserTransaction.owedOrLent.equals("OWED")) {
+                                    withStyle(style = SpanStyle(color = AppConstants.OWE_COLOR)){
+//                                        append("you borrowed\n"+UtilMethods.formatAmount(transaction.loggedInUserTransaction.amount))
+                                        append("you borrowed")
+                                    }
+                                } else {
+                                    withStyle(style = SpanStyle(color = AppConstants.LENT_COLOR)){
+//                                        append("you lent\n"+UtilMethods.formatAmount(transaction.loggedInUserTransaction.amount))
+                                        append("you lent")
+                                    }
+                                }
                             }
-                            Text(text = transaction.loggedInUserTransaction.amount.toString())
+                        }, modifier = Modifier.align(Alignment.End))
+                        if (transaction.loggedInUserTransaction != null) {
+                            Text(
+                                text = buildAnnotatedString {
+                                    if (transaction.loggedInUserTransaction.owedOrLent.equals("OWED"))
+                                        withStyle(style = SpanStyle(color = AppConstants.OWE_COLOR)) {
+                                            append(UtilMethods.formatAmount(transaction.loggedInUserTransaction.amount))
+                                        }
+                                    else
+                                        withStyle(style = SpanStyle(color = AppConstants.LENT_COLOR)) {
+                                            append(UtilMethods.formatAmount(transaction.loggedInUserTransaction.amount))
+                                        }
+                                },
+                                style = TextStyle(color = MaterialTheme.colors.onSurface),
+                                modifier = Modifier.align(Alignment.End)
+                            )
                         }
                     }
                 }
@@ -314,7 +367,9 @@ fun GroupInfo(
 ) {
     val scrollState = rememberScrollState()
     data?.let {
-        Text(modifier = Modifier.padding(65.dp, 20.dp, 0.dp, 10.dp).alpha(avatarAlpha), text = data.name)
+        Text(modifier = Modifier
+            .padding(65.dp, 20.dp, 0.dp, 10.dp)
+            .alpha(avatarAlpha), text = data.name)
         Row(
             modifier = Modifier
                 .horizontalScroll(scrollState)
