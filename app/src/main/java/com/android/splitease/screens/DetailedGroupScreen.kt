@@ -110,6 +110,13 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
         }
     }
 
+    // Adjust image height based on scroll
+    val imageHeight by remember {
+        derivedStateOf {
+            TopAppBarDefaults.MediumAppBarExpandedHeight - (TopAppBarDefaults.MediumAppBarExpandedHeight * scrollBehavior.state.collapsedFraction)
+        }
+    }
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -130,7 +137,7 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(TopAppBarDefaults.MediumAppBarExpandedHeight)
+                        .height(TopAppBarDefaults.MediumAppBarExpandedHeight -(15.dp*scrollBehavior.state.collapsedFraction))
                         .alpha(imageAlpha)
                 )
 
