@@ -4,6 +4,8 @@ import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.VectorConverter
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -37,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -89,6 +92,13 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
+    // Animate alpha based on scroll
+    val imageAlpha by remember {
+        derivedStateOf {
+            0.3f + (1f - scrollBehavior.state.collapsedFraction) * 0.2f
+        }
+    }
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -110,7 +120,7 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
                     modifier = Modifier
                         .fillMaxWidth()
                         .fillMaxHeight()
-                        .alpha(0.3f)
+                        .alpha(imageAlpha)
                 )
 
 //                Image(
@@ -127,7 +137,7 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
             LargeTopAppBar(
                 title = {
                     Text(
-                        text = groupInfo.value.data?.name ?: "Group Details",
+                        text = groupInfo.value.data?.name ?: "Group Name",
                         maxLines = 3,
                         overflow = TextOverflow.Ellipsis,
                         color = Color.White // Change text color for better contrast with background image

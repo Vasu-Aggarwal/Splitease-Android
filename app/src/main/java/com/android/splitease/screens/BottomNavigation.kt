@@ -1,9 +1,13 @@
 package com.android.splitease.screens
 
 import android.os.Build
+import android.util.LayoutDirection
+import android.util.Log
 import android.view.WindowInsets
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -30,6 +34,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -111,20 +119,16 @@ fun BottomNavigationBar(){
                 )
             }
         }
-    }){
-            innerPadding ->
+    }){ innerPadding ->
 
-//        val statusBarHeight = with(LocalDensity.current) { androidx.compose.foundation.layout.WindowInsets.statusBars.getTop(
-//            LocalDensity.current).toDp() }
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding) // Apply inner padding from Scaffold
         ) {
             NavHost(
                 navController = navController,
                 startDestination = Screen.GroupScreen.route,
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(innerPadding.calculateStartPadding(LocalLayoutDirection.current), 0.dp, innerPadding.calculateEndPadding(LocalLayoutDirection.current), innerPadding.calculateBottomPadding())
             ) {
 
                 composable(route = Screen.GroupScreen.route) {
