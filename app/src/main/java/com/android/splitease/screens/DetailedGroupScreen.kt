@@ -88,10 +88,23 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
+    val scrollThreshold = 100f // Define your scroll threshold here
+
+    val scrollFraction by remember {
+        derivedStateOf {
+            if (scrollBehavior.state.collapsedFraction > scrollThreshold / TopAppBarDefaults.MediumAppBarExpandedHeight.value) {
+                (scrollBehavior.state.collapsedFraction - scrollThreshold / TopAppBarDefaults.MediumAppBarExpandedHeight.value) /
+                        (1f - scrollThreshold / TopAppBarDefaults.MediumAppBarExpandedHeight.value)
+            } else {
+                0f
+            }
+        }
+    }
+
     // Animate alpha based on scroll
     val imageAlpha by remember {
         derivedStateOf {
-            0.5f + (1f - scrollBehavior.state.collapsedFraction) * 0.2f
+            0.5f + (1f - scrollFraction) * 0.2f
         }
     }
 
@@ -99,21 +112,14 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
     val avatarAlpha by remember {
         derivedStateOf {
             // Fade out the image as you scroll. You can adjust the scaling factor if needed.
-            1f - scrollBehavior.state.collapsedFraction
+            1f - scrollFraction
         }
     }
 
     val revAvatarAlpha by remember {
         derivedStateOf {
             // Fade out the image as you scroll. You can adjust the scaling factor if needed.
-            0f + scrollBehavior.state.collapsedFraction
-        }
-    }
-
-    // Adjust image height based on scroll
-    val imageHeight by remember {
-        derivedStateOf {
-            TopAppBarDefaults.MediumAppBarExpandedHeight - (TopAppBarDefaults.MediumAppBarExpandedHeight * scrollBehavior.state.collapsedFraction)
+            0f + scrollFraction
         }
     }
 
