@@ -28,6 +28,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -115,10 +116,10 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                 navigationIcon = { /* TODO */ },
                 actions = {
                     IconButton(onClick = { /* Handle settings */ }) {
-                        Icon(imageVector = Icons.Filled.Settings, contentDescription = "Settings", modifier = Modifier.size(44.dp))
+                        Icon(imageVector = Icons.Filled.Settings, contentDescription = "Settings")
                     }
                 },
-                modifier = Modifier.fillMaxWidth().height(50.dp)
+                modifier = Modifier.fillMaxWidth()
             )
         }
     ){ padding ->
