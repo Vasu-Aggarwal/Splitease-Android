@@ -3,10 +3,6 @@ package com.android.splitease.screens
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.VectorConverter
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,14 +11,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,7 +25,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -52,13 +44,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -69,7 +58,6 @@ import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.models.responses.GetUserByUuidResponse
 import com.android.splitease.navigation.Screen
-import com.android.splitease.ui.theme.PurpleGrey80
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.TokenManager
 import com.android.splitease.utils.UtilMethods
@@ -107,6 +95,21 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
         }
     }
 
+    // Calculate avatar image alpha based on scroll
+    val avatarAlpha by remember {
+        derivedStateOf {
+            // Fade out the image as you scroll. You can adjust the scaling factor if needed.
+            1f - scrollBehavior.state.collapsedFraction
+        }
+    }
+
+    val revAvatarAlpha by remember {
+        derivedStateOf {
+            // Fade out the image as you scroll. You can adjust the scaling factor if needed.
+            0f + scrollBehavior.state.collapsedFraction
+        }
+    }
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -127,38 +130,44 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(100.dp)
+                        .height(TopAppBarDefaults.MediumAppBarExpandedHeight)
                         .alpha(imageAlpha)
                 )
 
-                //group icon
-                Image(
-                    painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current)
-                            .data(data = groupInfo.value.data?.imageUrl)
-                            .apply(block = fun ImageRequest.Builder.() {
-                                crossfade(true)
-                            }).build()
-                    ),
-                    contentDescription = "Background Image",
-                    contentScale = ContentScale.Crop,
+                // Avatar Image with Border
+                Box(
                     modifier = Modifier
                         .width(80.dp)
                         .height(80.dp)
-                        .align(Alignment.BottomStart) // Position the overlay image on top of the background image
-                        .offset(x = 60.dp, y = (-40).dp)
-                        .border(width = 4.dp, color = Color.DarkGray, shape = RoundedCornerShape(20))
-                        .clip(RoundedCornerShape(20))
-                )
+                        .align(Alignment.BottomStart)
+                        .offset(x = 60.dp, y = 10.dp)
+                        .alpha(avatarAlpha) // Apply alpha to the entire Box
+                ) {
+                    Image(
+                        painter = rememberAsyncImagePainter(
+                            ImageRequest.Builder(LocalContext.current)
+                                .data(data = groupInfo.value.data?.imageUrl)
+                                .apply(block = fun ImageRequest.Builder.() {
+                                    crossfade(true)
+                                }).build()
+                        ),
+                        contentDescription = "Group Avatar",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(20))
+                            .border(width = 4.dp, color = Color.DarkGray, shape = RoundedCornerShape(20))
+                    )
+                }
 
-                LargeTopAppBar(
+                MediumTopAppBar(
                     title = {
                         Text(
                             text = groupInfo.value.data?.name ?: "Group Name",
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            color = Color.White, // Change text color for better contrast with background image
-                            modifier = Modifier.offset(44.dp, 50.dp)
+                            modifier = Modifier.alpha(revAvatarAlpha),
+                            color = Color.White // Change text color for better contrast with background image
                         )
                     },
                     scrollBehavior = scrollBehavior,
@@ -182,7 +191,7 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
                 modifier = Modifier.fillMaxSize()
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    GroupTransactions(transactions, tokenManager, userViewModel, navController, groupInfo)
+                    GroupTransactions(transactions, tokenManager, userViewModel, navController, groupInfo, avatarAlpha)
                 }
                 ExtendedFloatingActionButton(
                     onClick = {
@@ -199,6 +208,7 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun GroupTransactions(
@@ -206,11 +216,12 @@ fun GroupTransactions(
     tokenManager: TokenManager,
     userViewModel: UserViewModel,
     navController: NavController,
-    groupInfo: State<NetworkResult<AddGroupResponse>>
+    groupInfo: State<NetworkResult<AddGroupResponse>>,
+    avatarAlpha: Float
 ) {
     LazyColumn {
         item {
-            GroupInfo(navController, groupInfo.value.data)
+            GroupInfo(navController = navController, data = groupInfo.value.data, avatarAlpha)
         }
         transactions.value.data?.let { transactionList ->
             items(transactionList){transaction ->
@@ -281,15 +292,16 @@ fun TransactionItem(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupInfo(
     navController: NavController,
-    data: AddGroupResponse?
+    data: AddGroupResponse?,
+    avatarAlpha: Float
 ) {
     val scrollState = rememberScrollState()
     data?.let {
-//        Text(modifier = Modifier.padding(10.dp), text = data.name)
-//        Spacer(modifier = Modifier.height(10.dp))
+        Text(modifier = Modifier.padding(65.dp, 20.dp, 0.dp, 10.dp).alpha(avatarAlpha), text = data.name)
         Row(
             modifier = Modifier
                 .horizontalScroll(scrollState)
