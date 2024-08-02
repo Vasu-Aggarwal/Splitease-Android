@@ -2,6 +2,9 @@ package com.android.splitease.utils
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import java.text.DecimalFormat
+import java.text.Format
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -23,7 +26,7 @@ object UtilMethods {
     }
 
     fun formatAmount(amount: Double): String{
-        return AppConstants.RUPEE+String.format("%.2f", amount)
+        return NumberFormat.getCurrencyInstance(Locale.getDefault()).format(amount)
     }
 
     fun abbreviateName(fullName: String): String {

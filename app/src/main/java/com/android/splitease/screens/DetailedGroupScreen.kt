@@ -433,21 +433,28 @@ fun UserDebt(calculateDebt: NetworkResult<CalculateDebtResponse>) {
                     val creditor = data.creditorList.find { it.uuid == loggedInUserUuid }
                     val debtor = data.debtorList.find { it.uuid == loggedInUserUuid }
 
-                    Log.d("loggedinuser", "UserDebt: $debtor")
-
                     when {
                         creditor != null -> {
                             // Display creditor information
                             val totalLent = creditor.getsBack
                             Text(
-                                text = "You are owed ${UtilMethods.formatAmount(totalLent)}",
+                                text = buildAnnotatedString {
+                                    withStyle(style = SpanStyle(color = AppConstants.LENT_COLOR)){
+                                        append("You are owed ${UtilMethods.formatAmount(totalLent)} overall")
+                                    }
+                                },
                                 style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.padding(start = 16.dp, top = 4.dp)
                             )
                             val displayedDetails = creditor.lentTo.take(3)
                             displayedDetails.forEach {
                                 Text(
-                                    text = "${UtilMethods.abbreviateName(it.name)} owes you ${UtilMethods.formatAmount(it.amount)}",
+                                    text = buildAnnotatedString {
+                                        append("${UtilMethods.abbreviateName(it.name)} owes you ")
+                                        withStyle(style = SpanStyle(color = AppConstants.LENT_COLOR)){
+                                            append(UtilMethods.formatAmount(it.amount))
+                                        }
+                                    },
                                     style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
                                     modifier = Modifier.padding(start = 16.dp, top = 4.dp)
                                 )
@@ -464,7 +471,11 @@ fun UserDebt(calculateDebt: NetworkResult<CalculateDebtResponse>) {
                             // Display debtor information
                             val totalOwed = debtor.totalReturnAmount
                             Text(
-                                text = "You owe ${UtilMethods.formatAmount(totalOwed)} overall",
+                                text = buildAnnotatedString {
+                                    withStyle(style = SpanStyle(color = AppConstants.OWE_COLOR)){
+                                        append("You owe ${UtilMethods.formatAmount(totalOwed)} overall")
+                                    }
+                                },
                                 style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.padding(start = 16.dp, top = 4.dp)
                             )
@@ -472,7 +483,12 @@ fun UserDebt(calculateDebt: NetworkResult<CalculateDebtResponse>) {
                             val displayedDetails = debtor.lentFrom.take(3)
                             displayedDetails.forEach {
                                 Text(
-                                    text = "You owe ${UtilMethods.abbreviateName(it.name) + " " + UtilMethods.formatAmount(it.amount)}",
+                                    text = buildAnnotatedString {
+                                        append("You owe ${UtilMethods.abbreviateName(it.name)}")
+                                        withStyle(style = SpanStyle(color = AppConstants.OWE_COLOR)){
+                                            append(" " + UtilMethods.formatAmount(it.amount))
+                                        }
+                                    },
                                     style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
                                     modifier = Modifier.padding(start = 16.dp, top = 4.dp)
                                 )
