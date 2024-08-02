@@ -2,9 +2,9 @@ package com.android.splitease.screens
 
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
@@ -62,6 +62,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.android.splitease.models.responses.AddGroupResponse
+import com.android.splitease.models.responses.CalculateDebtResponse
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.models.responses.GetUserByUuidResponse
 import com.android.splitease.navigation.Screen
@@ -217,7 +218,7 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
                 modifier = Modifier.fillMaxSize()
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    GroupTransactions(transactions, tokenManager, userViewModel, navController, groupInfo, avatarAlpha)
+                    GroupTransactions(transactions, tokenManager, userViewModel, navController, groupInfo, avatarAlpha, calculateDebt)
                 }
                 ExtendedFloatingActionButton(
                     onClick = {
@@ -243,11 +244,12 @@ fun GroupTransactions(
     userViewModel: UserViewModel,
     navController: NavController,
     groupInfo: State<NetworkResult<AddGroupResponse>>,
-    avatarAlpha: Float
+    avatarAlpha: Float,
+    calculateDebt: NetworkResult<CalculateDebtResponse>
 ) {
     LazyColumn {
         item {
-            GroupInfo(navController = navController, data = groupInfo.value.data, avatarAlpha)
+            GroupInfo(navController = navController, data = groupInfo.value.data, avatarAlpha, calculateDebt)
         }
         transactions.value.data?.let { transactionList ->
             items(transactionList){transaction ->
@@ -358,18 +360,21 @@ fun TransactionItem(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupInfo(
     navController: NavController,
     data: AddGroupResponse?,
-    avatarAlpha: Float
+    avatarAlpha: Float,
+    calculateDebt: NetworkResult<CalculateDebtResponse>
 ) {
     val scrollState = rememberScrollState()
     data?.let {
         Text(modifier = Modifier
-            .padding(65.dp, 20.dp, 0.dp, 10.dp)
+            .padding(60.dp, 20.dp, 0.dp, 0.dp)
             .alpha(avatarAlpha), text = data.name)
+
+        UserDebt(calculateDebt)
+
         Row(
             modifier = Modifier
                 .horizontalScroll(scrollState)
@@ -397,4 +402,95 @@ fun GroupInfo(
 @Composable
 fun SettleUpTransaction(){
     Text(text = "This is a settle up transaction")
+}
+
+@Composable
+fun UserDebt(calculateDebt: NetworkResult<CalculateDebtResponse>) {
+
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("secure_prefs", Context.MODE_PRIVATE)
+    val tokenManager = TokenManager(sharedPreferences)
+    val loggedInUserUuid = tokenManager.getUserUuid().toString()
+
+    Column(
+        modifier = Modifier
+            .padding(45.dp, 5.dp, 0.dp, 0.dp)
+    ) {
+        when (calculateDebt) {
+            is NetworkResult.Error -> {
+                Text(text = "Error fetching data")
+            }
+            is NetworkResult.Idle -> {
+                Text(text = "Idle state")
+            }
+            is NetworkResult.Loading -> {
+                Text(text = "Loading...")
+            }
+            is NetworkResult.Success -> {
+                val debtData = (calculateDebt as NetworkResult.Success).data
+                debtData?.let { data ->
+                    // Find if the user is a creditor or debtor
+                    val creditor = data.creditorList.find { it.uuid == loggedInUserUuid }
+                    val debtor = data.debtorList.find { it.uuid == loggedInUserUuid }
+
+                    Log.d("loggedinuser", "UserDebt: $debtor")
+
+                    when {
+                        creditor != null -> {
+                            // Display creditor information
+                            val totalLent = creditor.getsBack
+                            Text(
+                                text = "You are owed ${UtilMethods.formatAmount(totalLent)}",
+                                style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                            )
+                            val displayedDetails = creditor.lentTo.take(3)
+                            displayedDetails.forEach {
+                                Text(
+                                    text = "${UtilMethods.abbreviateName(it.name)} owes you ${UtilMethods.formatAmount(it.amount)}",
+                                    style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                                )
+                            }
+                            if (creditor.lentTo.size > 3) {
+                                Text(
+                                    text = "Plus other balances",
+                                    style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                                )
+                            }
+                        }
+                        debtor != null -> {
+                            // Display debtor information
+                            val totalOwed = debtor.totalReturnAmount
+                            Text(
+                                text = "You owe ${UtilMethods.formatAmount(totalOwed)} overall",
+                                style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                            )
+
+                            val displayedDetails = debtor.lentFrom.take(3)
+                            displayedDetails.forEach {
+                                Text(
+                                    text = "You owe ${UtilMethods.abbreviateName(it.name) + " " + UtilMethods.formatAmount(it.amount)}",
+                                    style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                                )
+                            }
+                            if (debtor.lentFrom.size > 3) {
+                                Text(
+                                    text = "Plus other balances",
+                                    style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                                )
+                            }
+                        }
+                        else -> {
+                            Text(text = "You are all settled up in this group.")
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
