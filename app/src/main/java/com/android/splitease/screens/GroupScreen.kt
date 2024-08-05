@@ -21,6 +21,8 @@ import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.RadioButton
+import androidx.compose.material.RadioButtonColors
+import androidx.compose.material.RadioButtonDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Settings
@@ -78,6 +80,10 @@ import com.android.splitease.ui.theme.DeepOrange400
 import com.android.splitease.ui.theme.Green300
 import com.android.splitease.ui.theme.Grey400
 import com.android.splitease.ui.theme.Grey600
+import com.android.splitease.ui.theme.Grey700
+import com.android.splitease.ui.theme.Grey800
+import com.android.splitease.ui.theme.Red100
+import com.android.splitease.ui.theme.White
 import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.UtilMethods
@@ -220,7 +226,8 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
 
                                                 DropdownMenu(
                                                     expanded = showMenu,
-                                                    onDismissRequest = { showMenu = false }
+                                                    onDismissRequest = { showMenu = false },
+                                                    modifier = Modifier.background(color = Grey800)
                                                 ) {
                                                     val options = listOf(
                                                         "All groups",
@@ -247,7 +254,8 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                                                                     viewModel.getGroupsByUser(AppConstants.OUTSTANDING_BALANCE)
                                                                     userViewModel.getOverallUserBalance(AppConstants.OUTSTANDING_BALANCE)
                                                                 }
-                                                            }
+                                                            },
+                                                            modifier = Modifier.background(color = MaterialTheme.colorScheme.background)
                                                         ) {
                                                             Row(
                                                                 verticalAlignment = Alignment.CenterVertically,
@@ -255,6 +263,7 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                                                             ) {
                                                                 RadioButton(
                                                                     selected = (option == selectedOption),
+                                                                    colors = RadioButtonDefaults.colors(unselectedColor = Color.White, selectedColor = AppConstants.OWE_COLOR),
                                                                     onClick = null // RadioButton click is handled by DropdownMenuItem
                                                                 )
                                                                 Spacer(modifier = Modifier.width(8.dp))
