@@ -127,17 +127,15 @@ fun NewGroupScreen(
         }
     ) { padding ->
 
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
             Box(
                 modifier = Modifier
-                    .size(128.dp)
+                    .size(64.dp)
                     .padding(16.dp)
             ) {
                 if (imageUri != null) {
@@ -160,7 +158,6 @@ fun NewGroupScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
             TextField(
                 value = groupName,
                 onValueChange = { groupName = it },
@@ -168,7 +165,6 @@ fun NewGroupScreen(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
             // Handling response
             when (val result = addUpdateGroup.value) {
                 is NetworkResult.Success -> {
@@ -188,47 +184,6 @@ fun NewGroupScreen(
                 is NetworkResult.Idle -> Unit
             }
         }
-
-//        Row(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(padding),
-//            horizontalArrangement = Arrangement.Center,
-//            verticalAlignment = Alignment.Top
-//        ) {
-//
-//            IconButton(onClick = {
-//                launcher.launch("image/*") // Open image picker
-//            }) {
-//                Icon(painter = painterResource(id = R.drawable.add_photo), contentDescription = "Pick Image")
-//            }
-//
-//            TextField(
-//                value = groupName,
-//                onValueChange = { groupName = it },
-//                label = { Text("Enter Group Name") }
-//            )
-//
-//            // Handling response
-//            when (val result = addUpdateGroup.value) {
-//                is NetworkResult.Success -> {
-//                    // Navigate when success response is received
-//                    LaunchedEffect(Unit) {
-//                        navController.navigate(Screen.DetailedGroupScreen.createRoute(result.data!!.groupId)) // Replace with your target screen
-//                    }
-//                }
-//                is NetworkResult.Error -> {
-//                    // Handle error
-//                    Text(text = result.message ?: "Unknown error occurred")
-//                }
-//                is NetworkResult.Loading -> {
-//                    // Show loading state if needed
-//                    Text(text = "Creating group...")
-//                }
-//
-//                is NetworkResult.Idle -> Text(text = "")
-//            }
-//        }
     }
 }
 
