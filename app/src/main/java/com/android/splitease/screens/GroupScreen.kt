@@ -132,8 +132,8 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                 },
                 navigationIcon = { /* TODO */ },
                 actions = {
-                    IconButton(onClick = { /* TODO */ }) {
-                        Icon(imageVector = Icons.Filled.Settings, contentDescription = "Settings")
+                    IconButton(onClick = { navController.navigate(Screen.NewGroupScreen.route) }) {
+                        Icon(painter = painterResource(id = R.drawable.add_people), contentDescription = "Settings")
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -216,7 +216,6 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                                             Box {
                                                 IconButton(
                                                     onClick = { showMenu = true },
-//                                                    modifier = Modifier.align(Alignment.CenterVertically)
                                                 ) {
                                                     Icon(
                                                         painter = painterResource(id = R.drawable.filter),
