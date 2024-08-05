@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Divider
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
@@ -86,12 +87,14 @@ import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.responses.GetGroupsByUserResponse
 import com.android.splitease.models.responses.GetOverallUserBalance
 import com.android.splitease.navigation.Screen
+import com.android.splitease.ui.theme.Black
 import com.android.splitease.ui.theme.DeepOrange400
 import com.android.splitease.ui.theme.Green300
 import com.android.splitease.ui.theme.Grey400
 import com.android.splitease.ui.theme.Grey600
 import com.android.splitease.ui.theme.Grey700
 import com.android.splitease.ui.theme.Grey800
+import com.android.splitease.ui.theme.Grey900
 import com.android.splitease.ui.theme.Red100
 import com.android.splitease.ui.theme.White
 import com.android.splitease.utils.AppConstants
@@ -148,7 +151,7 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.12f)
+                    .fillMaxHeight(0.11f)
             )
         }
     ){ padding ->
@@ -162,6 +165,7 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                     .fillMaxSize()
                     .pullRefresh(pullRefreshState) // Enable pull-to-refresh on this Box
             ) {
+                Divider(color = Black)
                 PullRefreshIndicator(
                     refreshing = isRefreshing,
                     state = pullRefreshState,
