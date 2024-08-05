@@ -125,7 +125,7 @@ fun NewGroupScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 20.dp)
+                    .padding(top = 10.dp)
                     .fillMaxHeight(0.11f)
             )
         }
@@ -135,7 +135,7 @@ fun NewGroupScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            verticalAlignment = Alignment.CenterVertically
+//            verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
