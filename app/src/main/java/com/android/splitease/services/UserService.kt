@@ -8,11 +8,15 @@ import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface UserService {
     @GET("${AppConstants.USER_URL}/getUserByUuid/{userUuid}")
     suspend fun getUserByUuidAPi(@Header("Authorization") token: String, @Path("userUuid") userUuid: String): Response<GetUserByUuidResponse>
 
     @GET("${AppConstants.USER_URL}/getOverallUserBalance/{userUuid}")
-    suspend fun getOverallUserBalanceApi(@Header("Authorization") token: String, @Path("userUuid") userUuid: String): Response<GetOverallUserBalance>
+    suspend fun getOverallUserBalanceApi(
+        @Header("Authorization") token: String,
+        @Path("userUuid") userUuid: String,
+        @Query("search_val") searchVal: String): Response<GetOverallUserBalance>
 }

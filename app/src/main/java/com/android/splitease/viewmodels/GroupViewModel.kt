@@ -40,9 +40,9 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
     val groupInfo: StateFlow<NetworkResult<AddGroupResponse>>
         get() = groupRepository.groupInfo
 
-    fun getGroupsByUser() {
+    fun getGroupsByUser(searchBy: String) {
         viewModelScope.launch {
-            groupRepository.groupsByUser()
+            groupRepository.groupsByUser(searchBy)
         }
     }
 

@@ -7,15 +7,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.RadioButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Settings
@@ -54,6 +59,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -63,6 +69,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import com.android.splitease.R
 import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.responses.GetGroupsByUserResponse
 import com.android.splitease.models.responses.GetOverallUserBalance
@@ -86,22 +93,26 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
     val groups: State<NetworkResult<List<GetGroupsByUserResponse>>> = viewModel.groups.collectAsState()
     val userBalance: State<NetworkResult<GetOverallUserBalance>> = userViewModel.userBalance.collectAsState()
 
+    //variables for filter popup menu
+    var showMenu by remember { mutableStateOf(false) }
+    var selectedOption by remember { mutableStateOf("") }
+
     var isRefreshing by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val pullRefreshState = rememberPullRefreshState(refreshing = isRefreshing, onRefresh = {
         isRefreshing = true
         // Simulate a network refresh or other long-running operation
         coroutineScope.launch {
-            userViewModel.getOverallUserBalance()
-            viewModel.getGroupsByUser()
+            userViewModel.getOverallUserBalance("")
+            viewModel.getGroupsByUser("")
             delay(500)
             isRefreshing = false
         }
     })
 
     LaunchedEffect(Unit) {
-        viewModel.getGroupsByUser()
-        userViewModel.getOverallUserBalance()
+        viewModel.getGroupsByUser("")
+        userViewModel.getOverallUserBalance("")
     }
 
     Scaffold(
@@ -115,7 +126,7 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                 },
                 navigationIcon = { /* TODO */ },
                 actions = {
-                    IconButton(onClick = { /* Handle settings */ }) {
+                    IconButton(onClick = { /* TODO */ }) {
                         Icon(imageVector = Icons.Filled.Settings, contentDescription = "Settings")
                     }
                 },
@@ -196,14 +207,62 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                                                 }
                                             )
 
-                                            IconButton(
-                                                onClick = { /*TODO*/ },
-                                                modifier = Modifier.align(Alignment.CenterVertically)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Outlined.Settings,
-                                                    contentDescription = "Filters"
-                                                )
+                                            Box {
+                                                IconButton(
+                                                    onClick = { showMenu = true },
+//                                                    modifier = Modifier.align(Alignment.CenterVertically)
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(id = R.drawable.filter),
+                                                        contentDescription = "Filters"
+                                                    )
+                                                }
+
+                                                DropdownMenu(
+                                                    expanded = showMenu,
+                                                    onDismissRequest = { showMenu = false }
+                                                ) {
+                                                    val options = listOf(
+                                                        "All groups",
+                                                        "Groups you owe",
+                                                        "Groups that owe you",
+                                                        "Outstanding balances"
+                                                    )
+                                                    options.forEach { option ->
+                                                        DropdownMenuItem(
+                                                            onClick = {
+                                                                selectedOption = option
+                                                                showMenu = false
+                                                                // Call your API with the selected option
+                                                                if(option.equals("All groups")) {
+                                                                    viewModel.getGroupsByUser(AppConstants.ALL_GROUPS)
+                                                                    userViewModel.getOverallUserBalance(AppConstants.ALL_GROUPS)
+                                                                } else if (option.equals("Groups you owe")) {
+                                                                    viewModel.getGroupsByUser(AppConstants.GROUPS_YOU_OWE)
+                                                                    userViewModel.getOverallUserBalance(AppConstants.GROUPS_YOU_OWE)
+                                                                } else if (option.equals("Groups that owe you")) {
+                                                                    viewModel.getGroupsByUser(AppConstants.GROUPS_THAT_OWE_YOU)
+                                                                    userViewModel.getOverallUserBalance(AppConstants.GROUPS_THAT_OWE_YOU)
+                                                                } else {
+                                                                    viewModel.getGroupsByUser(AppConstants.OUTSTANDING_BALANCE)
+                                                                    userViewModel.getOverallUserBalance(AppConstants.OUTSTANDING_BALANCE)
+                                                                }
+                                                            }
+                                                        ) {
+                                                            Row(
+                                                                verticalAlignment = Alignment.CenterVertically,
+                                                                modifier = Modifier.fillMaxWidth()
+                                                            ) {
+                                                                RadioButton(
+                                                                    selected = (option == selectedOption),
+                                                                    onClick = null // RadioButton click is handled by DropdownMenuItem
+                                                                )
+                                                                Spacer(modifier = Modifier.width(8.dp))
+                                                                Text(option)
+                                                            }
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -231,7 +290,6 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                             StartNewGroup(navController)
                         }
                     }
-
                 }
             }
         }

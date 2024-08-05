@@ -62,10 +62,10 @@ class UserRepository @Inject constructor(private val userService: UserService,
         }
     }
 
-    suspend fun getOverallUserBalance(){
+    suspend fun getOverallUserBalance(searchVal: String){
         val authToken = tokenManager.getAuthToken()
         val userUuid = tokenManager.getUserUuid()
-        val response = userService.getOverallUserBalanceApi("Bearer $authToken", userUuid!!)
+        val response = userService.getOverallUserBalanceApi("Bearer $authToken", userUuid!!, searchVal)
         if (response.isSuccessful && response.body() != null) {
             _userBalance.emit(NetworkResult.Success(response.body()!!))
         } else {

@@ -19,10 +19,11 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface GroupService {
     @GET("${AppConstants.GROUP_URL}/getGroupsByUser/{userUuid}")
-    suspend fun getGroupsByUser(@Header("Authorization") token: String, @Path("userUuid") userUuid: String): Response<List<GetGroupsByUserResponse>>
+    suspend fun getGroupsByUser(@Header("Authorization") token: String, @Path("userUuid") userUuid: String, @Query("search_by") searchBy: String): Response<List<GetGroupsByUserResponse>>
 
     @GET("${AppConstants.GROUP_URL}/getGroupMembers/{groupId}")
     suspend fun getGroupMembersApi(@Header("Authorization") token: String, @Path("groupId") groupId: Int): Response<List<CreateUserResponse>>

@@ -51,10 +51,10 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
     val groupInfo: StateFlow<NetworkResult<AddGroupResponse>>
         get() = _groupInfo
 
-    suspend fun groupsByUser(){
+    suspend fun groupsByUser(searchBy: String){
         val authToken = tokenManager.getAuthToken()
         val userUuid = tokenManager.getUserUuid()!!
-        val response = groupService.getGroupsByUser("Bearer $authToken", userUuid)
+        val response = groupService.getGroupsByUser("Bearer $authToken", userUuid, searchBy)
         if (response.isSuccessful && response.body()!=null){
             _groups.emit(NetworkResult.Success(response.body()!!))
         } else {
