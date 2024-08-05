@@ -5,14 +5,29 @@ import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.Icon
+import androidx.compose.material.Scaffold
+import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Button
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -25,10 +40,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import com.android.splitease.R
 import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.navigation.Screen
 import com.android.splitease.utils.NetworkResult
@@ -71,67 +90,145 @@ fun NewGroupScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        TextField(
-            value = groupName,
-            onValueChange = { groupName = it },
-            label = { Text("Enter Group Name") },
-            modifier = Modifier.fillMaxWidth()
-        )
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Create a group",
+                        style = MaterialTheme.typography.titleLarge, // Adjust text style if needed
+                    )
+                },
+                navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(imageVector = Icons.Default.Close, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        // Convert Uri to File if necessary and pass it to the ViewModel
+                        val imageFile = imageUri?.let { uri ->
+                            convertUriToFile(context, uri)
+                        }
+                        imageFile?.let {
+                            groupViewModel.addUpdateGroup(groupName, null, it)
+                        }
+                    }) {
+                        androidx.compose.material3.Icon(
+                            imageVector = Icons.Default.Done,
+                            contentDescription = "Done"
+                        )
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.11f)
+            )
+        }
+    ) { padding ->
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                launcher.launch("image/*") // Open image picker
-            },
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
         ) {
-            Text("Pick Image")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                // Convert Uri to File if necessary and pass it to the ViewModel
-                val imageFile = imageUri?.let { uri ->
-                    convertUriToFile(context, uri)
-                }
-                imageFile?.let {
-                    groupViewModel.addUpdateGroup(groupName, null, it)
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Create Group")
-        }
-
-        // Handling response
-        when (val result = addUpdateGroup.value) {
-            is NetworkResult.Success -> {
-                // Navigate when success response is received
-                LaunchedEffect(Unit) {
-                    navController.navigate(Screen.DetailedGroupScreen.createRoute(result.data!!.groupId)) // Replace with your target screen
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(
+                modifier = Modifier
+                    .size(128.dp)
+                    .padding(16.dp)
+            ) {
+                if (imageUri != null) {
+                    Image(
+                        painter = rememberAsyncImagePainter(model = imageUri),
+                        contentDescription = "Selected Image",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    IconButton(onClick = {
+                        launcher.launch("image/*") // Open image picker
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.add_photo),
+                            contentDescription = "Pick Image",
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
             }
-            is NetworkResult.Error -> {
-                // Handle error
-                Text(text = result.message ?: "Unknown error occurred")
-            }
-            is NetworkResult.Loading -> {
-                // Show loading state if needed
-                Text(text = "Creating group...")
-            }
 
-            is NetworkResult.Idle -> Text(text = "Idle")
+            Spacer(modifier = Modifier.height(16.dp))
+            TextField(
+                value = groupName,
+                onValueChange = { groupName = it },
+                label = { Text("Enter Group Name") },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+            // Handling response
+            when (val result = addUpdateGroup.value) {
+                is NetworkResult.Success -> {
+                    // Navigate when success response is received
+                    LaunchedEffect(Unit) {
+                        navController.navigate(Screen.DetailedGroupScreen.createRoute(result.data!!.groupId)) // Replace with your target screen
+                    }
+                }
+                is NetworkResult.Error -> {
+                    // Handle error
+                    Text(text = result.message ?: "Unknown error occurred", color = MaterialTheme.colorScheme.error)
+                }
+                is NetworkResult.Loading -> {
+                    // Show loading state if needed
+                    Text(text = "Creating group...")
+                }
+                is NetworkResult.Idle -> Unit
+            }
         }
+
+//        Row(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(padding),
+//            horizontalArrangement = Arrangement.Center,
+//            verticalAlignment = Alignment.Top
+//        ) {
+//
+//            IconButton(onClick = {
+//                launcher.launch("image/*") // Open image picker
+//            }) {
+//                Icon(painter = painterResource(id = R.drawable.add_photo), contentDescription = "Pick Image")
+//            }
+//
+//            TextField(
+//                value = groupName,
+//                onValueChange = { groupName = it },
+//                label = { Text("Enter Group Name") }
+//            )
+//
+//            // Handling response
+//            when (val result = addUpdateGroup.value) {
+//                is NetworkResult.Success -> {
+//                    // Navigate when success response is received
+//                    LaunchedEffect(Unit) {
+//                        navController.navigate(Screen.DetailedGroupScreen.createRoute(result.data!!.groupId)) // Replace with your target screen
+//                    }
+//                }
+//                is NetworkResult.Error -> {
+//                    // Handle error
+//                    Text(text = result.message ?: "Unknown error occurred")
+//                }
+//                is NetworkResult.Loading -> {
+//                    // Show loading state if needed
+//                    Text(text = "Creating group...")
+//                }
+//
+//                is NetworkResult.Idle -> Text(text = "")
+//            }
+//        }
     }
 }
 
