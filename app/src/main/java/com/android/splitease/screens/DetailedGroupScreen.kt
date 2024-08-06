@@ -283,7 +283,7 @@ fun GroupTransactions(
 //        )
 //        Column()
 //        {
-            LazyColumn {
+            LazyColumn(){
                 item {
                     GroupInfo(
                         navController = navController,
@@ -296,6 +296,9 @@ fun GroupTransactions(
                     items(transactionList) { transaction ->
                         TransactionItem(transaction, tokenManager, userViewModel, navController)
                     }
+                }
+                item {
+                    Spacer(modifier = Modifier.height(80.dp))
                 }
             }
 //        }
