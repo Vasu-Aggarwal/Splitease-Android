@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
@@ -27,6 +29,7 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -80,6 +83,8 @@ fun NewGroupScreen(
     var groupName by remember { mutableStateOf("") }
     val addUpdateGroup : State<NetworkResult<AddGroupResponse>> = groupViewModel.addUpdateGroup.collectAsState()
     var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var isButtonEnabled by remember { mutableStateOf(true) }
+    var showLoadingOverlay by remember { mutableStateOf(false) }
 
     // Activity result launcher for image picking
     val context = LocalContext.current
@@ -104,101 +109,133 @@ fun NewGroupScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = "Create a group",
-                        style = MaterialTheme.typography.titleLarge, // Adjust text style if needed
-                    )
-                },
-                navigationIcon = {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = {
-                        // Convert Uri to File if necessary and pass it to the ViewModel
-                        val imageFile = imageUri?.let { uri ->
-                            convertUriToFile(context, uri)
-                        }
-                        imageFile?.let {
-                            groupViewModel.addUpdateGroup(groupName, null, it)
-                        }
-                    }) {
-                        androidx.compose.material3.Icon(
-                            imageVector = Icons.Default.Done,
-                            contentDescription = "Done"
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = "Create a group",
+                            style = MaterialTheme.typography.titleLarge, // Adjust text style if needed
                         )
-                    }
-                },
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(imageVector = Icons.Default.Close, contentDescription = "Back")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = {
+                            showLoadingOverlay = true
+                            // Convert Uri to File if necessary and pass it to the ViewModel
+                            val imageFile = imageUri?.let { uri ->
+                                convertUriToFile(context, uri)
+                            }
+                            imageFile?.let {
+                                groupViewModel.addUpdateGroup(groupName, null, it)
+                            }
+                        }) {
+                            androidx.compose.material3.Icon(
+                                imageVector = Icons.Default.Done,
+                                contentDescription = "Done"
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp)
+                        .fillMaxHeight(0.17f)
+                )
+            }
+        ) { padding ->
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 10.dp)
-                    .fillMaxHeight(0.17f)
-            )
-        }
-    ) { padding ->
-
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            Box(
-                modifier = Modifier
-                    .padding(start = 15.dp, top = 7.dp)
-                    .size(55.dp)
-                    .border(1.dp, color = Grey200, shape = RoundedCornerShape(8.dp))
-                    .background(Grey800, RoundedCornerShape(8.dp))
+                    .wrapContentHeight()
+                    .padding(padding)
             ) {
-                if (imageUri != null) {
-                    Image(
-                        painter = rememberAsyncImagePainter(model = imageUri),
-                        contentDescription = "Selected Image",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .padding(start = 15.dp, top = 7.dp)
+                            .size(55.dp)
+                            .border(1.dp, color = Grey200, shape = RoundedCornerShape(8.dp))
+                            .background(Grey800, RoundedCornerShape(8.dp))
+                    ) {
+                        if (imageUri != null) {
+                            Image(
+                                painter = rememberAsyncImagePainter(model = imageUri),
+                                contentDescription = "Selected Image",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(8.dp))
+                            )
+                        } else {
+                            IconButton(onClick = {
+                                launcher.launch("image/*") // Open image picker
+                            }, modifier = Modifier.fillMaxSize()) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.add_photo),
+                                    contentDescription = "Pick Image",
+                                    modifier = Modifier.size(30.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = groupName,
+                        onValueChange = { groupName = it },
+                        maxLines = 1,
+                        label = { Text("Enter Group Name") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
                     )
-                } else {
-                    IconButton(onClick = {
-                        launcher.launch("image/*") // Open image picker
-                    }, modifier = Modifier.fillMaxSize()) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.add_photo),
-                            contentDescription = "Pick Image",
-                            modifier = Modifier.size(30.dp)
+                }
+
+                // Handling response
+                when (val result = addUpdateGroup.value) {
+                    is NetworkResult.Success -> {
+                        showLoadingOverlay = false
+                        // Navigate when success response is received
+                        LaunchedEffect(Unit) {
+                            navController.navigate(Screen.DetailedGroupScreen.createRoute(result.data!!.groupId)) // Replace with your target screen
+                        }
+                    }
+
+                    is NetworkResult.Error -> {
+                        showLoadingOverlay = false
+                        // Handle error
+                        Text(
+                            text = result.message ?: "Unknown error occurred",
+                            color = MaterialTheme.colorScheme.error
                         )
+                    }
+
+                    is NetworkResult.Loading -> {
+                        showLoadingOverlay = true
+                    }
+
+                    is NetworkResult.Idle -> {
+                        showLoadingOverlay = false
                     }
                 }
             }
+        }
 
-            OutlinedTextField(
-                value = groupName,
-                onValueChange = { groupName = it },
-                maxLines = 1,
-                label = { Text("Enter Group Name") },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
-            )
-
-            // Handling response
-            when (val result = addUpdateGroup.value) {
-                is NetworkResult.Success -> {
-                    // Navigate when success response is received
-                    LaunchedEffect(Unit) {
-                        navController.navigate(Screen.DetailedGroupScreen.createRoute(result.data!!.groupId)) // Replace with your target screen
-                    }
-                }
-                is NetworkResult.Error -> {
-                    // Handle error
-                    Text(text = result.message ?: "Unknown error occurred", color = MaterialTheme.colorScheme.error)
-                }
-                is NetworkResult.Loading -> {
-                    // Show loading state if needed
-                    Text(text = "Creating group...")
-                }
-                is NetworkResult.Idle -> Unit
+        if (showLoadingOverlay) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .clickable(enabled = false) {}
+            ) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }
     }

@@ -84,7 +84,7 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
 
     suspend fun addUpdateGroup(name: String, id: Int?, image: File){
         try {
-
+            _addUpdateGroup.emit(NetworkResult.Loading())
             // Create request body for text data
             val nameRequestBody = RequestBody.create(MultipartBody.FORM, name)
 
