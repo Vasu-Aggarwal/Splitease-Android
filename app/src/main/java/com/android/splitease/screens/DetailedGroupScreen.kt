@@ -3,6 +3,7 @@ package com.android.splitease.screens
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
@@ -17,19 +18,23 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -46,6 +51,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -61,7 +67,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
@@ -80,6 +85,7 @@ import com.android.splitease.viewmodels.GroupViewModel
 import com.android.splitease.viewmodels.TransactionViewModel
 import com.android.splitease.viewmodels.UserViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -105,7 +111,26 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
+    val scrollState = rememberLazyListState()
+
+    // Detect if the list is scrolling
+    var isScrolling by remember { mutableStateOf(false) }
+    LaunchedEffect(scrollState) {
+        snapshotFlow { scrollState.isScrollInProgress }
+            .distinctUntilChanged()
+            .collect { isScrollInProgress ->
+                isScrolling = isScrollInProgress
+            }
+    }
+
     val scrollThreshold = 100f // Define your scroll threshold here
+
+    // Determine if the current scroll position is beyond the threshold
+    val isFabCollapsed by remember {
+        derivedStateOf {
+            scrollState.firstVisibleItemIndex >= 0.1
+        }
+    }
 
     val scrollFraction by remember {
         derivedStateOf {
@@ -225,17 +250,27 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
                 modifier = Modifier.fillMaxSize()
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    GroupTransactions(transactionViewModel, transactions, tokenManager, userViewModel, navController, groupInfo, avatarAlpha, calculateDebt)
+                    GroupTransactions(transactionViewModel, transactions, tokenManager, userViewModel, navController, groupInfo, avatarAlpha, calculateDebt, scrollState)
                 }
-                ExtendedFloatingActionButton(
-                    onClick = {
-                        navController.navigate(Screen.AddExpenseScreen.createRoute(groupId))
-                    },
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp)
-                ) {
-                    Text(text = "Add Expense")
+
+                Crossfade(targetState = isFabCollapsed, modifier = Modifier.align(Alignment.BottomEnd)) { scrolling ->
+                    if (scrolling) {
+                        FloatingActionButton(
+                            onClick = {
+                                navController.navigate(Screen.AddExpenseScreen.createRoute(groupId))
+                            }
+                        ) {
+                            Icon(Icons.Filled.Add, contentDescription = "Add Expense")
+                        }
+                    } else {
+                        ExtendedFloatingActionButton(
+                            onClick = {
+                                navController.navigate(Screen.AddExpenseScreen.createRoute(groupId))
+                            },
+                            text = { Text("Add Expense") },
+                            icon = { Icon(Icons.Filled.Add, contentDescription = "Add Expense") }
+                        )
+                    }
                 }
             }
         }
@@ -253,7 +288,8 @@ fun GroupTransactions(
     navController: NavController,
     groupInfo: State<NetworkResult<AddGroupResponse>>,
     avatarAlpha: Float,
-    calculateDebt: NetworkResult<CalculateDebtResponse>
+    calculateDebt: NetworkResult<CalculateDebtResponse>,
+    scrollState: LazyListState
 ) {
 
     var isRefreshing by remember { mutableStateOf(false) }
@@ -283,7 +319,9 @@ fun GroupTransactions(
 //        )
 //        Column()
 //        {
-            LazyColumn(){
+            LazyColumn(
+                state = scrollState
+            ){
                 item {
                     GroupInfo(
                         navController = navController,
