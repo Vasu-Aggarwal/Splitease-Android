@@ -144,7 +144,7 @@ fun NewGroupScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 10.dp)
-                        .fillMaxHeight(0.17f)
+                        .fillMaxHeight(0.14f)
                 )
             }
         ) { padding ->

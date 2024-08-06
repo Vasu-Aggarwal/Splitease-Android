@@ -41,6 +41,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.android.splitease.navigation.BottomNavigationItem
@@ -77,46 +78,54 @@ fun BottomNavigationBar(){
     val navController = rememberNavController()
     var selectedItemIndex by rememberSaveable { mutableIntStateOf(0) }
 
+    val bottomNavExcludedScreens = listOf(
+        Screen.NewGroupScreen.route
+    )
+
     Scaffold(bottomBar = {
-        NavigationBar {
-            bottomItems.forEachIndexed { index, item ->
-                NavigationBarItem(
-                    selected = selectedItemIndex == index,
-                    onClick = {
-                        selectedItemIndex = index
-                        navController.navigate(
-                            when (index) {
-                                0 -> "groups"
-                                1 -> "friends"
-                                2 -> "account"
-                                else -> "home"
-                            }
-                        )
-                    },
-                    label = {
-                        Text(text = item.title)
-                    },
-                    icon = {
-                        BadgedBox(
-                            badge = {
-                                if (item.badgeCount != null) {
-                                    Badge {
-                                        Text(text = item.badgeCount.toString())
-                                    }
-                                } else if (item.hasNews) {
-                                    Badge()
+        val currentBackStackEntry = navController.currentBackStackEntryAsState().value
+        val currentDestination = currentBackStackEntry?.destination?.route
+        if (currentDestination !in bottomNavExcludedScreens) {
+            NavigationBar {
+                bottomItems.forEachIndexed { index, item ->
+                    NavigationBarItem(
+                        selected = selectedItemIndex == index,
+                        onClick = {
+                            selectedItemIndex = index
+                            navController.navigate(
+                                when (index) {
+                                    0 -> "groups"
+                                    1 -> "friends"
+                                    2 -> "account"
+                                    else -> "home"
                                 }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = if (index == selectedItemIndex)
-                                    item.selectedIcon
-                                else
-                                    item.unselectedItem, contentDescription = item.title
                             )
+                        },
+                        label = {
+                            Text(text = item.title)
+                        },
+                        icon = {
+                            BadgedBox(
+                                badge = {
+                                    if (item.badgeCount != null) {
+                                        Badge {
+                                            Text(text = item.badgeCount.toString())
+                                        }
+                                    } else if (item.hasNews) {
+                                        Badge()
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = if (index == selectedItemIndex)
+                                        item.selectedIcon
+                                    else
+                                        item.unselectedItem, contentDescription = item.title
+                                )
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }){ innerPadding ->
