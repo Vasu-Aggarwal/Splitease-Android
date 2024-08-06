@@ -79,7 +79,8 @@ fun BottomNavigationBar(){
     var selectedItemIndex by rememberSaveable { mutableIntStateOf(0) }
 
     val bottomNavExcludedScreens = listOf(
-        Screen.NewGroupScreen.route
+        Screen.NewGroupScreen.route,
+        Screen.AddExpenseScreen.route
     )
 
     Scaffold(bottomBar = {
