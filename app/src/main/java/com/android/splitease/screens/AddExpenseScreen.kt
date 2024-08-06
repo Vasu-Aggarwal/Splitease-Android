@@ -2,6 +2,7 @@ package com.android.splitease.screens
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -143,7 +145,54 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                 },
                 actions = {
                     IconButton(onClick = {
-//                        showLoadingOverlay = true
+                        if(contributions.isEmpty() && description.isNotBlank() && amount>0.00){
+                            if (groupMembers is NetworkResult.Success) {
+                                val members = (groupMembers as NetworkResult.Success).data
+                                if (!members.isNullOrEmpty()) {
+                                    val equalAmount = amount / members.size
+                                    val contributionsEqual = mutableMapOf<String, Double>()
+                                    // Distribute the amount equally
+                                    members.forEachIndexed { index, member ->
+                                        contributionsEqual[member.email] = if (index == members.size - 1) {
+                                            // Adjust the last member's contribution to ensure the total is correct
+                                            amount - contributionsEqual.values.sum()
+                                        } else {
+                                            equalAmount
+                                        }
+                                    }
+
+                                    val addTransactionRequest = AddTransactionRequest(
+                                        amount = amount,
+                                        splitBy = SplitBy.EQUAL,
+                                        group = groupId,
+                                        userUuid = if (selectedUserName!!.value.equals("You", ignoreCase = true)) userUuid!! else selectedUserUuid!!.value,
+                                        description = description,
+                                        category = "Adventure",
+                                        usersInvolved = contributionsEqual
+                                    )
+                                    val gson = Gson()
+                                    val json = gson.toJson(addTransactionRequest)
+                                    Log.d("AES", "AddExpenseScreen: $json")
+                                    transactionViewModel.addTransaction(addTransactionRequest)
+                                }
+                            }
+                        } else if (description.isNotBlank() && amount>0.00 && contributions.isNotEmpty()) {
+                            val addTransactionRequest = AddTransactionRequest(
+                                amount = amount,
+                                splitBy = SplitBy.EQUAL,
+                                group = groupId,
+                                userUuid = selectedUserUuid!!.value,
+                                description = description,
+                                category = "Entertainment",
+                                usersInvolved = contributions
+                            )
+                            val gson = Gson()
+                            val json = gson.toJson(addTransactionRequest)
+                            Log.d("AES", "AddExpenseScreen: $json")
+                            transactionViewModel.addTransaction(addTransactionRequest)
+                        } else {
+                            message = "Please enter a valid description and amount"
+                        }
                     }) {
                         Icon(
                             imageVector = Icons.Default.Done,
@@ -182,63 +231,9 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = {
-                    if(contributions.isEmpty() && description.isNotBlank() && amount>0.00){
-                        if (groupMembers is NetworkResult.Success) {
-                            val members = (groupMembers as NetworkResult.Success).data
-                            if (!members.isNullOrEmpty()) {
-                                val equalAmount = amount / members.size
-                                val contributionsEqual = mutableMapOf<String, Double>()
-                                // Distribute the amount equally
-                                members.forEachIndexed { index, member ->
-                                    contributionsEqual[member.email] = if (index == members.size - 1) {
-                                        // Adjust the last member's contribution to ensure the total is correct
-                                        amount - contributionsEqual.values.sum()
-                                    } else {
-                                        equalAmount
-                                    }
-                                }
 
-                                val addTransactionRequest = AddTransactionRequest(
-                                    amount = amount,
-                                    splitBy = SplitBy.EQUAL,
-                                    group = groupId,
-                                    userUuid = if (selectedUserName!!.value.equals("You", ignoreCase = true)) userUuid!! else selectedUserUuid!!.value,
-                                    description = description,
-                                    category = "Adventure",
-                                    usersInvolved = contributionsEqual
-                                )
-                                val gson = Gson()
-                                val json = gson.toJson(addTransactionRequest)
-                                Log.d("AES", "AddExpenseScreen: $json")
-                                transactionViewModel.addTransaction(addTransactionRequest)
-                            }
-                        }
-                    } else if (description.isNotBlank() && amount>0.00 && contributions.isNotEmpty()) {
-                        val addTransactionRequest = AddTransactionRequest(
-                            amount = amount,
-                            splitBy = SplitBy.EQUAL,
-                            group = groupId,
-                            userUuid = selectedUserUuid!!.value,
-                            description = description,
-                            category = "Adventure",
-                            usersInvolved = contributions
-                        )
-                        val gson = Gson()
-                        val json = gson.toJson(addTransactionRequest)
-                        Log.d("AES", "AddExpenseScreen: $json")
-                        transactionViewModel.addTransaction(addTransactionRequest)
-                    } else {
-                        message = "Please enter a valid description and amount"
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Add Expense")
-            }
             Spacer(modifier = Modifier.height(16.dp))
+
             if (message.isNotEmpty()) {
                 Text(text = message)
             }
@@ -256,17 +251,21 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
 
                 is NetworkResult.Idle -> message = "Idle"
             }
+
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                     Text(text = "Paid by", modifier = Modifier.padding(end = 8.dp))
                     Button(
                         modifier = Modifier
                             .padding(8.dp)
-                            .shadow(5.dp),
+                            .shadow(5.dp)
+                            .border(1.dp, shape = RectangleShape, color = Color.White),
                         shape = RoundedCornerShape(15),
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
                         onClick = { navController.navigate(Screen.SelectPayingUserScreen.createRoute(groupId)) }
@@ -275,12 +274,13 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                     }
                 }
 
-                Column(modifier = Modifier.weight(1f)) {
+                Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                     Text(text = "and split", modifier = Modifier.padding(end = 8.dp))
                     Button(
                         modifier = Modifier
                             .padding(8.dp)
-                            .shadow(5.dp),
+                            .shadow(5.dp)
+                            .border(1.dp, shape = RectangleShape, color = Color.White),
                         shape = RoundedCornerShape(15),
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
                         onClick = { navController.navigate(Screen.SplitMethodScreen.createRoute(groupId, amount)) }
