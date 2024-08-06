@@ -6,6 +6,8 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Close
@@ -28,6 +31,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -42,6 +46,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -52,6 +58,11 @@ import coil.compose.rememberAsyncImagePainter
 import com.android.splitease.R
 import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.navigation.Screen
+import com.android.splitease.ui.theme.Grey200
+import com.android.splitease.ui.theme.Grey700
+import com.android.splitease.ui.theme.Grey800
+import com.android.splitease.ui.theme.Grey900
+import com.android.splitease.ui.theme.White
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.GroupViewModel
 import com.yalantis.ucrop.UCrop
@@ -126,7 +137,7 @@ fun NewGroupScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 10.dp)
-                    .fillMaxHeight(0.11f)
+                    .fillMaxHeight(0.17f)
             )
         }
     ) { padding ->
@@ -134,37 +145,39 @@ fun NewGroupScreen(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
-//            verticalAlignment = Alignment.CenterVertically
+                .padding(padding)
         ) {
             Box(
                 modifier = Modifier
-                    .size(64.dp)
-                    .padding(16.dp)
+                    .padding(start = 15.dp, top = 7.dp)
+                    .size(55.dp)
+                    .border(1.dp, color = Grey200, shape = RoundedCornerShape(8.dp))
+                    .background(Grey800, RoundedCornerShape(8.dp))
             ) {
                 if (imageUri != null) {
                     Image(
                         painter = rememberAsyncImagePainter(model = imageUri),
                         contentDescription = "Selected Image",
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(8.dp))
                     )
                 } else {
                     IconButton(onClick = {
                         launcher.launch("image/*") // Open image picker
-                    }) {
+                    }, modifier = Modifier.fillMaxSize()) {
                         Icon(
                             painter = painterResource(id = R.drawable.add_photo),
                             contentDescription = "Pick Image",
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.size(30.dp)
                         )
                     }
                 }
             }
 
-            TextField(
+            OutlinedTextField(
                 value = groupName,
                 onValueChange = { groupName = it },
+                maxLines = 1,
                 label = { Text("Enter Group Name") },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             )
