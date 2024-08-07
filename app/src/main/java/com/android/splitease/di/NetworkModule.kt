@@ -1,6 +1,7 @@
 package com.android.splitease.di
 
 import com.android.splitease.services.AuthService
+import com.android.splitease.services.CategoryService
 import com.android.splitease.services.GroupService
 import com.android.splitease.services.TransactionService
 import com.android.splitease.services.UserService
@@ -61,5 +62,11 @@ class NetworkModule {
     @Singleton
     fun provideUserService(retrofit: Retrofit): UserService{
         return retrofit.create(UserService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCategoryService(retrofit: Retrofit): CategoryService{
+        return retrofit.create(CategoryService::class.java)
     }
 }

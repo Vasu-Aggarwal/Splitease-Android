@@ -1,9 +1,14 @@
 package com.android.splitease.screens
 
 import android.content.Context
+import android.graphics.Paint.Align
 import android.util.Log
+import android.widget.ImageButton
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +17,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -19,6 +26,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -26,9 +34,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -40,17 +51,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import com.android.splitease.R
 import com.android.splitease.models.requests.AddTransactionRequest
 import com.android.splitease.models.responses.AddTransactionResponse
 import com.android.splitease.navigation.Screen
+import com.android.splitease.ui.theme.Grey800
+import com.android.splitease.ui.theme.White
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.SplitBy
 import com.android.splitease.utils.TokenManager
@@ -133,10 +152,12 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text(
-                        text = "Add Expense",
-                        style = MaterialTheme.typography.titleLarge, // Adjust text style if needed
-                    )
+                    Box(){
+                        Text(
+                            text = "Add Expense",
+                            style = MaterialTheme.typography.titleLarge, // Adjust text style if needed
+                        )
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
@@ -212,25 +233,63 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                 .fillMaxSize()
                 .padding(padding),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
-            TextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Enter a description") },
-                maxLines = 1,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                modifier = Modifier.fillMaxWidth()
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = { /*TODO*/ }, modifier = Modifier
+                    .background(Grey800, RoundedCornerShape(8.dp))
+                    .border(1.dp, color = White, RoundedCornerShape(8.dp))
+                    .align(Alignment.CenterVertically)
+                ) {
+                    Icon(imageVector = Icons.Default.Menu, contentDescription = "category")
+                }
+
+                Spacer(modifier = Modifier.width(15.dp))
+
+                TextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Enter a description") },
+                    maxLines = 1,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                    modifier = Modifier
+                        .width(200.dp)
+                        .align(Alignment.CenterVertically),
+                    colors = TextFieldDefaults.colors(unfocusedContainerColor = MaterialTheme.colorScheme.background, focusedContainerColor = MaterialTheme.colorScheme.background)
+                )
+            }
             Spacer(modifier = Modifier.height(16.dp))
-            TextField(
-                value = if (amount == 0.0) "" else amount.toString(),
-                onValueChange = { it.toDoubleOrNull()?.let { amt -> amount = amt } },
-                label = { Text("Amount") },
-                maxLines = 1,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                IconButton(onClick = { /*TODO*/ }, modifier = Modifier
+                    .background(Grey800, RoundedCornerShape(8.dp))
+                    .border(1.dp, color = White, RoundedCornerShape(8.dp))
+                ) {
+                    Icon(painter = painterResource(id = R.drawable.rupee_indian), contentDescription = "category")
+                }
+
+                Spacer(modifier = Modifier.width(15.dp))
+
+                TextField(
+                    value = if (amount == 0.0) "" else amount.toString(),
+                    onValueChange = { it.toDoubleOrNull()?.let { amt -> amount = amt } },
+                    label = { Text("0.00") },
+                    maxLines = 1,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier
+                        .width(200.dp)
+                        .align(Alignment.Top),
+                    colors = TextFieldDefaults.colors(unfocusedContainerColor = MaterialTheme.colorScheme.background, focusedContainerColor = MaterialTheme.colorScheme.background)
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
