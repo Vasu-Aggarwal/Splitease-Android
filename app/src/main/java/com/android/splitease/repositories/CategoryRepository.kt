@@ -1,5 +1,6 @@
 package com.android.splitease.repositories
 
+import android.util.Log
 import com.android.splitease.models.responses.GetCategoryResponse
 import com.android.splitease.models.responses.GetGroupsByUserResponse
 import com.android.splitease.services.CategoryService

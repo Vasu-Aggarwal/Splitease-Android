@@ -3,7 +3,7 @@ package com.android.splitease.models.responses
 data class GetCategoryResponse(
     val category: String,
     val categoryId: Int,
-    val subcategories: SubCategoryResponse
+    val subcategories: List<SubCategoryResponse>
 )
 
 data class SubCategoryResponse(
