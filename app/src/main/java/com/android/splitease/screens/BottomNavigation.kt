@@ -295,8 +295,9 @@ fun BottomNavigationBar(){
                     }
                 }
 
-                composable(route = Screen.CategoryScreen.route)
-                { CategoriesScreen(navController = navController) }
+                composable(route = Screen.CategoryScreen.route) {
+                    CategoriesScreen(navController = navController)
+                }
             }
         }
     }
