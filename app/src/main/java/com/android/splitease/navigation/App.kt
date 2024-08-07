@@ -94,4 +94,6 @@ sealed class Screen(val route: String){
         fun createRoute(groupId: Int) = "groupSummary/$groupId"
     }
 
+    data object CategoryScreen: Screen("categoryScreen")
+
 }

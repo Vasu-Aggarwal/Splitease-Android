@@ -240,7 +240,7 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { /*TODO*/ }, modifier = Modifier
+                IconButton(onClick = { navController.navigate(Screen.CategoryScreen.route) }, modifier = Modifier
                     .background(Grey800, RoundedCornerShape(8.dp))
                     .border(1.dp, color = White, RoundedCornerShape(8.dp))
                     .align(Alignment.CenterVertically)

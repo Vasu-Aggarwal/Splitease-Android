@@ -80,7 +80,8 @@ fun BottomNavigationBar(){
 
     val bottomNavExcludedScreens = listOf(
         Screen.NewGroupScreen.route,
-        Screen.AddExpenseScreen.route
+        Screen.AddExpenseScreen.route,
+        Screen.CategoryScreen.route
     )
 
     Scaffold(bottomBar = {
@@ -293,6 +294,9 @@ fun BottomNavigationBar(){
                         GroupSummaryScreen(groupId = it)
                     }
                 }
+
+                composable(route = Screen.CategoryScreen.route)
+                { CategoriesScreen(navController = navController) }
             }
         }
     }
