@@ -7,6 +7,7 @@ import android.widget.ImageButton
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -66,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import com.android.splitease.R
 import com.android.splitease.models.requests.AddTransactionRequest
@@ -247,28 +249,44 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { navController.navigate(Screen.CategoryScreen.route) }, modifier = Modifier
-                    .background(Grey800, RoundedCornerShape(8.dp))
-                    .border(1.dp, color = White, RoundedCornerShape(8.dp))
-                    .align(Alignment.CenterVertically)
-                ) {
-                    if(!selectedCategoryImg!!.value.isEmpty()){
-                        Image(
-                            painter = rememberAsyncImagePainter(
-                                ImageRequest.Builder(LocalContext.current)
-                                    .data(data = selectedCategoryImg.value)
-                                    .apply(block = fun ImageRequest.Builder.() {
-                                        crossfade(true)
-                                    }).build()
-                            ),
-                            contentDescription = "Background Image",
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Icon(imageVector = Icons.Default.Menu, contentDescription = "category")
-                    }
-                }
 
+//                IconButton(onClick = { navController.navigate(Screen.CategoryScreen.route) },
+//                    modifier = Modifier
+//                    .border(1.dp, color = White, RoundedCornerShape(8.dp))
+//                    .align(Alignment.CenterVertically)
+//                ) {
+//                    if(!selectedCategoryImg!!.value.isEmpty()){
+//                        Image(
+//                            painter = rememberAsyncImagePainter(
+//                                ImageRequest.Builder(LocalContext.current)
+//                                    .data(data = selectedCategoryImg.value)
+//                                    .apply(block = fun ImageRequest.Builder.() {
+//                                        crossfade(true)
+//                                    }).build()
+//                            ),
+//                            contentDescription = "Background Image",
+//                            contentScale = ContentScale.Crop,
+//                            modifier = Modifier
+//                                .fillMaxSize()
+//                                .size(50.dp)
+//                                .clip(RoundedCornerShape(8.dp))
+//                        )
+//                    } else {
+//                        Icon(imageVector = Icons.Default.Menu, contentDescription = "category")
+//                    }
+//                }
+                if(!selectedCategoryImg!!.value.isEmpty()){
+                    Image(
+                        painter = rememberImagePainter(selectedCategoryImg!!.value),
+                        contentDescription = selectedCategoryImg.value,
+                        modifier = Modifier
+                            .size(50.dp)
+                            .padding(end = 8.dp)
+                            .clickable { navController.navigate(Screen.CategoryScreen.route) }
+                    )
+                } else {
+                    Icon(imageVector = Icons.Default.Menu, contentDescription = "category")
+                }
                 Spacer(modifier = Modifier.width(15.dp))
 
                 TextField(

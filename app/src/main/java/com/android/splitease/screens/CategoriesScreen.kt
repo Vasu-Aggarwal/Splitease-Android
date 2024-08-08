@@ -141,7 +141,6 @@ fun SubCategoryItem(subcategory: SubCategoryResponse, navController: NavControll
             .fillMaxWidth()
             .padding(8.dp)
             .clickable {
-                Log.d("subcategory", "SubCategoryItem: $subcategory")
                 navController.previousBackStackEntry?.savedStateHandle?.set(
                     "selectedCategory",
                     subcategory.name
