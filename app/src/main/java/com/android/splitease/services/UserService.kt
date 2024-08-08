@@ -14,6 +14,9 @@ interface UserService {
     @GET("${AppConstants.USER_URL}/getUserByUuid/{userUuid}")
     suspend fun getUserByUuidAPi(@Header("Authorization") token: String, @Path("userUuid") userUuid: String): Response<GetUserByUuidResponse>
 
+    @GET("${AppConstants.USER_URL}/isUserExists")
+    suspend fun isUserExistsApi(@Header("Authorization") token: String, @Query("entityVal") userData: String): Response<List<GetUserByUuidResponse>>
+
     @GET("${AppConstants.USER_URL}/getOverallUserBalance/{userUuid}")
     suspend fun getOverallUserBalanceApi(
         @Header("Authorization") token: String,

@@ -30,6 +30,11 @@ class UserRepository @Inject constructor(private val userService: UserService,
     val userBalance: StateFlow<NetworkResult<GetOverallUserBalance>>
         get() = _userBalance
 
+    private val _isUserExists = MutableStateFlow<NetworkResult<List<GetUserByUuidResponse>>>(
+        NetworkResult.Idle())
+    val isUserExists: StateFlow<NetworkResult<List<GetUserByUuidResponse>>>
+        get() = _isUserExists
+
     suspend fun getUserByUuid(userUuid: String){
         try {// Try fetching from local cache first
             val cachedUser = withContext(Dispatchers.IO) {
@@ -73,6 +78,16 @@ class UserRepository @Inject constructor(private val userService: UserService,
         }
     }
 
+    suspend fun isUserExists(userData: String){
+        val authToken = tokenManager.getAuthToken()
+        val response = userService.isUserExistsApi("Bearer $authToken", userData)
+        if (response.isSuccessful && response.body() != null) {
+            _isUserExists.emit(NetworkResult.Success(response.body()!!))
+        } else {
+            _isUserExists.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+        }
+    }
+
 
     private suspend fun deleteStaleUsers() {
         val maxStaleTimestamp = System.currentTimeMillis() - AppConstants.CACHE_TTL
@@ -97,6 +112,7 @@ fun UserEntity.toGetUserByUuidResponse(): GetUserByUuidResponse {
     return GetUserByUuidResponse(
         name = this.name,
         userUuid = this.uuid,
-        email = this.email
+        email = this.email,
+        mobile = this.email
     )
 }
