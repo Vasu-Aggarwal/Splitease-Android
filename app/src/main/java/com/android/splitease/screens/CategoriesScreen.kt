@@ -157,9 +157,8 @@ fun SubCategoryItem(subcategory: SubCategoryResponse, navController: NavControll
             painter = rememberImagePainter(subcategory.imageUrl),
             contentDescription = subcategory.name,
             modifier = Modifier
-                .size(40.dp)
+                .size(50.dp)
                 .padding(end = 8.dp)
-                .background(color = White)
         )
         Text(
             text = subcategory.name,
