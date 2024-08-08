@@ -98,6 +98,10 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
     val selectedUserName = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedUserName", "You")?.collectAsState()
     val selectedUserUuid = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedUserUuid", "")?.collectAsState()
 
+    // Retrieve the selected user's name and UUID from the savedStateHandle
+    val selectedCategory = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedCategory", "")?.collectAsState()
+    val selectedCategoryImg = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedCategoryImg", "")?.collectAsState()
+
     var contributions by remember { mutableStateOf<Map<String, Double>>(emptyMap()) }
     val contributionsState = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedData", emptyMap<String, Double>())?.collectAsState()
 
