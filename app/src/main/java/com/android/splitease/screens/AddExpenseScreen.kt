@@ -197,7 +197,7 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                                         group = groupId,
                                         userUuid = if (selectedUserName!!.value.equals("You", ignoreCase = true)) userUuid!! else selectedUserUuid!!.value,
                                         description = description,
-                                        category = "Adventure",
+                                        category = selectedCategory!!.value,
                                         usersInvolved = contributionsEqual
                                     )
                                     val gson = Gson()
@@ -250,42 +250,30 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-//                IconButton(onClick = { navController.navigate(Screen.CategoryScreen.route) },
-//                    modifier = Modifier
-//                    .border(1.dp, color = White, RoundedCornerShape(8.dp))
-//                    .align(Alignment.CenterVertically)
-//                ) {
-//                    if(!selectedCategoryImg!!.value.isEmpty()){
-//                        Image(
-//                            painter = rememberAsyncImagePainter(
-//                                ImageRequest.Builder(LocalContext.current)
-//                                    .data(data = selectedCategoryImg.value)
-//                                    .apply(block = fun ImageRequest.Builder.() {
-//                                        crossfade(true)
-//                                    }).build()
-//                            ),
-//                            contentDescription = "Background Image",
-//                            contentScale = ContentScale.Crop,
-//                            modifier = Modifier
-//                                .fillMaxSize()
-//                                .size(50.dp)
-//                                .clip(RoundedCornerShape(8.dp))
-//                        )
-//                    } else {
-//                        Icon(imageVector = Icons.Default.Menu, contentDescription = "category")
-//                    }
-//                }
-                if(!selectedCategoryImg!!.value.isEmpty()){
-                    Image(
-                        painter = rememberImagePainter(selectedCategoryImg!!.value),
-                        contentDescription = selectedCategoryImg.value,
-                        modifier = Modifier
-                            .size(50.dp)
-                            .padding(end = 8.dp)
-                            .clickable { navController.navigate(Screen.CategoryScreen.route) }
-                    )
-                } else {
-                    Icon(imageVector = Icons.Default.Menu, contentDescription = "category")
+                IconButton(onClick = { navController.navigate(Screen.CategoryScreen.route) },
+                    modifier = Modifier
+                    .border(1.dp, color = White, RoundedCornerShape(8.dp))
+                    .align(Alignment.CenterVertically)
+                ) {
+                    if(!selectedCategoryImg!!.value.isEmpty()){
+                        Image(
+                            painter = rememberAsyncImagePainter(
+                                ImageRequest.Builder(LocalContext.current)
+                                    .data(data = selectedCategoryImg.value)
+                                    .apply(block = fun ImageRequest.Builder.() {
+                                        crossfade(true)
+                                    }).build()
+                            ),
+                            contentDescription = "Background Image",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .size(50.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                        )
+                    } else {
+                        Icon(imageVector = Icons.Default.Menu, contentDescription = "category")
+                    }
                 }
                 Spacer(modifier = Modifier.width(15.dp))
 
