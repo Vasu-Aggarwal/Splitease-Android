@@ -124,7 +124,7 @@ fun CategoryItem(category: GetCategoryResponse) {
         modifier = Modifier
             .fillMaxWidth()
             .background(Black)
-            .padding(16.dp)
+            .padding(5.dp)
     )
 }
 
