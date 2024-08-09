@@ -22,6 +22,9 @@ class UserViewModel @Inject constructor(private val userRepository: UserReposito
     val userBalance: StateFlow<NetworkResult<GetOverallUserBalance>>
         get() = userRepository.userBalance
 
+    val isUserExists: StateFlow<NetworkResult<List<GetUserByUuidResponse>>>
+        get() = userRepository.isUserExists
+
     suspend fun getUserByUuid(userUuid: String) {
         userRepository.getUserByUuid(userUuid)
     }
@@ -29,6 +32,12 @@ class UserViewModel @Inject constructor(private val userRepository: UserReposito
     fun getOverallUserBalance(searchVal: String){
         viewModelScope.launch {
             userRepository.getOverallUserBalance(searchVal)
+        }
+    }
+
+    fun isUserExists(userData: String){
+        viewModelScope.launch {
+            userRepository.isUserExists(userData)
         }
     }
 

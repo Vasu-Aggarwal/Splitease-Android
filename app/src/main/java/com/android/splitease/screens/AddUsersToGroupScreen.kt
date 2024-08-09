@@ -26,10 +26,12 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
@@ -42,14 +44,27 @@ import com.android.splitease.models.requests.AddUsersToGroupRequest
 import com.android.splitease.models.responses.AddUsersToGroupResponse
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.GroupViewModel
+import com.android.splitease.viewmodels.UserViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltViewModel(), navController: NavController){
+fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltViewModel(), userViewModel: UserViewModel = hiltViewModel(), navController: NavController){
     var emailSet by remember { mutableStateOf(setOf<String>()) }
     val addUsersResponse by groupViewModel.addUsersToGroup.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
+
+    // Debounced search state
+    val debouncedSearchQuery by rememberDebounce(searchQuery)
+
+    // Launch API call whenever debounced query changes
+    LaunchedEffect(debouncedSearchQuery) {
+        if (debouncedSearchQuery.isNotBlank()) {
+            userViewModel.isUserExists(debouncedSearchQuery)
+        }
+    }
 
     LaunchedEffect(addUsersResponse) {
         if (addUsersResponse is NetworkResult.Success) {
@@ -164,62 +179,6 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
                 }
             }
 
-//            emailSet.forEach { addedEmail ->
-//                LazyRow(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(vertical = 8.dp)
-//                ) {
-//                    items(emailSet.toList()) { addedEmail ->
-//                        Column(
-//                            modifier = Modifier.padding(horizontal = 8.dp)
-//                        ) {
-//                            // Circular image placeholder
-//                            Box(
-//                                modifier = Modifier
-//                                    .background(
-//                                        MaterialTheme.colorScheme.primary,
-//                                        shape = RoundedCornerShape(50)
-//                                    )
-//                                    .size(50.dp),
-//                                contentAlignment = androidx.compose.ui.Alignment.Center
-//                            ) {
-//                                Text(
-//                                    text = addedEmail.first().toString()
-//                                        .uppercase(), // Placeholder for the first letter of the email
-//                                    style = TextStyle(color = MaterialTheme.colorScheme.onPrimary)
-//                                )
-//                                // Delete Icon
-//                                IconButton(
-//                                    onClick = { emailSet = emailSet - addedEmail },
-//                                    modifier = Modifier
-//                                        .align(androidx.compose.ui.Alignment.TopEnd)
-//                                        .background(
-//                                            MaterialTheme.colorScheme.onPrimary,
-//                                            shape = RoundedCornerShape(50)
-//                                        )
-//                                        .size(20.dp)
-//                                ) {
-//                                    Icon(
-//                                        imageVector = Icons.Default.Clear,
-//                                        contentDescription = "Delete User",
-//                                        tint = MaterialTheme.colorScheme.primary
-//                                    )
-//                                }
-//                            }
-//
-//                            // Email text below the image
-//                            Text(
-//                                text = addedEmail,
-//                                modifier = Modifier.padding(top = 4.dp),
-//                                fontSize = 12.sp,
-//                                maxLines = 1
-//                            )
-//                        }
-//                    }
-//                }
-//            }
-
             Button(
                 onClick = {
                     // Here you can make the API request using emailSet
@@ -232,4 +191,23 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
             }
         }
     }
+}
+
+// Debounce helper function
+@Composable
+fun rememberDebounce(
+    input: String,
+    delayMillis: Long = 300L // Adjust delay time as needed
+): State<String> {
+    val state = remember { mutableStateOf(input) }
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(input) {
+        coroutineScope.launch {
+            delay(delayMillis)
+            state.value = input
+        }
+    }
+
+    return state
 }
