@@ -3,7 +3,9 @@ package com.android.splitease.repositories
 import android.util.Log
 import com.android.splitease.di.NetworkException
 import com.android.splitease.models.requests.RefreshTokenRequest
+import com.android.splitease.models.requests.RegisterUserRequest
 import com.android.splitease.models.requests.UserLoginRequest
+import com.android.splitease.models.responses.CreateUserResponse
 import com.android.splitease.models.responses.ErrorResponse
 import com.android.splitease.models.responses.UserLoginResponse
 import com.android.splitease.services.AuthService
@@ -23,6 +25,10 @@ class AuthRepository @Inject constructor(private val authService: AuthService,
     private val _user = MutableStateFlow<NetworkResult<UserLoginResponse>>(NetworkResult.Idle())
     val user : StateFlow<NetworkResult<UserLoginResponse>>
         get() = _user
+
+    private val _registerUser = MutableStateFlow<NetworkResult<CreateUserResponse>>(NetworkResult.Idle())
+    val registerUser : StateFlow<NetworkResult<CreateUserResponse>>
+        get() = _registerUser
 
     suspend fun login(email: String, password: String){
         try {
@@ -68,6 +74,20 @@ class AuthRepository @Inject constructor(private val authService: AuthService,
             }
         } catch (e: Exception){
             Log.d("Update JWT", "refreshToken: ${e.message}")
+        }
+    }
+
+    suspend fun registerNewUser(registerUserRequest: RegisterUserRequest){
+        try{
+            val requestBody = registerUserRequest
+            val response = authService.registerUserApi(requestBody)
+            if (response.isSuccessful && response.body() != null) {
+                _registerUser.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _registerUser.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+            }
+        } catch (e: Exception){
+            Log.d("Update JWT", "registerNewUser: ${e.message}")
         }
     }
 }

@@ -95,5 +95,8 @@ sealed class Screen(val route: String){
     }
 
     data object CategoryScreen: Screen("categoryScreen")
+    data object RegisterNewUserScreen: Screen("newUserScreen/{name}"){
+        fun createRoute(name: String) = "newUserScreen/$name"
+    }
 
 }

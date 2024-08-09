@@ -4,21 +4,27 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -34,19 +40,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import com.android.splitease.models.requests.AddUsersToGroupRequest
-import com.android.splitease.models.responses.AddUsersToGroupResponse
+import com.android.splitease.models.responses.GetUserByUuidResponse
+import com.android.splitease.navigation.Screen
+import com.android.splitease.ui.theme.Green300
+import com.android.splitease.ui.theme.Green800
+import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.GroupViewModel
 import com.android.splitease.viewmodels.UserViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -55,6 +67,7 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
     var emailSet by remember { mutableStateOf(setOf<String>()) }
     val addUsersResponse by groupViewModel.addUsersToGroup.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
+    val isUserExists: State<NetworkResult<List<GetUserByUuidResponse>>> = userViewModel.isUserExists.collectAsState()
 
     // Debounced search state
     val debouncedSearchQuery by rememberDebounce(searchQuery)
@@ -108,24 +121,20 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
                     }
                 },
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = {
+                // Here you can make the API request using emailSet
+                val addUsersToGroupRequest = AddUsersToGroupRequest(groupId, emailSet)
+                groupViewModel.addUsersToGroup(addUsersToGroupRequest)
+            }) {
+                Icon(imageVector = Icons.Default.Done, contentDescription = "Submit")
+            }
         }
     ) { padding ->
 
         Column(modifier = Modifier.padding(padding)) {
 
-            Button(
-                onClick = {
-                    if (searchQuery.isNotBlank()) {
-                        emailSet = emailSet + searchQuery
-                        searchQuery = "" // clear the text field after adding
-                    }
-                },
-                modifier = Modifier.padding(vertical = 8.dp)
-            ) {
-                Text(text = "Add User")
-            }
-
-            Text(text = "Users added to the group:")
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -178,20 +187,137 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
                     }
                 }
             }
-
-            Button(
-                onClick = {
-                    // Here you can make the API request using emailSet
-                    val addUsersToGroupRequest = AddUsersToGroupRequest(groupId, emailSet)
-                    groupViewModel.addUsersToGroup(addUsersToGroupRequest)
-                },
-                modifier = Modifier.padding(vertical = 8.dp)
-            ) {
-                Text(text = "Submit")
+            when(val result = isUserExists.value){
+                is NetworkResult.Error -> {}
+                is NetworkResult.Idle -> {}
+                is NetworkResult.Loading -> {}
+                is NetworkResult.Success -> {
+                    LazyColumn {
+                        item {
+                            Card (
+                                onClick = {
+                                          navController.navigate(Screen.RegisterNewUserScreen.createRoute(
+                                              if (!searchQuery.isNullOrBlank()){
+                                                  searchQuery
+                                              } else {
+                                                  ""
+                                              }
+                                          ))
+//                                    if (searchQuery.isNotBlank()) {
+//                                        emailSet = emailSet + searchQuery
+//                                        searchQuery = "" // clear the text field after adding
+//                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(5.dp, 1.dp, 5.dp, 1.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+                            ){
+                                Text(text = buildAnnotatedString {
+                                    append("Add ")
+                                    if (searchQuery.isEmpty()){
+                                        append("a new contact")
+                                    } else{
+                                        withStyle(style = SpanStyle(color = AppConstants.LENT_COLOR)){
+                                            append("\"$searchQuery\"")
+                                        }
+                                    }
+                                    append(" to SplitEase")
+                                })
+                            }
+                        }
+                        items(result.data!!){user ->
+                            UserItem(user, searchQuery, emailSet)
+                        }
+                    }
+                }
             }
         }
     }
 }
+
+@Composable
+fun UserItem(user: GetUserByUuidResponse, searchQuery: String, emailSet: Set<String>) {
+    Card (
+        onClick = {
+            if (searchQuery.isNotBlank()) {
+//                emailSet = emailSet + searchQuery
+//                searchQuery = "" // clear the text field after adding
+            }
+        },
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(5.dp, 1.dp, 5.dp, 10.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+    ){
+
+        Row{
+
+            Box(
+                modifier = Modifier
+                    .background(
+                        MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(50)
+                    )
+                    .size(50.dp),
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
+                Text(
+                    text = user.name.first().toString().uppercase(), // Placeholder for the first letter of the email
+                    style = TextStyle(color = MaterialTheme.colorScheme.onPrimary)
+                )
+
+            }
+
+            Spacer(modifier = Modifier.padding(5.dp))
+
+            Column {
+                Text(text = user.name)
+                if (!user.email.isNullOrBlank()) {
+                    Text(text = user.email)
+                }
+            }
+        }
+    }
+}
+
+//@Composable
+//fun MarqueeText(
+//    text: String,
+//    modifier: Modifier = Modifier,
+//    fontSize: TextUnit = TextUnit.Unspecified,
+//    maxLines: Int = 1 // Typically you want a single line for marquee
+//) {
+//    val scrollState = rememberScrollState(0)
+//
+//    Box(
+//        modifier = modifier
+//            .horizontalScroll(scrollState)
+//            .clipToBounds() // Ensure no overflow
+//    ) {
+//        LaunchedEffect(Unit) {
+//            // Continuously scroll the text
+//            while (true) {
+//                scrollState.animateScrollTo(
+//                    scrollState.maxValue,
+//                    animationSpec = infiniteRepeatable(
+//                        animation = tween(durationMillis = 5000, easing = LinearEasing),
+//                        repeatMode = RepeatMode.Reverse
+//                    )
+//                )
+//            }
+//        }
+//
+//        Text(
+//            text = text,
+//            fontSize = fontSize,
+//            maxLines = maxLines,
+//            overflow = TextOverflow.Ellipsis, // Handle overflow gracefully
+//            modifier = Modifier.fillMaxWidth() // Make the text fill the available width
+//        )
+//    }
+//}
+
 
 // Debounce helper function
 @Composable
