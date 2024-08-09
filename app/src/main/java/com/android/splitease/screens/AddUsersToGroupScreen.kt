@@ -1,5 +1,11 @@
 package com.android.splitease.screens
 
+import android.util.Log
+import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,8 +21,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -39,11 +47,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,6 +67,7 @@ import com.android.splitease.models.responses.GetUserByUuidResponse
 import com.android.splitease.navigation.Screen
 import com.android.splitease.ui.theme.Green300
 import com.android.splitease.ui.theme.Green800
+import com.android.splitease.ui.theme.White
 import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.GroupViewModel
@@ -187,47 +201,65 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
                     }
                 }
             }
+            Card (
+                onClick = {
+                    navController.navigate(Screen.RegisterNewUserScreen.createRoute(
+                        if (!searchQuery.isNullOrBlank()){
+                            searchQuery
+                        } else {
+                            " "
+                        }
+                    ))
+                },
+                modifier = Modifier
+                    .padding(5.dp, 1.dp, 5.dp, 10.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+            ){
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                MaterialTheme.colorScheme.primary,
+                                shape = RoundedCornerShape(50)
+                            )
+                            .size(50.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add person")
+                    }
+
+                    Spacer(modifier = Modifier.padding(5.dp))
+
+                    Text(text = buildAnnotatedString {
+                        append("Add ")
+                        if (searchQuery.isEmpty()){
+                            append("a new contact")
+                        } else{
+                            withStyle(style = SpanStyle(color = AppConstants.LENT_COLOR)){
+                                append("\"$searchQuery\"")
+                            }
+                        }
+                        append(" to SplitEase")
+                    }, textAlign = TextAlign.Center)
+                }
+            }
             when(val result = isUserExists.value){
                 is NetworkResult.Error -> {}
                 is NetworkResult.Idle -> {}
                 is NetworkResult.Loading -> {}
                 is NetworkResult.Success -> {
                     LazyColumn {
-                        item {
-                            Card (
-                                onClick = {
-                                          navController.navigate(Screen.RegisterNewUserScreen.createRoute(
-                                              if (!searchQuery.isNullOrBlank()){
-                                                  searchQuery
-                                              } else {
-                                                  ""
-                                              }
-                                          ))
-//                                    if (searchQuery.isNotBlank()) {
-//                                        emailSet = emailSet + searchQuery
-//                                        searchQuery = "" // clear the text field after adding
-//                                    }
-                                },
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(5.dp, 1.dp, 5.dp, 1.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.Transparent)
-                            ){
-                                Text(text = buildAnnotatedString {
-                                    append("Add ")
-                                    if (searchQuery.isEmpty()){
-                                        append("a new contact")
-                                    } else{
-                                        withStyle(style = SpanStyle(color = AppConstants.LENT_COLOR)){
-                                            append("\"$searchQuery\"")
-                                        }
-                                    }
-                                    append(" to SplitEase")
-                                })
-                            }
-                        }
                         items(result.data!!){user ->
-                            UserItem(user, searchQuery, emailSet)
+                            UserItem(user, searchQuery, emailSet){selectedUser ->
+                                if (!user.email.isNullOrBlank()){
+                                    emailSet = emailSet + user.email
+                                } else {
+                                    emailSet = emailSet + user.mobile
+                                }
+                                searchQuery = "" // clear the text field after adding
+                            }
                         }
                     }
                 }
@@ -237,12 +269,14 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
 }
 
 @Composable
-fun UserItem(user: GetUserByUuidResponse, searchQuery: String, emailSet: Set<String>) {
+fun UserItem(user: GetUserByUuidResponse, searchQuery: String, emailSet: Set<String>, onUserSelected: (String) -> Unit) {
+
+    val isUserAdded = emailSet.contains(user.email)
+
     Card (
         onClick = {
-            if (searchQuery.isNotBlank()) {
-//                emailSet = emailSet + searchQuery
-//                searchQuery = "" // clear the text field after adding
+            if (!isUserAdded) {
+                onUserSelected(user.email) // Add the user's email to the selected list
             }
         },
         modifier = Modifier
@@ -252,72 +286,19 @@ fun UserItem(user: GetUserByUuidResponse, searchQuery: String, emailSet: Set<Str
     ){
 
         Row{
-
-            Box(
-                modifier = Modifier
-                    .background(
-                        MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(50)
-                    )
-                    .size(50.dp),
-                contentAlignment = androidx.compose.ui.Alignment.Center
-            ) {
-                Text(
-                    text = user.name.first().toString().uppercase(), // Placeholder for the first letter of the email
-                    style = TextStyle(color = MaterialTheme.colorScheme.onPrimary)
-                )
-
-            }
+            FlippingCard(isUserAdded = !isUserAdded, userName = user.name.first().toString().uppercase())
 
             Spacer(modifier = Modifier.padding(5.dp))
 
             Column {
-                Text(text = user.name)
+                Text(text = user.name, color = if (isUserAdded) Color.Gray else White) // Change color if user is added)
                 if (!user.email.isNullOrBlank()) {
-                    Text(text = user.email)
+                    Text(text = user.email, color = if (isUserAdded) Color.Gray else White)
                 }
             }
         }
     }
 }
-
-//@Composable
-//fun MarqueeText(
-//    text: String,
-//    modifier: Modifier = Modifier,
-//    fontSize: TextUnit = TextUnit.Unspecified,
-//    maxLines: Int = 1 // Typically you want a single line for marquee
-//) {
-//    val scrollState = rememberScrollState(0)
-//
-//    Box(
-//        modifier = modifier
-//            .horizontalScroll(scrollState)
-//            .clipToBounds() // Ensure no overflow
-//    ) {
-//        LaunchedEffect(Unit) {
-//            // Continuously scroll the text
-//            while (true) {
-//                scrollState.animateScrollTo(
-//                    scrollState.maxValue,
-//                    animationSpec = infiniteRepeatable(
-//                        animation = tween(durationMillis = 5000, easing = LinearEasing),
-//                        repeatMode = RepeatMode.Reverse
-//                    )
-//                )
-//            }
-//        }
-//
-//        Text(
-//            text = text,
-//            fontSize = fontSize,
-//            maxLines = maxLines,
-//            overflow = TextOverflow.Ellipsis, // Handle overflow gracefully
-//            modifier = Modifier.fillMaxWidth() // Make the text fill the available width
-//        )
-//    }
-//}
-
 
 // Debounce helper function
 @Composable
@@ -336,4 +317,50 @@ fun rememberDebounce(
     }
 
     return state
+}
+
+@Composable
+fun FlippingCard(isUserAdded: Boolean, userName: String) {
+    // Rotation animation state
+    val rotationState by animateFloatAsState(
+        targetValue = if (isUserAdded) 180f else 0f, // Flip 180 degrees
+        animationSpec = androidx.compose.animation.core.tween(durationMillis = 500) // Adjust duration as needed
+    )
+
+    // Flip animation
+    Box(
+        modifier = Modifier
+            .size(50.dp)
+            .graphicsLayer(
+                rotationY = rotationState, // Rotate around the Y-axis
+                cameraDistance = 8f // Adjust camera distance for better 3D effect
+            )
+            .background(
+                MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(50)
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier.graphicsLayer(
+                alpha = if (rotationState < 90f) 1f else 0f // Fade out the front side as it flips
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Default.Done,
+                contentDescription = "User Added",
+                tint = MaterialTheme.colorScheme.secondary
+            )
+        }
+        Box(
+            modifier = Modifier.graphicsLayer(
+                alpha = if (rotationState >= 90f) 1f else 0f // Fade in the back side as it flips
+            )
+        ) {
+            Text(
+                text = userName.firstOrNull()?.toString()?.uppercase() ?: "",
+                style = TextStyle(color = MaterialTheme.colorScheme.onPrimary, fontSize = 20.sp)
+            )
+        }
+    }
 }
