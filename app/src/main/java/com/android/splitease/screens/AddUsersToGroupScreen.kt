@@ -1,11 +1,6 @@
 package com.android.splitease.screens
 
-import android.util.Log
-import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,8 +19,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -49,10 +42,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -63,10 +54,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.android.splitease.models.requests.AddUsersToGroupRequest
+import com.android.splitease.models.responses.GetGroupMembersV2Response
 import com.android.splitease.models.responses.GetUserByUuidResponse
 import com.android.splitease.navigation.Screen
-import com.android.splitease.ui.theme.Green300
-import com.android.splitease.ui.theme.Green800
 import com.android.splitease.ui.theme.White
 import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.NetworkResult
@@ -82,6 +72,7 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
     val addUsersResponse by groupViewModel.addUsersToGroup.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     val isUserExists: State<NetworkResult<List<GetUserByUuidResponse>>> = userViewModel.isUserExists.collectAsState()
+    val groupMembers: State<NetworkResult<List<GetGroupMembersV2Response>>> = groupViewModel.groupMembersV2.collectAsState()
 
     // Debounced search state
     val debouncedSearchQuery by rememberDebounce(searchQuery)
@@ -91,6 +82,10 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
         if (debouncedSearchQuery.isNotBlank()) {
             userViewModel.isUserExists(debouncedSearchQuery)
         }
+    }
+
+    LaunchedEffect(groupId) {
+        groupViewModel.getGroupMembersV2(groupId)
     }
 
     LaunchedEffect(addUsersResponse) {
@@ -250,9 +245,15 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
                 is NetworkResult.Idle -> {}
                 is NetworkResult.Loading -> {}
                 is NetworkResult.Success -> {
+
+                    // Extract group members' emails or mobiles
+                    val groupEmails = groupMembers.value.data?.mapNotNull { it.email } ?: emptyList()
+//                    val groupMobiles = groupMembers.value.data?.mapNotNull { it.mobile } ?: emptyList()
+
                     LazyColumn {
                         items(result.data!!){user ->
-                            UserItem(user, searchQuery, emailSet){selectedUser ->
+                            val isAlreadyInGroup = groupEmails.contains(user.email) /*|| groupMobiles.contains(user.mobile)*/
+                            UserItem(user, emailSet, isAlreadyInGroup){selectedUser ->
                                 if (!user.email.isNullOrBlank()){
                                     emailSet = emailSet + user.email
                                 } else {
@@ -269,7 +270,12 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
 }
 
 @Composable
-fun UserItem(user: GetUserByUuidResponse, searchQuery: String, emailSet: Set<String>, onUserSelected: (String) -> Unit) {
+fun UserItem(
+    user: GetUserByUuidResponse,
+    emailSet: Set<String>,
+    isAlreadyInGroup: Boolean,
+    onUserSelected: (String) -> Unit
+) {
 
     val isUserAdded = emailSet.contains(user.email)
 
@@ -282,7 +288,8 @@ fun UserItem(user: GetUserByUuidResponse, searchQuery: String, emailSet: Set<Str
         modifier = Modifier
             .fillMaxSize()
             .padding(5.dp, 1.dp, 5.dp, 10.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent, disabledContainerColor = Color.Transparent),
+        enabled = !isAlreadyInGroup
     ){
 
         Row{
@@ -291,9 +298,9 @@ fun UserItem(user: GetUserByUuidResponse, searchQuery: String, emailSet: Set<Str
             Spacer(modifier = Modifier.padding(5.dp))
 
             Column {
-                Text(text = user.name, color = if (isUserAdded) Color.Gray else White) // Change color if user is added)
+                Text(text = user.name, color = if (isUserAdded) Color.Gray else if (isAlreadyInGroup) Color.Gray else White) // Change color if user is added)
                 if (!user.email.isNullOrBlank()) {
-                    Text(text = user.email, color = if (isUserAdded) Color.Gray else White)
+                    Text(text = if (isAlreadyInGroup) "already in group" else user.email, color = if (isUserAdded) Color.Gray else if (isAlreadyInGroup) Color.Gray else White)
                 }
             }
         }
