@@ -36,7 +36,9 @@ class UserRepository @Inject constructor(private val userService: UserService,
         get() = _isUserExists
 
     suspend fun getUserByUuid(userUuid: String){
-        try {// Try fetching from local cache first
+        try {
+            _user.emit(NetworkResult.Loading())
+            // Try fetching from local cache first
             val cachedUser = withContext(Dispatchers.IO) {
                 userDao.getUserByUuidWithTTL(
                     userUuid,
@@ -64,27 +66,44 @@ class UserRepository @Inject constructor(private val userService: UserService,
             }
         } catch (e: NetworkException){
             _user.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _user.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 
     suspend fun getOverallUserBalance(searchVal: String){
-        val authToken = tokenManager.getAuthToken()
-        val userUuid = tokenManager.getUserUuid()
-        val response = userService.getOverallUserBalanceApi("Bearer $authToken", userUuid!!, searchVal)
-        if (response.isSuccessful && response.body() != null) {
-            _userBalance.emit(NetworkResult.Success(response.body()!!))
-        } else {
-            _userBalance.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+        try {
+            _userBalance.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()
+            val userUuid = tokenManager.getUserUuid()
+            val response =
+                userService.getOverallUserBalanceApi("Bearer $authToken", userUuid!!, searchVal)
+            if (response.isSuccessful && response.body() != null) {
+                _userBalance.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _userBalance.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+            }
+        } catch (e: NetworkException){
+            _userBalance.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _userBalance.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 
     suspend fun isUserExists(userData: String){
-        val authToken = tokenManager.getAuthToken()
-        val response = userService.isUserExistsApi("Bearer $authToken", userData)
-        if (response.isSuccessful && response.body() != null) {
-            _isUserExists.emit(NetworkResult.Success(response.body()!!))
-        } else {
-            _isUserExists.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+        try {
+            _isUserExists.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()
+            val response = userService.isUserExistsApi("Bearer $authToken", userData)
+            if (response.isSuccessful && response.body() != null) {
+                _isUserExists.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _isUserExists.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+            }
+        } catch (e: NetworkException){
+            _isUserExists.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _isUserExists.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 

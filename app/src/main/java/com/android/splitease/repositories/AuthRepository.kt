@@ -57,6 +57,8 @@ class AuthRepository @Inject constructor(private val authService: AuthService,
             }
         } catch (e: NetworkException){
             _user.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _user.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 
@@ -72,6 +74,8 @@ class AuthRepository @Inject constructor(private val authService: AuthService,
                 val rawError = response.errorBody()?.string()
                 Log.e("Refresh Token", "refreshToken: caused the error$rawError")
             }
+        } catch (e: NetworkException){
+            Log.d("Update JWT", "refreshToken: ${e.message}")
         } catch (e: Exception){
             Log.d("Update JWT", "refreshToken: ${e.message}")
         }
@@ -79,6 +83,7 @@ class AuthRepository @Inject constructor(private val authService: AuthService,
 
     suspend fun registerNewUser(registerUserRequest: RegisterUserRequest){
         try{
+            _registerUser.emit(NetworkResult.Loading())
             val requestBody = registerUserRequest
             val response = authService.registerUserApi(requestBody)
             if (response.isSuccessful && response.body() != null) {
@@ -86,6 +91,8 @@ class AuthRepository @Inject constructor(private val authService: AuthService,
             } else {
                 _registerUser.emit(NetworkResult.Error(response.errorBody()?.string()!!))
             }
+        } catch (e: NetworkException){
+            _registerUser.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         } catch (e: Exception){
             Log.d("Update JWT", "registerNewUser: ${e.message}")
         }

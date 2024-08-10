@@ -1,5 +1,6 @@
 package com.android.splitease.repositories
 
+import com.android.splitease.di.NetworkException
 import com.android.splitease.models.requests.AddTransactionRequest
 import com.android.splitease.models.requests.SettleUpRequest
 import com.android.splitease.models.responses.AddTransactionResponse
@@ -8,6 +9,7 @@ import com.android.splitease.models.responses.DeleteResponse
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.models.responses.SettleUpResponse
 import com.android.splitease.services.TransactionService
+import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.TokenManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,62 +42,108 @@ class TransactionRepository @Inject constructor(private val transactionService: 
         get() = _settleUp
 
     suspend fun transactionByGroupId(groupId: String){
-        val authToken = tokenManager.getAuthToken()
-        val response = transactionService.getTransactionsByGroupApi("Bearer $authToken", groupId)
-        if (response.isSuccessful && response.body()!=null){
-            _transactions.emit(NetworkResult.Success(response.body()!!))
-        } else {
-            _transactions.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+        try {
+            _transactions.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()
+            val response =
+                transactionService.getTransactionsByGroupApi("Bearer $authToken", groupId)
+            if (response.isSuccessful && response.body() != null) {
+                _transactions.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _transactions.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+            }
+        } catch (e: NetworkException){
+            _transactions.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _transactions.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 
     suspend fun addTransaction(addTransactionRequest: AddTransactionRequest){
-        val authToken = tokenManager.getAuthToken()
-        val response = transactionService.addTransactionApi("Bearer $authToken", addTransactionRequest)
-        if (response.isSuccessful && response.body()!=null){
-            _addTransaction.emit(NetworkResult.Success(response.body()!!))
-        } else {
-            _addTransaction.emit(NetworkResult.Error(response.errorBody()?.string()))
+        try {
+            _addTransaction.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()
+            val response =
+                transactionService.addTransactionApi("Bearer $authToken", addTransactionRequest)
+            if (response.isSuccessful && response.body() != null) {
+                _addTransaction.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _addTransaction.emit(NetworkResult.Error(response.errorBody()?.string()))
+            }
+        } catch (e: NetworkException){
+            _addTransaction.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _addTransaction.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 
     suspend fun updateTransaction(addTransactionRequest: AddTransactionRequest){
-        val authToken = tokenManager.getAuthToken()
-        val response = transactionService.updateTransactionApi("Bearer $authToken", addTransactionRequest)
-        if (response.isSuccessful && response.body()!=null){
-            _updateTransaction.emit(NetworkResult.Success(response.body()!!))
-        } else {
-            _updateTransaction.emit(NetworkResult.Error(response.errorBody()?.string()))
+        try {
+            _updateTransaction.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()
+            val response =
+                transactionService.updateTransactionApi("Bearer $authToken", addTransactionRequest)
+            if (response.isSuccessful && response.body() != null) {
+                _updateTransaction.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _updateTransaction.emit(NetworkResult.Error(response.errorBody()?.string()))
+            }
+        } catch (e: NetworkException){
+            _updateTransaction.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _updateTransaction.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 
     suspend fun deleteTransaction(transactionId: Int){
-        val authToken = tokenManager.getAuthToken()
-        val response = transactionService.deleteTransactionApi("Bearer $authToken", transactionId)
-        if (response.isSuccessful && response.body()!=null){
-            _deleteTransaction.emit(NetworkResult.Success(response.body()!!))
-        } else {
-            _deleteTransaction.emit(NetworkResult.Error(response.errorBody()?.string()))
+        try {
+            _deleteTransaction.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()
+            val response =
+                transactionService.deleteTransactionApi("Bearer $authToken", transactionId)
+            if (response.isSuccessful && response.body() != null) {
+                _deleteTransaction.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _deleteTransaction.emit(NetworkResult.Error(response.errorBody()?.string()))
+            }
+        } catch (e: NetworkException){
+            _deleteTransaction.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _deleteTransaction.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 
     suspend fun calculateDebt(groupId: Int){
-        val authToken = tokenManager.getAuthToken()
-        val response = transactionService.calculateDebtApi("Bearer $authToken", groupId)
-        if (response.isSuccessful && response.body()!=null){
-            _calculateDebt.emit(NetworkResult.Success(response.body()!!))
-        } else {
-            _calculateDebt.emit(NetworkResult.Error(response.errorBody()?.string()))
+        try {
+            _calculateDebt.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()
+            val response = transactionService.calculateDebtApi("Bearer $authToken", groupId)
+            if (response.isSuccessful && response.body() != null) {
+                _calculateDebt.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _calculateDebt.emit(NetworkResult.Error(response.errorBody()?.string()))
+            }
+        } catch (e: NetworkException){
+            _calculateDebt.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _calculateDebt.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 
     suspend fun settleUp(settleUpRequest: SettleUpRequest){
-        val authToken = tokenManager.getAuthToken()
-        val response = transactionService.settleUpApi("Bearer $authToken", settleUpRequest)
-        if (response.isSuccessful && response.body()!=null){
-            _settleUp.emit(NetworkResult.Success(response.body()!!))
-        } else {
-            _settleUp.emit(NetworkResult.Error(response.errorBody()?.string()))
+        try {
+            _settleUp.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()
+            val response = transactionService.settleUpApi("Bearer $authToken", settleUpRequest)
+            if (response.isSuccessful && response.body() != null) {
+                _settleUp.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _settleUp.emit(NetworkResult.Error(response.errorBody()?.string()))
+            }
+        } catch (e: NetworkException){
+            _settleUp.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _settleUp.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 }

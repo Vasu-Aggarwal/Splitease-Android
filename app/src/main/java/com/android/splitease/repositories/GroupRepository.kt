@@ -1,6 +1,7 @@
 package com.android.splitease.repositories
 
 import android.util.Log
+import com.android.splitease.di.NetworkException
 import com.android.splitease.models.requests.AddGroupRequest
 import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.requests.AddUsersToGroupRequest
@@ -10,6 +11,7 @@ import com.android.splitease.models.responses.GetGroupMembersV2Response
 import com.android.splitease.models.responses.GetGroupSummaryResponse
 import com.android.splitease.models.responses.GetGroupsByUserResponse
 import com.android.splitease.services.GroupService
+import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.TokenManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,33 +54,54 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
         get() = _groupInfo
 
     suspend fun groupsByUser(searchBy: String){
-        val authToken = tokenManager.getAuthToken()
-        val userUuid = tokenManager.getUserUuid()!!
-        val response = groupService.getGroupsByUser("Bearer $authToken", userUuid, searchBy)
-        if (response.isSuccessful && response.body()!=null){
-            _groups.emit(NetworkResult.Success(response.body()!!))
-        } else {
-            _groups.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+        try {
+            _groups.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()
+            val userUuid = tokenManager.getUserUuid()!!
+            val response = groupService.getGroupsByUser("Bearer $authToken", userUuid, searchBy)
+            if (response.isSuccessful && response.body() != null) {
+                _groups.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _groups.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+            }
+        } catch (e: NetworkException){
+            _groups.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _groups.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 
     suspend fun getGroupMembers(groupId: Int){
-        val authToken = tokenManager.getAuthToken()
-        val response = groupService.getGroupMembersApi("Bearer $authToken", groupId)
-        if (response.isSuccessful && response.body()!=null){
-            _groupMembers.emit(NetworkResult.Success(response.body()!!))
-        } else {
-            _groupMembers.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+        try {
+            _groupMembers.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()
+            val response = groupService.getGroupMembersApi("Bearer $authToken", groupId)
+            if (response.isSuccessful && response.body() != null) {
+                _groupMembers.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _groupMembers.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+            }
+        } catch (e: NetworkException){
+            _groupMembers.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _groupMembers.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 
     suspend fun getGroupMembersV2(groupId: Int){
-        val authToken = tokenManager.getAuthToken()
-        val response = groupService.getGroupMembersV2Api("Bearer $authToken", groupId)
-        if (response.isSuccessful && response.body()!=null){
-            _groupMembersV2.emit(NetworkResult.Success(response.body()!!))
-        } else {
-            _groupMembersV2.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+        try {
+            _groupMembersV2.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()
+            val response = groupService.getGroupMembersV2Api("Bearer $authToken", groupId)
+            if (response.isSuccessful && response.body() != null) {
+                _groupMembersV2.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _groupMembersV2.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+            }
+        } catch (e: NetworkException){
+            _groupMembersV2.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _groupMembersV2.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 
@@ -109,38 +132,63 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
             } else {
                 _addUpdateGroup.emit(NetworkResult.Error(response.errorBody()?.string()!!))
             }
+        } catch (e: NetworkException){
+            _addUpdateGroup.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         } catch (e: Exception){
-            Log.e("addUpdateGroup", "addUpdateGroup: ", e.cause)
+            _addUpdateGroup.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 
     suspend fun addUsersToGroup(addUsersToGroupRequest: AddUsersToGroupRequest){
-        val authToken = tokenManager.getAuthToken()!!
-        val response = groupService.addUsersToGroupApi("Bearer $authToken", addUsersToGroupRequest)
-        if (response.isSuccessful && response.body()!=null){
-            _addUsersToGroup.emit(NetworkResult.Success(response.body()!!))
-        } else {
-            _addUsersToGroup.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+        try {
+            _addUsersToGroup.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()!!
+            val response =
+                groupService.addUsersToGroupApi("Bearer $authToken", addUsersToGroupRequest)
+            if (response.isSuccessful && response.body() != null) {
+                _addUsersToGroup.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _addUsersToGroup.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+            }
+        } catch (e: NetworkException){
+            _addUsersToGroup.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _addUsersToGroup.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 
     suspend fun getGroupSummary(groupId: Int){
-        val authToken = tokenManager.getAuthToken()!!
-        val response = groupService.getGroupSpendingSummaryApi("Bearer $authToken", groupId)
-        if (response.isSuccessful && response.body()!=null){
-            _groupSummary.emit(NetworkResult.Success(response.body()!!))
-        } else {
-            _groupSummary.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+        try {
+            _groupSummary.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()!!
+            val response = groupService.getGroupSpendingSummaryApi("Bearer $authToken", groupId)
+            if (response.isSuccessful && response.body() != null) {
+                _groupSummary.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _groupSummary.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+            }
+        } catch (e: NetworkException){
+            _groupSummary.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _groupSummary.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 
     suspend fun getGroupInfo(groupId: Int){
-        val authToken = tokenManager.getAuthToken()!!
-        val response = groupService.getGroupInfoApi("Bearer $authToken", groupId)
-        if (response.isSuccessful && response.body()!=null){
-            _groupInfo.emit(NetworkResult.Success(response.body()!!))
-        } else {
-            _groupInfo.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+        try {
+            _groupInfo.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()!!
+            val response = groupService.getGroupInfoApi("Bearer $authToken", groupId)
+            if (response.isSuccessful && response.body() != null) {
+                _groupInfo.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _groupInfo.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+            }
+        } catch (e: NetworkException){
+            _groupInfo.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _groupInfo.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
+
     }
 }
