@@ -32,7 +32,7 @@ fun App(isInitialized: Boolean, isNetworkConnected: Boolean) {
         }
 
         composable(route = Screen.BottomNavigationBar.route) {
-            BottomNavigationBar()
+            BottomNavigationBar(navAppController = navController)
         }
     }
 }

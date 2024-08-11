@@ -58,6 +58,10 @@ class TokenManager (private val sharedPreferences: SharedPreferences) {
             remove("auth_token")
             remove("auth_token_expiry_time")
             remove("auth_token_saved_time")
+            remove("refresh_token")
+            remove("refresh_token_saved_time")
+            remove("refresh_token_expiry_time")
+            remove("user_uuid")
             apply()
         }
     }

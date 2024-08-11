@@ -30,6 +30,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -42,7 +44,7 @@ import com.android.splitease.navigation.Screen
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomNavigationBar(){
+fun BottomNavigationBar(navAppController: NavController) {
 
     val bottomItems = listOf(
         BottomNavigationItem(
@@ -145,7 +147,7 @@ fun BottomNavigationBar(){
                 }
 
                 composable(route = Screen.AccountScreen.route) {
-                    AccountScreen()
+                    AccountScreen(navController = navAppController)
                 }
 
                 composable(route = Screen.NewGroupScreen.route) {
