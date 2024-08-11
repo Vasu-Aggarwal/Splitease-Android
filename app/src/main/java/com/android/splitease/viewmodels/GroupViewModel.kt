@@ -1,5 +1,6 @@
 package com.android.splitease.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.splitease.models.requests.AddUsersToGroupRequest
@@ -79,6 +80,12 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
     fun getGroupInfo(groupId: Int){
         viewModelScope.launch {
             groupRepository.getGroupInfo(groupId)
+        }
+    }
+
+    fun downloadExcel(context: Context, groupId: Int){
+        viewModelScope.launch {
+            groupRepository.downloadExcelFile(context, groupId)
         }
     }
 }

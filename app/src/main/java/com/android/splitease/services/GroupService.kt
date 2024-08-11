@@ -11,6 +11,7 @@ import com.android.splitease.models.responses.GetGroupsByUserResponse
 import com.android.splitease.utils.AppConstants
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -20,6 +21,7 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Streaming
 
 interface GroupService {
     @GET("${AppConstants.GROUP_URL}/getGroupsByUser/{userUuid}")
@@ -48,5 +50,9 @@ interface GroupService {
 
     @GET("${AppConstants.GROUP_URL}/getGroupInfo/{groupId}")
     suspend fun getGroupInfoApi(@Header("Authorization") token: String, @Path("groupId") groupId: Int): Response<AddGroupResponse>
+
+    @GET("${AppConstants.GROUP_URL}/export/{groupId}")
+    @Streaming
+    suspend fun downloadExcel(@Header("Authorization") token: String, @Path("groupId") groupId: Int): Response<ResponseBody>
 
 }

@@ -1,5 +1,6 @@
 package com.android.splitease.repositories
 
+import android.content.Context
 import android.util.Log
 import com.android.splitease.di.NetworkException
 import com.android.splitease.models.requests.AddGroupRequest
@@ -22,6 +23,9 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 class GroupRepository @Inject constructor(private val groupService: GroupService, private val tokenManager: TokenManager) {
@@ -189,6 +193,34 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
         } catch (e: Exception){
             _groupInfo.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
-
     }
+
+    suspend fun downloadExcelFile(context: Context, groupId: Int): File? {
+        return try {
+            _groupInfo.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()!!
+            val response = groupService.downloadExcel(authToken, groupId)
+            if (response.isSuccessful) {
+                response.body()?.let { body ->
+                    // Get the current timestamp
+                    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(
+                        Date()
+                    )
+                    val file = File(context.getExternalFilesDir(null), "transactions_${timeStamp}.xlsx")
+                    body.byteStream().use { inputStream ->
+                        file.outputStream().use { outputStream ->
+                            inputStream.copyTo(outputStream)
+                        }
+                    }
+                    file
+                }
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
 }

@@ -250,7 +250,7 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
                 modifier = Modifier.fillMaxSize()
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    GroupTransactions(transactionViewModel, transactions, tokenManager, userViewModel, navController, groupInfo, avatarAlpha, calculateDebt, scrollState)
+                    GroupTransactions(transactionViewModel, transactions, tokenManager, userViewModel, navController, groupInfo, avatarAlpha, calculateDebt, scrollState, groupViewModel)
                 }
 
                 Crossfade(targetState = isFabCollapsed, modifier = Modifier.align(Alignment.BottomEnd)) { scrolling ->
@@ -289,7 +289,8 @@ fun GroupTransactions(
     groupInfo: State<NetworkResult<AddGroupResponse>>,
     avatarAlpha: Float,
     calculateDebt: NetworkResult<CalculateDebtResponse>,
-    scrollState: LazyListState
+    scrollState: LazyListState,
+    groupViewModel: GroupViewModel
 ) {
 
     var isRefreshing by remember { mutableStateOf(false) }
@@ -327,7 +328,8 @@ fun GroupTransactions(
                         navController = navController,
                         data = groupInfo.value.data,
                         avatarAlpha,
-                        calculateDebt
+                        calculateDebt,
+                        groupViewModel
                     )
                 }
                 transactions.value.data?.let { transactionList ->
@@ -449,9 +451,13 @@ fun GroupInfo(
     navController: NavController,
     data: AddGroupResponse?,
     avatarAlpha: Float,
-    calculateDebt: NetworkResult<CalculateDebtResponse>
+    calculateDebt: NetworkResult<CalculateDebtResponse>,
+    groupViewModel: GroupViewModel
 ) {
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
     data?.let {
         Text(modifier = Modifier
             .padding(60.dp, 20.dp, 0.dp, 0.dp)
@@ -478,6 +484,10 @@ fun GroupInfo(
             Spacer(modifier = Modifier.width(8.dp))
             Button(onClick = { navController.navigate(Screen.GroupSummaryScreen.createRoute(data.groupId)) }) {
                 Text(text = "Totals")
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = { scope.launch { groupViewModel.downloadExcel(context, groupId = data.groupId) } }) {
+                Text(text = "Export")
             }
         }
     }
