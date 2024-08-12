@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.android.splitease.screens.BottomNavigationBar
+import com.android.splitease.screens.CreateNewAccountScreen
 import com.android.splitease.screens.LoginScreen
 import com.android.splitease.screens.NoNetworkScreen
 
@@ -25,6 +26,10 @@ fun App(isInitialized: Boolean, isNetworkConnected: Boolean) {
     }) {
         composable(route = Screen.LoginScreen.route) {
             LoginScreen(navController = navController)
+        }
+
+        composable(route = Screen.CreateAccountScreen.route) {
+            CreateNewAccountScreen(navController = navController)
         }
 
         composable(route = Screen.NoNetworkScreen.route) {
@@ -46,6 +51,7 @@ data class BottomNavigationItem(
 
 sealed class Screen(val route: String){
     data object LoginScreen: Screen("login")
+    data object CreateAccountScreen: Screen("createAccount")
     data object BottomNavigationBar: Screen("bottomBar")
     data object NoNetworkScreen: Screen("noNetwork")
     data object GroupScreen: Screen("groups")

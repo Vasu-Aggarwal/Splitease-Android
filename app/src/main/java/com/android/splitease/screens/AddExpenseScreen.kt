@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -366,12 +367,12 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                         modifier = Modifier
                             .padding(8.dp)
                             .shadow(5.dp)
-                            .border(1.dp, shape = RectangleShape, color = Color.White),
+                            .border(1.dp, shape = RectangleShape, color = Color.White).wrapContentWidth(),
                         shape = RoundedCornerShape(15),
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
                         onClick = { navController.navigate(Screen.SplitMethodScreen.createRoute(groupId, amount)) }
                     ) {
-                        Text(text = "Equally", maxLines = 1)
+                        Text(text = "By", maxLines = 1)
                     }
                 }
             }

@@ -6,7 +6,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -24,6 +31,7 @@ import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.GroupViewModel
 import com.android.splitease.viewmodels.UserViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectPayingUserScreen(navController: NavController,
                            groupViewModel: GroupViewModel = hiltViewModel(),
@@ -34,35 +42,60 @@ fun SelectPayingUserScreen(navController: NavController,
 
     val groupMembers by groupViewModel.groupMembersV2.collectAsState()
 
-    when (groupMembers) {
-        is NetworkResult.Success -> {
-            val members = (groupMembers as NetworkResult.Success).data
-            LazyColumn {
-                items(members!!.toList()) { member ->
-                    Text(
-                        text = member.name,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                navController.previousBackStackEntry?.savedStateHandle?.set("selectedUserName", member.name)
-                                navController.previousBackStackEntry?.savedStateHandle?.set("selectedUserUuid", member.userUuid)
-                                Log.d("SelectPayingUserScreen", "Selected user name: ${member.userUuid}")
-                                navController.popBackStack()
-                            }
-                            .padding(16.dp)
-                    )
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = "Select Payer") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+            )
+        }
+    ){ padding ->
+        when (groupMembers) {
+            is NetworkResult.Success -> {
+                val members = (groupMembers as NetworkResult.Success).data
+                LazyColumn {
+                    items(members!!.toList()) { member ->
+                        Text(
+                            text = member.name,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                                        "selectedUserName",
+                                        member.name
+                                    )
+                                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                                        "selectedUserUuid",
+                                        member.userUuid
+                                    )
+                                    Log.d(
+                                        "SelectPayingUserScreen",
+                                        "Selected user name: ${member.userUuid}"
+                                    )
+                                    navController.popBackStack()
+                                }
+                                .padding(16.dp)
+                        )
+                    }
                 }
             }
-        }
-        is NetworkResult.Error -> {
-            Text(text = "Error loading members")
-        }
-        is NetworkResult.Loading -> {
-            Text(text = "Loading members...")
-        }
-        is NetworkResult.Idle -> {
-            // Handle idle state if necessary
-            Text(text = "Idle")
+
+            is NetworkResult.Error -> {
+                Text(text = "Error loading members")
+            }
+
+            is NetworkResult.Loading -> {
+                Text(text = "Loading members...")
+            }
+
+            is NetworkResult.Idle -> {
+                // Handle idle state if necessary
+                Text(text = "Idle")
+            }
         }
     }
 }

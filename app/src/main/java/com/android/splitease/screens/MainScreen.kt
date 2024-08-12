@@ -67,11 +67,11 @@ fun MainScreen(context: Context, onInitializationComplete: suspend () -> Boolean
     ) {
         when {
             initializationFailed && isNetworkConnected -> {
-                Toast.makeText(
-                    context,
-                    "Initialization failed. Please log in again.",
-                    Toast.LENGTH_SHORT
-                ).show()
+//                Toast.makeText(
+//                    context,
+//                    "Initialization failed. Please log in again.",
+//                    Toast.LENGTH_SHORT
+//                ).show()
                 App(isInitialized, isNetworkConnected)
             }
 

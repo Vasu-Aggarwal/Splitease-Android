@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.android.splitease.models.responses.UserLoginResponse
+import com.android.splitease.navigation.Screen
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.LoginViewModel
 
@@ -64,6 +65,12 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), navController: NavC
             Text("Login")
         }
         Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = { navController.navigate(Screen.CreateAccountScreen.route) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Create Account")
+        }
         when (val result = user.value) {
             is NetworkResult.Idle -> {
 
