@@ -1,7 +1,21 @@
 package com.android.splitease.repositories
 
+import android.Manifest
+import android.app.PendingIntent
+import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import com.android.splitease.R
 import com.android.splitease.di.NetworkException
 import com.android.splitease.models.requests.AddGroupRequest
 import com.android.splitease.models.responses.AddGroupResponse
@@ -56,6 +70,10 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
     private val _groupInfo = MutableStateFlow<NetworkResult<AddGroupResponse>>(NetworkResult.Idle())
     val groupInfo: StateFlow<NetworkResult<AddGroupResponse>>
         get() = _groupInfo
+
+    private val _download = MutableStateFlow<NetworkResult<Boolean>>(NetworkResult.Idle())
+    val download: StateFlow<NetworkResult<Boolean>>
+        get() = _download
 
     suspend fun groupsByUser(searchBy: String){
         try {
@@ -195,32 +213,99 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
         }
     }
 
-    suspend fun downloadExcelFile(context: Context, groupId: Int): File? {
+    @RequiresApi(Build.VERSION_CODES.Q)
+    suspend fun downloadExcelFileToDownloads(context: Context, groupId: Int): Boolean {
         return try {
-            _groupInfo.emit(NetworkResult.Loading())
             val authToken = tokenManager.getAuthToken()!!
+            _download.emit(NetworkResult.Loading())
             val response = groupService.downloadExcel(authToken, groupId)
+
             if (response.isSuccessful) {
                 response.body()?.let { body ->
-                    // Get the current timestamp
-                    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(
-                        Date()
-                    )
-                    val file = File(context.getExternalFilesDir(null), "transactions_${timeStamp}.xlsx")
-                    body.byteStream().use { inputStream ->
-                        file.outputStream().use { outputStream ->
-                            inputStream.copyTo(outputStream)
-                        }
+                    // Prepare details for the file to be saved in the Downloads directory
+                    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                    _download.emit(NetworkResult.Success(true))
+                    val contentValues = ContentValues().apply {
+                        put(MediaStore.MediaColumns.DISPLAY_NAME, "transactions_${timeStamp}.xlsx")
+                        put(MediaStore.MediaColumns.MIME_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS) // Save to Downloads
                     }
-                    file
+
+                    val contentResolver = context.contentResolver
+                    val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+
+                    uri?.let {
+                        contentResolver.openOutputStream(uri)?.use { outputStream ->
+                            body.byteStream().use { inputStream ->
+                                val copiedBytes = inputStream.copyTo(outputStream)
+                                Log.d("DownloadFile", "File copied: $copiedBytes bytes")
+                            }
+                            // Notify user with a notification
+                            sendNotification(context, uri)
+                        }
+                        // Verify the file existence
+                        val savedFile = File(uri.path)
+                        Log.d("DownloadFile", "File saved at: ${savedFile.absolutePath}")
+                        true
+                    } ?: run {
+                        Log.e("DownloadFile", "Failed to create URI for file")
+                        false
+                    }
+                } ?: run {
+                    Log.e("DownloadFile", "Response body is null")
+                    false
                 }
             } else {
-                null
+                _download.emit(NetworkResult.Success(false))
+                Log.e("DownloadError", "Failed: ${response.code()} - ${response.message()}")
+                false
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            null
+            _download.emit(NetworkResult.Success(false))
+            Log.e("DownloadFile", "Exception occurred: ${e.message}")
+            false
         }
     }
+
+    private fun sendNotification(context: Context, fileUri: Uri) {
+        val openFileIntent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(fileUri, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            openFileIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notificationBuilder = NotificationCompat.Builder(context, "download_channel")
+            .setSmallIcon(R.drawable.download)
+            .setContentTitle("File Ready")
+            .setContentText("Tap to open the file")
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOnlyAlertOnce(true)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return
+        }
+        NotificationManagerCompat.from(context).notify(1, notificationBuilder.build())
+    }
+
 
 }

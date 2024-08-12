@@ -1,8 +1,17 @@
 package com.android.splitease.viewmodels
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
+import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.splitease.R
 import com.android.splitease.models.requests.AddUsersToGroupRequest
 import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.responses.AddUsersToGroupResponse
@@ -13,8 +22,10 @@ import com.android.splitease.models.responses.GetGroupsByUserResponse
 import com.android.splitease.repositories.GroupRepository
 import com.android.splitease.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 
@@ -40,6 +51,9 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
 
     val groupInfo: StateFlow<NetworkResult<AddGroupResponse>>
         get() = groupRepository.groupInfo
+
+    val download: StateFlow<NetworkResult<Boolean>>
+        get() = groupRepository.download
 
     fun getGroupsByUser(searchBy: String) {
         viewModelScope.launch {
@@ -83,9 +97,69 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     fun downloadExcel(context: Context, groupId: Int){
-        viewModelScope.launch {
-            groupRepository.downloadExcelFile(context, groupId)
+        viewModelScope.launch(Dispatchers.Main) {
+            showDownloadNotification(context, "Downloading File", "Download in progress", 1)
+
+            try {
+                val success = withContext(Dispatchers.IO) {
+                    // Replace with your actual download logic
+                    val fileDownloaded = groupRepository.downloadExcelFileToDownloads(context, groupId)
+                    fileDownloaded
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                showDownloadNotification(context, "Download Failed", "An error occurred: ${e.message}", 1)
+            }
         }
     }
+
+    private fun showDownloadNotification(context: Context, title: String, content: String, notificationId: Int) {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "download_channel",
+                "File Download",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Channel for file download notifications"
+            }
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        // Define file and URI
+        val file = File(context.getExternalFilesDir(null), "transactions_${System.currentTimeMillis()}.xlsx")
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+
+        // Create Intent to open the file
+        val openFileIntent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        }
+
+        // Create PendingIntent
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            openFileIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Build Notification
+        val notificationBuilder = NotificationCompat.Builder(context, "download_channel").apply {
+            setSmallIcon(R.drawable.download)
+            setContentTitle(title) // Ensure `title` is not null
+            setContentText(content) // Ensure `content` is not null
+            setPriority(NotificationCompat.PRIORITY_LOW)
+            setOnlyAlertOnce(true)
+            setContentIntent(pendingIntent)
+            setAutoCancel(true)
+        }
+
+        // Notify
+        notificationManager.notify(notificationId, notificationBuilder.build())
+    }
+
 }

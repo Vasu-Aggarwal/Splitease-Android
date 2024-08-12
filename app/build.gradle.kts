@@ -114,7 +114,8 @@ dependencies {
     implementation("com.github.yalantis:ucrop:2.2.9")
 
     implementation("androidx.compose.material:material:1.6.8")
-
+    implementation ("androidx.work:work-runtime-ktx:2.9.1") // For WorkManager
+    implementation ("androidx.hilt:hilt-work:1.2.0")
 }
 kapt {
     correctErrorTypes = true
