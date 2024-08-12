@@ -52,6 +52,14 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                // Check and request media image permission
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_MEDIA_IMAGES)
+                        != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_MEDIA_IMAGES), 1)
+                    }
+                }
+
                 MainScreen(
                     context = LocalContext.current,
                     onInitializationComplete = { initializeApp() }

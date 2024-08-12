@@ -31,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -287,7 +286,7 @@ fun BottomNavigationBar(navAppController: NavController) {
                 { backStackEntry ->
                     val groupId = backStackEntry.arguments?.getInt("groupId")
                     groupId?.let {
-                        GroupSummaryScreen(groupId = it)
+                        GroupSummaryScreen(groupId = it, navController = navController)
                     }
                 }
 
