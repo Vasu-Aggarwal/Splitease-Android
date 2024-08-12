@@ -212,9 +212,9 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                                 amount = amount,
                                 splitBy = SplitBy.EQUAL,
                                 group = groupId,
-                                userUuid = selectedUserUuid!!.value,
+                                userUuid = if (selectedUserName!!.value.equals("You", ignoreCase = true)) userUuid!! else selectedUserUuid!!.value,
                                 description = description,
-                                category = "Entertainment",
+                                category = selectedCategory!!.value,
                                 usersInvolved = contributions
                             )
                             val gson = Gson()
