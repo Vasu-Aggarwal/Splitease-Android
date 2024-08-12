@@ -87,7 +87,12 @@ fun BottomNavigationBar(navAppController: NavController) {
         Screen.AddExpenseScreen.route,
         Screen.CategoryScreen.route,
         Screen.AddUsersToGroupScreen.route,
-        Screen.RegisterNewUserScreen.route
+        Screen.RegisterNewUserScreen.route,
+        Screen.SettleUpScreen.route,
+        Screen.SettleUpPayerScreen.route,
+        Screen.SettleUpReceiverScreen.route,
+        Screen.UserDebtScreen.route,
+        Screen.GroupSummaryScreen.route
     )
 
     Scaffold(bottomBar = {
