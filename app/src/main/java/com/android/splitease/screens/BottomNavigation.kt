@@ -92,8 +92,8 @@ fun BottomNavigationBar(navAppController: NavController) {
                             navController.navigate(
                                 when (index) {
                                     0 -> "groups"
-                                    1 -> "friends"
-                                    2 -> "account"
+//                                    1 -> "friends"
+                                    1 -> "account"
                                     else -> "home"
                                 }
                             )
