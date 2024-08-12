@@ -53,12 +53,12 @@ fun BottomNavigationBar(navAppController: NavController) {
             hasNews = false
         ),
 
-        BottomNavigationItem(
-            title = "Friends",
-            selectedIcon = Icons.Filled.Menu,
-            unselectedItem = Icons.Outlined.Menu,
-            hasNews = false
-        ),
+//        BottomNavigationItem(
+//            title = "Friends",
+//            selectedIcon = Icons.Filled.Menu,
+//            unselectedItem = Icons.Outlined.Menu,
+//            hasNews = false
+//        ),
 
         BottomNavigationItem(
             title = "Account",
