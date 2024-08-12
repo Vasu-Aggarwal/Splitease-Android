@@ -57,8 +57,11 @@ fun SelectPayingUserScreen(navController: NavController,
         when (groupMembers) {
             is NetworkResult.Success -> {
                 val members = (groupMembers as NetworkResult.Success).data
-                LazyColumn {
+                LazyColumn(
+                    modifier = Modifier.padding(padding)
+                ) {
                     items(members!!.toList()) { member ->
+                        Log.d("memberData", "SelectPayingUserScreen: ${member.name}")
                         Text(
                             text = member.name,
                             modifier = Modifier
