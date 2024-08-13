@@ -9,6 +9,7 @@ data class GetTransactionsByGroupResponse(
     val splitBy: String,
     val groupId: Int,
     val userUuid: String,
+    val payerName: String,
     val category: AddCategoryResponse,
     val createdOn: String,
     val loggedInUserTransaction: LoggedInUserTransaction

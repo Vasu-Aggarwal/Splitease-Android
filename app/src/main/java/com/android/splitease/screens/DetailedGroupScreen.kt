@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -67,6 +68,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
@@ -375,31 +377,52 @@ fun TransactionItem(
                     Text(text = formattedDate, modifier = Modifier
                         .weight(0.5f)
                         .padding(5.dp, 0.dp, 0.dp, 0.dp),
-                        textAlign = TextAlign.Justify
+                        textAlign = TextAlign.Justify,
+                        fontSize = 14.sp
                     )
+
+                    // Image Box
+                    Box(
+                        modifier = Modifier
+                            .weight(0.65f) // Adjust the weight to control the space occupied by the image
+                            .align(Alignment.CenterVertically)
+                    ) {
+                        Image(
+                            painter = rememberAsyncImagePainter(
+                                ImageRequest.Builder(LocalContext.current)
+                                    .data(data = if (transaction.category.imageUrl.isNullOrBlank()) "" else transaction.category.imageUrl)
+                                    .apply {
+                                        crossfade(true)
+                                    }.build()
+                            ),
+                            contentDescription = "Category Icon",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(40.dp) // Set the size of the image
+                                .clip(RoundedCornerShape(20))
+                                .border(
+                                    width = 1.dp,
+                                    color = Color.Black,
+                                    shape = RoundedCornerShape(20)
+                                )
+                        )
+                    }
+
                     Column(
                         modifier = Modifier
                             .weight(2f)
                             .align(Alignment.CenterVertically)
                     ) {
                         Text(text = transaction.description)
-                        if (transaction.userUuid == tokenManager.getUserUuid().toString()) {
-                            Text(text = "You paid ${UtilMethods.formatAmount(transaction.amount)}")
-                        } else {
-                            if(userState == null) {
-                                LaunchedEffect(transaction.userUuid) {
-                                    userViewModel.getUserByUuid(transaction.userUuid)
-                                }
+                        Text(text = buildAnnotatedString {
+                            if (transaction.userUuid == tokenManager.getUserUuid().toString()) {
+                                append("You paid ${UtilMethods.formatAmount(transaction.amount)}")
+                            } else {
+                                append("${UtilMethods.abbreviateName(transaction.payerName)} paid ${UtilMethods.formatAmount(transaction.amount)}")
                             }
-                            val user: State<NetworkResult<GetUserByUuidResponse>> =
-                                userViewModel.user.collectAsState()
-                            val userData = userViewModel.user.collectAsState().value
-                            if (userData is NetworkResult.Success){
-                                userState = userData.data
-                            }
-                            Text(text = "${UtilMethods.abbreviateName(user.value.data?.name.toString())} paid ${UtilMethods.formatAmount(transaction.amount)}")
-                        }
+                        }, fontSize = 12.sp)
                     }
+
                     Column(modifier = Modifier
                         .weight(1.2f)
                         .align(Alignment.CenterVertically)
@@ -422,7 +445,7 @@ fun TransactionItem(
                                     }
                                 }
                             }
-                        }, modifier = Modifier.align(Alignment.End))
+                        }, modifier = Modifier.align(Alignment.End), fontSize = 12.sp)
                         if (transaction.loggedInUserTransaction != null) {
                             Text(
                                 text = buildAnnotatedString {
@@ -436,7 +459,8 @@ fun TransactionItem(
                                         }
                                 },
                                 style = TextStyle(color = MaterialTheme.colors.onSurface),
-                                modifier = Modifier.align(Alignment.End)
+                                modifier = Modifier.align(Alignment.End),
+                                fontSize = 14.sp
                             )
                         }
                     }
@@ -468,7 +492,7 @@ fun GroupInfo(
         Row(
             modifier = Modifier
                 .horizontalScroll(scrollState)
-                .padding(16.dp) // Optional padding for better layout
+                .padding(start = 5.dp, end = 5.dp)
         ) {
             Button(onClick = { navController.navigate(Screen.AddUsersToGroupScreen.createRoute(data.groupId)) }) {
                 Text(text = "Add Users")
@@ -596,7 +620,7 @@ fun UserDebt(calculateDebt: NetworkResult<CalculateDebtResponse>) {
                             }
                         }
                         else -> {
-                            Text(text = "You are all settled up in this group.")
+                            Text(text = "You are all settled up in this group.", modifier = Modifier.padding(start = 15.dp))
                         }
                     }
                 }
