@@ -160,7 +160,7 @@ fun SubCategoryItem(subcategory: SubCategoryResponse, navController: NavControll
                 .padding(end = 8.dp)
         )
         Text(
-            text = subcategory.name,
+            text = if(subcategory.name.contains("Other_")) "Other" else subcategory.name,
             style = MaterialTheme.typography.bodyMedium
         )
     }
