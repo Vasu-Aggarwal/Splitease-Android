@@ -366,9 +366,8 @@ fun TransactionItem(
             .padding(5.dp, 1.dp, 5.dp, 1.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ){
-        var userState by remember { mutableStateOf<GetUserByUuidResponse?>(null) }
         Box {
-            if (transaction.description == null){
+            if (transaction.description == null && transaction.settle != null){
                 SettleUpTransaction(transaction, tokenManager)
             } else {
                 Row(
@@ -494,7 +493,7 @@ fun GroupInfo(
         Row(
             modifier = Modifier
                 .horizontalScroll(scrollState)
-                .padding(start = 5.dp, end = 5.dp)
+                .padding(start = 5.dp, end = 5.dp, top = 10.dp)
         ) {
             Button(onClick = { navController.navigate(Screen.AddUsersToGroupScreen.createRoute(data.groupId)) }) {
                 Text(text = "Add Users")
@@ -525,6 +524,7 @@ fun SettleUpTransaction(transaction: GetTransactionsByGroupResponse, tokenManage
         modifier = Modifier
             .fillMaxWidth()
     ) {
+        val settle = transaction.settle
         val formattedDate = UtilMethods.formatDate(transaction.createdOn)
         Text(text = formattedDate, modifier = Modifier
             .weight(0.5f)
@@ -561,9 +561,9 @@ fun SettleUpTransaction(transaction: GetTransactionsByGroupResponse, tokenManage
         ) {
             Text(text = buildAnnotatedString {
                 if (transaction.userUuid == tokenManager.getUserUuid().toString()) {
-                    append("You paid ${UtilMethods.formatAmount(transaction.amount)}")
+                    append("You paid ${UtilMethods.formatAmount(transaction.amount)} to ${settle.receiverName}")
                 } else {
-                    append("${UtilMethods.abbreviateName(transaction.payerName)} paid ${UtilMethods.formatAmount(transaction.amount)}")
+                    append("${UtilMethods.abbreviateName(settle.payerName)} paid ${UtilMethods.formatAmount(settle.amount)} to ${settle.receiverName}")
                 }
             }, fontSize = 14.sp)
         }

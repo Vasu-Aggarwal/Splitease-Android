@@ -53,8 +53,17 @@ fun GroupSummaryScreen(
         Column(
             modifier = Modifier.padding(padding).padding(start = 15.dp)
         ){
-            Text(text = "Group name: ${groupSummary.value.data?.groupName}")
-            Text(text = "Total Group Spending: ${UtilMethods.formatAmount(groupSummary.value.data?.totalGroupSpending!!)}")
+            when(val result = groupSummary.value){
+                is NetworkResult.Error -> {}
+                is NetworkResult.Idle -> {}
+                is NetworkResult.Loading -> {}
+                is NetworkResult.Success -> {
+                    result.data?.let {
+                        Text(text = "Group name: ${it.groupName}")
+                        Text(text = "Total Group Spending: ${UtilMethods.formatAmount(it.totalGroupSpending)}")
+                    }
+                }
+            }
         }
     }
 }
