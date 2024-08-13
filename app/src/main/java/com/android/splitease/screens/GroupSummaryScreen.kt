@@ -15,11 +15,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.android.splitease.models.responses.GetGroupSummaryResponse
 import com.android.splitease.utils.NetworkResult
+import com.android.splitease.utils.UtilMethods
 import com.android.splitease.viewmodels.GroupViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,10 +51,10 @@ fun GroupSummaryScreen(
         }
     ) { padding ->
         Column(
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(padding).padding(start = 15.dp)
         ){
             Text(text = "Group name: ${groupSummary.value.data?.groupName}")
-            Text(text = "Total Group Spending: ${groupSummary.value.data?.totalGroupSpending}")
+            Text(text = "Total Group Spending: ${UtilMethods.formatAmount(groupSummary.value.data?.totalGroupSpending!!)}")
         }
     }
 }

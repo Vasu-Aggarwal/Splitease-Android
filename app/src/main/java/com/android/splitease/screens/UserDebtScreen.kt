@@ -3,9 +3,11 @@ package com.android.splitease.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -79,16 +81,25 @@ fun UserDebtScreen(
             is NetworkResult.Success -> {
                 val debtData = (calculateDebt as NetworkResult.Success).data
                 debtData?.let { data ->
-                    LazyColumn(modifier = Modifier
-                        .padding(16.dp)
-                        .padding(padding)) {
-                        items(data.creditorList) { creditor ->
-                            CreditorItem(creditor, navController)
+                    if (debtData.debtorList.isEmpty() && debtData.creditorList.isEmpty()){
+                        Box(
+                            modifier = Modifier.padding(padding).fillMaxSize(),
+                            contentAlignment = Alignment.TopCenter
+                        ){
+                            Text(text = "Everything Settled up")
                         }
+                    } else {
+                        LazyColumn(modifier = Modifier
+                            .padding(16.dp)
+                            .padding(padding)) {
+                            items(data.creditorList) { creditor ->
+                                CreditorItem(creditor, navController, groupId)
+                            }
 
-                        items(data.debtorList) { debtor ->
-                            DebtorItem(debtor, navController)
-                        }
+                            items(data.debtorList) { debtor ->
+                                DebtorItem(debtor, navController, groupId)
+                            }
+                        }   
                     }
                 }
             }
@@ -125,7 +136,7 @@ fun ExpandableItem(
 }
 
 @Composable
-fun CreditorItem(creditor: Creditor, navController: NavController) {
+fun CreditorItem(creditor: Creditor, navController: NavController, groupId: Int) {
     ExpandableItem(
         header = {
             Text(
@@ -153,7 +164,7 @@ fun CreditorItem(creditor: Creditor, navController: NavController) {
                 )
                 OutlinedButton(
                     onClick = {
-                        navController.navigate(Screen.SettleUpPayerScreen.route)
+                        navController.navigate(Screen.SettleUpPayerScreen.createRoute(groupId))
                     },
                     shape = RectangleShape,
                     modifier = Modifier.padding(start = 16.dp, top = 4.dp),
@@ -172,7 +183,7 @@ fun CreditorItem(creditor: Creditor, navController: NavController) {
 }
 
 @Composable
-fun DebtorItem(debtor: Debtor, navController: NavController) {
+fun DebtorItem(debtor: Debtor, navController: NavController, groupId: Int) {
     ExpandableItem(
         header = {
             Text(
@@ -200,7 +211,7 @@ fun DebtorItem(debtor: Debtor, navController: NavController) {
                 )
                 OutlinedButton(
                     onClick = {
-                        navController.navigate(Screen.SettleUpPayerScreen.route)
+                        navController.navigate(Screen.SettleUpPayerScreen.createRoute(groupId))
                     },
                     shape = RectangleShape,
                     modifier = Modifier.padding(start = 16.dp, top = 4.dp),

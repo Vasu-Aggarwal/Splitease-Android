@@ -96,6 +96,7 @@ fun SettleUpReceiverScreen(
                                     style = MaterialTheme.typography.bodyMedium,
                                     modifier = Modifier
                                         .padding(vertical = 4.dp)
+                                        .padding(start = 15.dp)
                                 )
                             }
                         }
