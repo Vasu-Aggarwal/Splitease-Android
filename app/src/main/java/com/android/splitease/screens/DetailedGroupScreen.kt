@@ -61,6 +61,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -73,6 +74,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import com.android.splitease.R
 import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.responses.CalculateDebtResponse
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
@@ -367,7 +369,7 @@ fun TransactionItem(
         var userState by remember { mutableStateOf<GetUserByUuidResponse?>(null) }
         Box {
             if (transaction.description == null){
-                SettleUpTransaction()
+                SettleUpTransaction(transaction, tokenManager)
             } else {
                 Row(
                     modifier = Modifier
@@ -518,8 +520,54 @@ fun GroupInfo(
 }
 
 @Composable
-fun SettleUpTransaction(){
-    Text(text = "This is a settle up transaction")
+fun SettleUpTransaction(transaction: GetTransactionsByGroupResponse, tokenManager: TokenManager) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        val formattedDate = UtilMethods.formatDate(transaction.createdOn)
+        Text(text = formattedDate, modifier = Modifier
+            .weight(0.5f)
+            .padding(5.dp, 0.dp, 0.dp, 0.dp),
+            textAlign = TextAlign.Justify,
+            fontSize = 14.sp
+        )
+
+        // Image Box
+        Box(
+            modifier = Modifier
+                .weight(0.65f) // Adjust the weight to control the space occupied by the image
+                .align(Alignment.CenterVertically)
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.money),
+                contentDescription = "Category Icon",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(30.dp) // Set the size of the image
+                    .clip(RoundedCornerShape(20))
+                    .border(
+                        width = 1.dp,
+                        color = Color.Black,
+                        shape = RoundedCornerShape(20)
+                    )
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(2f)
+                .align(Alignment.CenterVertically)
+        ) {
+            Text(text = buildAnnotatedString {
+                if (transaction.userUuid == tokenManager.getUserUuid().toString()) {
+                    append("You paid ${UtilMethods.formatAmount(transaction.amount)}")
+                } else {
+                    append("${UtilMethods.abbreviateName(transaction.payerName)} paid ${UtilMethods.formatAmount(transaction.amount)}")
+                }
+            }, fontSize = 14.sp)
+        }
+    }
 }
 
 @Composable
