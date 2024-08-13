@@ -5,6 +5,7 @@ import com.android.splitease.models.requests.SettleUpRequest
 import com.android.splitease.models.responses.AddTransactionResponse
 import com.android.splitease.models.responses.CalculateDebtResponse
 import com.android.splitease.models.responses.DeleteResponse
+import com.android.splitease.models.responses.GetTransactionByIdResponse
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.models.responses.SettleUpResponse
 import com.android.splitease.utils.AppConstants
@@ -19,6 +20,9 @@ import retrofit2.http.Path
 interface TransactionService {
     @GET("${AppConstants.TRANSACTION_URL}/getTransactionsByGroup/{groupId}")
     suspend fun getTransactionsByGroupApi(@Header("Authorization") token: String, @Path("groupId") groupId: String): Response<List<GetTransactionsByGroupResponse>>
+
+    @GET("${AppConstants.TRANSACTION_URL}/getTransactionById/{transactionId}")
+    suspend fun getTransactionByIdApi(@Header("Authorization") token: String, @Path("transactionId") transactionId: Int): Response<GetTransactionByIdResponse>
 
     @POST("${AppConstants.TRANSACTION_URL}/addTransaction")
     suspend fun addTransactionApi(@Header("Authorization") token: String, @Body addTransactionRequest: AddTransactionRequest): Response<AddTransactionResponse>

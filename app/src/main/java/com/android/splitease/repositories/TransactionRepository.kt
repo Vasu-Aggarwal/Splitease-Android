@@ -6,6 +6,7 @@ import com.android.splitease.models.requests.SettleUpRequest
 import com.android.splitease.models.responses.AddTransactionResponse
 import com.android.splitease.models.responses.CalculateDebtResponse
 import com.android.splitease.models.responses.DeleteResponse
+import com.android.splitease.models.responses.GetTransactionByIdResponse
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.models.responses.SettleUpResponse
 import com.android.splitease.services.TransactionService
@@ -24,6 +25,10 @@ class TransactionRepository @Inject constructor(private val transactionService: 
     private val _addTransaction = MutableStateFlow<NetworkResult<AddTransactionResponse>>(NetworkResult.Idle())
     val addTransaction: StateFlow<NetworkResult<AddTransactionResponse>>
         get() = _addTransaction
+
+    private val _getTransaction = MutableStateFlow<NetworkResult<GetTransactionByIdResponse>>(NetworkResult.Idle())
+    val getTransaction: StateFlow<NetworkResult<GetTransactionByIdResponse>>
+        get() = _getTransaction
 
     private val _updateTransaction = MutableStateFlow<NetworkResult<AddTransactionResponse>>(NetworkResult.Idle())
     val updateTransaction: StateFlow<NetworkResult<AddTransactionResponse>>
@@ -144,6 +149,23 @@ class TransactionRepository @Inject constructor(private val transactionService: 
             _settleUp.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         } catch (e: Exception){
             _settleUp.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        }
+    }
+
+    suspend fun getTransactionById(transactionId: Int){
+        try {
+            _getTransaction.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()
+            val response = transactionService.getTransactionByIdApi("Bearer $authToken", transactionId)
+            if (response.isSuccessful && response.body() != null) {
+                _getTransaction.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _getTransaction.emit(NetworkResult.Error(response.errorBody()?.string()))
+            }
+        } catch (e: NetworkException){
+            _getTransaction.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _getTransaction.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 }
