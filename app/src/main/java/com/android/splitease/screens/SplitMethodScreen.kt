@@ -90,7 +90,6 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                                     alertMessage = "The total percentage assigned exceeds 100%."
                                     showAlert = true
                                 } else {
-                                    Log.d("totalPercentage", "SplitMethodsScreen: I am here")
                                     navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
                                     navController.popBackStack()
                                 }
@@ -125,6 +124,20 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                     2 -> SplitByPercentageScreen(groupMembers, amount, selectedDataByPercentage)
                     3 -> SplitBySharesScreen(groupMembers, amount, selectedDataByShares)
                 }
+            }
+
+            // Show AlertDialog if necessary
+            if (showAlert) {
+                AlertDialog(
+                    onDismissRequest = { showAlert = false },
+                    title = { Text("Invalid Input") },
+                    text = { Text(alertMessage) },
+                    confirmButton = {
+                        Button(onClick = { showAlert = false }) {
+                            Text("OK")
+                        }
+                    }
+                )
             }
         }
     }
@@ -456,9 +469,6 @@ fun SplitMembersListByPercentage(
     selectedDataByPercentage: MutableMap<String, Double>
 ) {
 
-//    var showDialog by remember { mutableStateOf(false) }
-//    val dialogMessage = "Total percentage exceeds 100%. Please adjust the values."
-
     when (groupMembers) {
         is NetworkResult.Success -> {
             val members = groupMembers.data
@@ -480,13 +490,6 @@ fun SplitMembersListByPercentage(
                     individualPercentages.values.sumOf { it.toDoubleOrNull() ?: 0.0 }
                 }
             }
-
-//            // Show dialog if the total percentage exceeds 100%
-//            LaunchedEffect(totalPercentage) {
-//                if (totalPercentage > 100.0) {
-//                    showDialog = true
-//                }
-//            }
 
             LazyColumn {
                 items(members!!.toList()) { member ->
@@ -546,19 +549,6 @@ fun SplitMembersListByPercentage(
 
         is NetworkResult.Idle -> Text(text = "Idle")
     }
-
-//    if (showDialog) {
-//        AlertDialog(
-//            onDismissRequest = { showDialog = false },
-//            title = { Text("Invalid Percentage") },
-//            text = { Text(dialogMessage) },
-//            confirmButton = {
-//                TextButton(onClick = { showDialog = false }) {
-//                    Text("OK")
-//                }
-//            }
-//        )
-//    }
 }
 
 @Composable
