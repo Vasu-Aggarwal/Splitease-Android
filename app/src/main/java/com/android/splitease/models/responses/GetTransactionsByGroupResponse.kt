@@ -10,8 +10,9 @@ data class GetTransactionsByGroupResponse(
     val groupId: Int,
     val userUuid: String,
     val payerName: String,
+    val receiver: String,
+    val receiverName: String,
     val category: AddCategoryResponse,
     val createdOn: String,
-    val loggedInUserTransaction: LoggedInUserTransaction,
-    val settle: SettleUpResponse
+    val loggedInUserTransaction: LoggedInUserTransaction
 )

@@ -2,6 +2,7 @@ package com.android.splitease.screens
 
 import android.content.Context
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
@@ -338,7 +339,7 @@ fun GroupTransactions(
                 }
                 transactions.value.data?.let { transactionList ->
                     items(transactionList) { transaction ->
-                        TransactionItem(transaction, tokenManager, userViewModel, navController)
+                        TransactionItem(transaction, tokenManager, navController)
                     }
                 }
                 item {
@@ -354,12 +355,16 @@ fun GroupTransactions(
 fun TransactionItem(
     transaction: GetTransactionsByGroupResponse,
     tokenManager: TokenManager,
-    userViewModel: UserViewModel,
     navController: NavController
 ) {
+    val context = LocalContext.current
     Card (
         onClick = {
-            navController.navigate(Screen.DetailedTransactionScreen.createRoute(transaction.transactionId))
+            if (transaction.category == null && transaction.description == null){
+                Toast.makeText(context, "You clicked settleup transaction", Toast.LENGTH_SHORT).show()
+            } else {
+                navController.navigate(Screen.DetailedTransactionScreen.createRoute(transaction.transactionId))
+            }
         },
         modifier = Modifier
             .fillMaxSize()
@@ -367,7 +372,7 @@ fun TransactionItem(
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ){
         Box {
-            if (transaction.description == null && transaction.settle != null){
+            if (transaction.description == null && transaction.category == null){
                 SettleUpTransaction(transaction, tokenManager)
             } else {
                 Row(
@@ -524,7 +529,6 @@ fun SettleUpTransaction(transaction: GetTransactionsByGroupResponse, tokenManage
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        val settle = transaction.settle
         val formattedDate = UtilMethods.formatDate(transaction.createdOn)
         Text(text = formattedDate, modifier = Modifier
             .weight(0.5f)
@@ -556,16 +560,16 @@ fun SettleUpTransaction(transaction: GetTransactionsByGroupResponse, tokenManage
 
         Column(
             modifier = Modifier
-                .weight(2f)
+                .weight(2.5f)
                 .align(Alignment.CenterVertically)
         ) {
             Text(text = buildAnnotatedString {
                 if (transaction.userUuid == tokenManager.getUserUuid().toString()) {
-                    append("You paid ${UtilMethods.formatAmount(transaction.amount)} to ${settle.receiverName}")
+                    append("You paid ${UtilMethods.formatAmount(transaction.amount)} to ${transaction.receiverName}")
                 } else {
-                    append("${UtilMethods.abbreviateName(settle.payerName)} paid ${UtilMethods.formatAmount(settle.amount)} to ${settle.receiverName}")
+                    append("${UtilMethods.abbreviateName(transaction.payerName)} paid ${UtilMethods.formatAmount(transaction.amount)} to ${UtilMethods.abbreviateName(transaction.receiverName)}")
                 }
-            }, fontSize = 14.sp)
+            }, fontSize = 12.sp)
         }
     }
 }
