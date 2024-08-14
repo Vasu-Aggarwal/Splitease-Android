@@ -1,5 +1,6 @@
 package com.android.splitease.screens
 
+import android.util.Log
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -46,6 +47,10 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
     val selectedDataByPercentage = remember { mutableStateMapOf<String, Double>() }
     val selectedDataByShares = remember { mutableStateMapOf<String, Double>() }
 
+    // State to control the visibility of the alert dialog
+    var showAlert by remember { mutableStateOf(false) }
+    var alertMessage by remember { mutableStateOf("") }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -65,22 +70,30 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                                 navController.popBackStack()
                             }
                             1 -> {
-                                val data = getSelectedDataForCurrentPage(
-                                    pagerState.currentPage,
-                                    selectedDataUnequal,
-                                    amount
-                                )
-                                navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
-                                navController.popBackStack()
+                                val totalAssignedAmount = selectedDataUnequal.values.sum()
+                                if (totalAssignedAmount > amount) {
+                                    // Show an alert if the total assigned amount exceeds the total amount
+                                    alertMessage = "The total assigned amount exceeds the available amount."
+                                    showAlert = true
+                                } else {
+                                    val data = getSelectedDataForCurrentPage(pagerState.currentPage, selectedDataUnequal, amount)
+                                    navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
+                                    navController.popBackStack()
+                                }
                             }
                             2 -> {
-                                val data = getSelectedDataForCurrentPage(
-                                    pagerState.currentPage,
-                                    selectedDataByPercentage,
-                                    amount
-                                )
-                                navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
-                                navController.popBackStack()
+                                val data = getSelectedDataForCurrentPage(pagerState.currentPage, selectedDataByPercentage, amount)
+                                val totalPercentage = selectedDataByPercentage.values.sum()
+                                Log.d("totalPercentage", "SplitMethodsScreen: ${data.values}")
+                                if (totalPercentage > 100) {
+                                    // Show an alert if the total percentage exceeds 100%
+                                    alertMessage = "The total percentage assigned exceeds 100%."
+                                    showAlert = true
+                                } else {
+                                    Log.d("totalPercentage", "SplitMethodsScreen: I am here")
+                                    navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
+                                    navController.popBackStack()
+                                }
                             }
                             3 -> {
                                 val data = getSelectedDataForCurrentPage(
@@ -442,6 +455,10 @@ fun SplitMembersListByPercentage(
     amount: Double,
     selectedDataByPercentage: MutableMap<String, Double>
 ) {
+
+//    var showDialog by remember { mutableStateOf(false) }
+//    val dialogMessage = "Total percentage exceeds 100%. Please adjust the values."
+
     when (groupMembers) {
         is NetworkResult.Success -> {
             val members = groupMembers.data
@@ -453,7 +470,7 @@ fun SplitMembersListByPercentage(
                     val member = members!!.find { it.userUuid == uuid }
                     if (member != null) {
                         val percentage = percentageStr.toDoubleOrNull() ?: 0.0
-                        selectedDataByPercentage["username_" + member.email] = amount * percentage / 100
+                        selectedDataByPercentage["username_" + member.email] = percentage
                     }
                 }
             }
@@ -463,6 +480,13 @@ fun SplitMembersListByPercentage(
                     individualPercentages.values.sumOf { it.toDoubleOrNull() ?: 0.0 }
                 }
             }
+
+//            // Show dialog if the total percentage exceeds 100%
+//            LaunchedEffect(totalPercentage) {
+//                if (totalPercentage > 100.0) {
+//                    showDialog = true
+//                }
+//            }
 
             LazyColumn {
                 items(members!!.toList()) { member ->
@@ -482,7 +506,7 @@ fun SplitMembersListByPercentage(
                             onValueChange = { newPercentage ->
                                 individualPercentages[member.userUuid] = newPercentage
                                 val percentage = newPercentage.toDoubleOrNull() ?: 1.0
-                                selectedDataByPercentage["username_" + member.email] = amount * percentage / 100
+                                selectedDataByPercentage["username_" + member.email] = percentage
                                 // Remove the user from selectedData if the percentage is zero
                                 if (percentage == 0.0) {
                                     selectedDataByPercentage.remove("username_" + member.email)
@@ -522,6 +546,19 @@ fun SplitMembersListByPercentage(
 
         is NetworkResult.Idle -> Text(text = "Idle")
     }
+
+//    if (showDialog) {
+//        AlertDialog(
+//            onDismissRequest = { showDialog = false },
+//            title = { Text("Invalid Percentage") },
+//            text = { Text(dialogMessage) },
+//            confirmButton = {
+//                TextButton(onClick = { showDialog = false }) {
+//                    Text("OK")
+//                }
+//            }
+//        )
+//    }
 }
 
 @Composable
