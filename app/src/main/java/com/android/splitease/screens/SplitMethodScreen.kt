@@ -28,6 +28,7 @@ import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.GroupViewModel
 import com.google.accompanist.pager.*
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 
 @OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class)
@@ -84,10 +85,9 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                             2 -> {
                                 val data = getSelectedDataForCurrentPage(pagerState.currentPage, selectedDataByPercentage, amount)
                                 val totalPercentage = selectedDataByPercentage.values.sum()
-                                Log.d("totalPercentage", "SplitMethodsScreen: ${data.values}")
                                 if (totalPercentage > 100) {
                                     // Show an alert if the total percentage exceeds 100%
-                                    alertMessage = "The total percentage assigned exceeds 100%."
+                                    alertMessage = "The total percentage assigned exceeds by ${abs(100.0 - totalPercentage)}%"
                                     showAlert = true
                                 } else {
                                     navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
