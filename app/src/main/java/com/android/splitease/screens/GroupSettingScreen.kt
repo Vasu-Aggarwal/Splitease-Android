@@ -1,6 +1,7 @@
 package com.android.splitease.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,13 +9,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.ExitToApp
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,12 +43,23 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.android.splitease.R
 import com.android.splitease.models.responses.DeleteResponse
 import com.android.splitease.models.responses.GetGroupMembersV2Response
+import com.android.splitease.ui.theme.Red
+import com.android.splitease.ui.theme.Red500
+import com.android.splitease.ui.theme.Red600
+import com.android.splitease.ui.theme.Red800
+import com.android.splitease.ui.theme.RedA400
 import com.android.splitease.utils.NetworkResult
+import com.android.splitease.utils.UtilMethods
 import com.android.splitease.viewmodels.GroupViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -183,13 +199,28 @@ fun BottomSheetContent(
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        Text(
-            text = "Member Details",
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "Name: ${member.name}")
-        Text(text = "Email: ${member.email}")
+        // Row for the remove action
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp)
+                .clickable {
+//                    onRemoveClick() // Trigger the removal action when the row is clicked
+                    onDismiss() // Dismiss the bottom sheet after the action
+                },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Outlined.ExitToApp,
+                contentDescription = "Remove user",
+                tint = Red800,
+                modifier = Modifier.padding(end = 12.dp).size(30.dp)
+            )
+            Text(text = buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Red800)){
+                    append("Remove ${UtilMethods.abbreviateName(member.name)} from the group")
+                }
+            })
+        }
     }
 }
