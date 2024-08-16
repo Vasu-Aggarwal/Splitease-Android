@@ -1,5 +1,6 @@
 package com.android.splitease.screens
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -7,30 +8,22 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetLayout
-import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.ExitToApp
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -49,25 +42,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.android.splitease.R
-import com.android.splitease.models.responses.DeleteResponse
 import com.android.splitease.models.responses.GetGroupMembersV2Response
-import com.android.splitease.ui.theme.Red
-import com.android.splitease.ui.theme.Red500
-import com.android.splitease.ui.theme.Red600
 import com.android.splitease.ui.theme.Red800
-import com.android.splitease.ui.theme.RedA400
 import com.android.splitease.utils.NetworkResult
+import com.android.splitease.utils.TokenManager
 import com.android.splitease.utils.UtilMethods
 import com.android.splitease.viewmodels.GroupViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class,
@@ -88,6 +74,10 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
     var showLoadingOverlay by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
+
+    val sharedPreferences = context.getSharedPreferences("secure_prefs", Context.MODE_PRIVATE)
+    val tokenManager = TokenManager(sharedPreferences)
+    val userUuid = tokenManager.getUserUuid()
 
     // Observe the remove user state to hide the loading overlay once the operation is complete
     LaunchedEffect(removeUser) {
@@ -185,7 +175,7 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
                 sheetState = sheetState,
             ) {
                 selectedMember?.let {
-                    BottomSheetContent(member = it, onRemoveClick = {
+                    BottomSheetContent(member = it, userUuid, onRemoveClick = {
                         showLoadingOverlay = true
                         groupViewModel.removeUserFromGroup(groupId, selectedMember!!.userUuid)
                     }) {
@@ -229,6 +219,7 @@ fun GroupMemberItem(
 @Composable
 fun BottomSheetContent(
     member: GetGroupMembersV2Response,
+    userUuid: String?,
     onRemoveClick: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -258,7 +249,10 @@ fun BottomSheetContent(
             )
             Text(text = buildAnnotatedString {
                 withStyle(style = SpanStyle(color = Red800)){
-                    append("Remove ${UtilMethods.abbreviateName(member.name)} from the group")
+                    if (member.userUuid.equals(userUuid, true))
+                        append("Leave group")
+                    else
+                        append("Remove ${UtilMethods.abbreviateName(member.name)} from the group")
                 }
             })
         }
