@@ -1,5 +1,6 @@
 package com.android.splitease.screens
 
+import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -90,9 +91,9 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
 
     LaunchedEffect(addUsersResponse) {
         if (addUsersResponse is NetworkResult.Success) {
-            val message = (addUsersResponse as NetworkResult.Success).data as? String
+            val message = (addUsersResponse as NetworkResult.Success).data!!.message as? String
             if (message == "Users added successfully") {
-                navController.popBackStack()
+                navController.popBackStack() // Ensure this is the correct navigation action
             }
         }
     }
