@@ -359,6 +359,7 @@ fun GroupTransactions(
                         calculateDebt,
                         groupViewModel
                     )
+                    Spacer(modifier = Modifier.height(15.dp))
                 }
                 transactions.value.data?.let { transactionList ->
                     items(transactionList) { transaction ->
@@ -366,7 +367,7 @@ fun GroupTransactions(
                     }
                 }
                 item {
-                    Spacer(modifier = Modifier.height(80.dp))
+                    Spacer(modifier = Modifier.height(250.dp))
                 }
             }
 //        }
