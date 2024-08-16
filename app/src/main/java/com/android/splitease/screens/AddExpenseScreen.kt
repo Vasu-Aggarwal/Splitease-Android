@@ -65,6 +65,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
@@ -79,6 +80,7 @@ import com.android.splitease.ui.theme.White
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.SplitBy
 import com.android.splitease.utils.TokenManager
+import com.android.splitease.utils.UtilMethods
 import com.android.splitease.viewmodels.GroupViewModel
 import com.android.splitease.viewmodels.TransactionViewModel
 import com.google.gson.Gson
@@ -103,6 +105,7 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
     // Retrieve the selected user's name and UUID from the savedStateHandle
     val selectedUserName = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedUserName", "You")?.collectAsState()
     val selectedUserUuid = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedUserUuid", "")?.collectAsState()
+    val selectedSplitBy = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedSplitBy", SplitBy.EQUAL)?.collectAsState()
 
     // Retrieve the selected user's name and UUID from the savedStateHandle
     val selectedCategory = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedCategory", "")?.collectAsState()
@@ -176,6 +179,7 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                 },
                 actions = {
                     IconButton(onClick = {
+                        //When no split by method is selected, then split be equal
                         if(contributions.isEmpty() && description.isNotBlank() && amount>0.00){
                             if (groupMembers is NetworkResult.Success) {
                                 val members = (groupMembers as NetworkResult.Success).data
@@ -194,7 +198,7 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
 
                                     val addTransactionRequest = AddTransactionRequest(
                                         amount = amount,
-                                        splitBy = SplitBy.EQUAL,
+                                        splitBy = selectedSplitBy!!.value,
                                         group = groupId,
                                         userUuid = if (selectedUserName!!.value.equals("You", ignoreCase = true)) userUuid!! else selectedUserUuid!!.value,
                                         description = description,
@@ -207,10 +211,11 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                                     transactionViewModel.addTransaction(addTransactionRequest)
                                 }
                             }
+                            //if selected, then it must be getting splitBy method
                         } else if (description.isNotBlank() && amount>0.00 && contributions.isNotEmpty()) {
                             val addTransactionRequest = AddTransactionRequest(
                                 amount = amount,
-                                splitBy = SplitBy.EQUAL,
+                                splitBy = selectedSplitBy!!.value,
                                 group = groupId,
                                 userUuid = if (selectedUserName!!.value.equals("You", ignoreCase = true)) userUuid!! else selectedUserUuid!!.value,
                                 description = description,
@@ -346,34 +351,31 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "Paid by", modifier = Modifier.padding(end = 8.dp))
-                    Button(
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .shadow(5.dp)
-                            .border(1.dp, shape = RectangleShape, color = Color.White),
-                        shape = RoundedCornerShape(15),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
-                        onClick = { navController.navigate(Screen.SelectPayingUserScreen.createRoute(groupId)) }
-                    ) {
-                        Text(text = if(userUuid == selectedUserUuid!!.value) "You" else selectedUserName!!.value, maxLines = 1)
-                    }
+
+                Text(text = "Paid by", modifier = Modifier.padding(end = 8.dp))
+                Button(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .shadow(5.dp)
+                        .border(1.dp, shape = RectangleShape, color = Color.White),
+                    shape = RoundedCornerShape(15),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
+                    onClick = { navController.navigate(Screen.SelectPayingUserScreen.createRoute(groupId)) }
+                ) {
+                    Text(text = if(userUuid == selectedUserUuid!!.value) "You" else UtilMethods.abbreviateName(selectedUserName!!.value), maxLines = 1, fontSize = 12.sp)
                 }
 
-                Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "and split", modifier = Modifier.padding(end = 8.dp))
-                    Button(
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .shadow(5.dp)
-                            .border(1.dp, shape = RectangleShape, color = Color.White).wrapContentWidth(),
-                        shape = RoundedCornerShape(15),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
-                        onClick = { navController.navigate(Screen.SplitMethodScreen.createRoute(groupId, amount)) }
-                    ) {
-                        Text(text = "By", maxLines = 1)
-                    }
+                Text(text = "and split", modifier = Modifier.padding(end = 8.dp))
+                Button(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .shadow(5.dp)
+                        .border(1.dp, shape = RectangleShape, color = Color.White).wrapContentWidth(),
+                    shape = RoundedCornerShape(15),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
+                    onClick = { navController.navigate(Screen.SplitMethodScreen.createRoute(groupId, amount)) }
+                ) {
+                    Text(text = if(selectedSplitBy!!.value == SplitBy.EQUAL) "equally" else "unequally" , maxLines = 1, fontSize = 12.sp)
                 }
             }
         }

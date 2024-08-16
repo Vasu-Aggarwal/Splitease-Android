@@ -25,6 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.android.splitease.models.responses.GetGroupMembersV2Response
 import com.android.splitease.utils.NetworkResult
+import com.android.splitease.utils.SplitBy
 import com.android.splitease.viewmodels.GroupViewModel
 import com.google.accompanist.pager.*
 import kotlinx.coroutines.launch
@@ -68,6 +69,7 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                                     amount
                                 )
                                 navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
+                                navController.previousBackStackEntry?.savedStateHandle?.set("selectedSplitBy", SplitBy.EQUAL)
                                 navController.popBackStack()
                             }
                             1 -> {
@@ -79,6 +81,7 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                                 } else {
                                     val data = getSelectedDataForCurrentPage(pagerState.currentPage, selectedDataUnequal, amount)
                                     navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
+                                    navController.previousBackStackEntry?.savedStateHandle?.set("selectedSplitBy", SplitBy.UNEQUAL)
                                     navController.popBackStack()
                                 }
                             }
@@ -91,6 +94,7 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                                     showAlert = true
                                 } else {
                                     navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
+                                    navController.previousBackStackEntry?.savedStateHandle?.set("selectedSplitBy", SplitBy.PERCENTAGE)
                                     navController.popBackStack()
                                 }
                             }
@@ -101,6 +105,7 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                                     amount
                                 )
                                 navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
+                                navController.previousBackStackEntry?.savedStateHandle?.set("selectedSplitBy", SplitBy.SHARE)
                                 navController.popBackStack()
                             }
                         }
