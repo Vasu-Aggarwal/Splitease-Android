@@ -126,9 +126,10 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
             val members = groupMembers.data
             var payingEmail: String = ""
 
+            val payingUserUuid = if (selectedUserName!!.value.equals("You", ignoreCase = true)) userUuid!! else selectedUserUuid!!.value
             // Find the paying user’s email
             members?.forEach { member ->
-                if (member.userUuid == selectedUserUuid?.value) {
+                if (member.userUuid == payingUserUuid) {
                     payingEmail = member.email
                 }
             }
@@ -258,8 +259,8 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
 
                 IconButton(onClick = { navController.navigate(Screen.CategoryScreen.route) },
                     modifier = Modifier
-                    .border(1.dp, color = White, RoundedCornerShape(8.dp))
-                    .align(Alignment.CenterVertically)
+                        .border(1.dp, color = White, RoundedCornerShape(8.dp))
+                        .align(Alignment.CenterVertically)
                 ) {
                     if(!selectedCategoryImg!!.value.isEmpty()){
                         Image(
@@ -370,7 +371,8 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                     modifier = Modifier
                         .padding(8.dp)
                         .shadow(5.dp)
-                        .border(1.dp, shape = RectangleShape, color = Color.White).wrapContentWidth(),
+                        .border(1.dp, shape = RectangleShape, color = Color.White)
+                        .wrapContentWidth(),
                     shape = RoundedCornerShape(15),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
                     onClick = { navController.navigate(Screen.SplitMethodScreen.createRoute(groupId, amount)) }
