@@ -1,11 +1,14 @@
 package com.android.splitease.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,6 +25,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.ExitToApp
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,6 +47,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -71,12 +77,28 @@ import kotlinx.coroutines.launch
 fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewModel: GroupViewModel = hiltViewModel()) {
 
     val groupMembers: State<NetworkResult<List<GetGroupMembersV2Response>>> = groupViewModel.groupMembersV2.collectAsState()
-    val removeUser: State<NetworkResult<DeleteResponse>> = groupViewModel.removeUser.collectAsState()
+    val removeUser by groupViewModel.removeUser.collectAsState()
 
     // State to control the bottom sheet
     var selectedMember by remember { mutableStateOf<GetGroupMembersV2Response?>(null) }
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
+
+    // State to control the loading overlay
+    var showLoadingOverlay by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+
+    // Observe the remove user state to hide the loading overlay once the operation is complete
+    LaunchedEffect(removeUser) {
+        if (removeUser is NetworkResult.Success) {
+            groupViewModel.getGroupMembersV2(groupId)
+            showLoadingOverlay = false
+            Toast.makeText(context, "User removed from the group", Toast.LENGTH_SHORT).show()
+        } else if (removeUser is NetworkResult.Error) {
+            showLoadingOverlay = false
+        }
+    }
 
     // Boolean state to control the visibility of the bottom sheet
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -110,8 +132,6 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
                     // Handle idle state if necessary
                 }
                 is NetworkResult.Loading -> {
-                    // Handle loading state
-                    Text("Loading group members...")
                 }
                 is NetworkResult.Success -> {
                     LazyColumn {
@@ -140,6 +160,18 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
             }
         }
 
+        // Show a loading overlay when removing a user
+        if (showLoadingOverlay) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+
         // Only show the bottom sheet if showBottomSheet is true
         if (showBottomSheet) {
             ModalBottomSheet(
@@ -147,15 +179,20 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
                     scope.launch {
 //                        sheetState.hide()
                         showBottomSheet = false // Reset this when the bottom sheet is dismissed
+                        selectedMember = null
                     }
                 },
                 sheetState = sheetState,
             ) {
                 selectedMember?.let {
-                    BottomSheetContent(member = it) {
+                    BottomSheetContent(member = it, onRemoveClick = {
+                        showLoadingOverlay = true
+                        groupViewModel.removeUserFromGroup(groupId, selectedMember!!.userUuid)
+                    }) {
                         scope.launch {
                             sheetState.hide()
                             showBottomSheet = false // Reset this when the bottom sheet is dismissed
+                            selectedMember = null
                         }
                     }
                 }
@@ -192,6 +229,7 @@ fun GroupMemberItem(
 @Composable
 fun BottomSheetContent(
     member: GetGroupMembersV2Response,
+    onRemoveClick: () -> Unit,
     onDismiss: () -> Unit
 ) {
     Column(
@@ -205,7 +243,7 @@ fun BottomSheetContent(
                 .fillMaxWidth()
                 .padding(8.dp)
                 .clickable {
-//                    onRemoveClick() // Trigger the removal action when the row is clicked
+                    onRemoveClick() // Trigger the removal action when the row is clicked
                     onDismiss() // Dismiss the bottom sheet after the action
                 },
             verticalAlignment = Alignment.CenterVertically
@@ -214,7 +252,9 @@ fun BottomSheetContent(
                 imageVector = Icons.AutoMirrored.Outlined.ExitToApp,
                 contentDescription = "Remove user",
                 tint = Red800,
-                modifier = Modifier.padding(end = 12.dp).size(30.dp)
+                modifier = Modifier
+                    .padding(end = 12.dp)
+                    .size(30.dp)
             )
             Text(text = buildAnnotatedString {
                 withStyle(style = SpanStyle(color = Red800)){
