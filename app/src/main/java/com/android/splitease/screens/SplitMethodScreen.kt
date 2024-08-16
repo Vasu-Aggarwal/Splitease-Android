@@ -26,6 +26,7 @@ import androidx.navigation.NavController
 import com.android.splitease.models.responses.GetGroupMembersV2Response
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.SplitBy
+import com.android.splitease.utils.UtilMethods
 import com.android.splitease.viewmodels.GroupViewModel
 import com.google.accompanist.pager.*
 import kotlinx.coroutines.launch
@@ -74,9 +75,12 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                             }
                             1 -> {
                                 val totalAssignedAmount = selectedDataUnequal.values.sum()
-                                if (totalAssignedAmount > amount) {
+                                if (totalAssignedAmount > amount || totalAssignedAmount < amount) {
                                     // Show an alert if the total assigned amount exceeds the total amount
-                                    alertMessage = "The total assigned amount exceeds the available amount."
+                                    if (totalAssignedAmount > amount)
+                                        alertMessage = "The total assigned amount don't add up to the total amount. You are over ${UtilMethods.formatAmount(abs(amount-totalAssignedAmount))}"
+                                    else
+                                        alertMessage = "The total assigned amount don't add up to the total amount. You are short of ${UtilMethods.formatAmount(abs(amount-totalAssignedAmount))}"
                                     showAlert = true
                                 } else {
                                     val data = getSelectedDataForCurrentPage(pagerState.currentPage, selectedDataUnequal, amount)
@@ -88,9 +92,12 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
                             2 -> {
                                 val data = getSelectedDataForCurrentPage(pagerState.currentPage, selectedDataByPercentage, amount)
                                 val totalPercentage = selectedDataByPercentage.values.sum()
-                                if (totalPercentage > 100) {
+                                if (totalPercentage > 100 || totalPercentage < 100) {
                                     // Show an alert if the total percentage exceeds 100%
-                                    alertMessage = "The total percentage assigned exceeds by ${abs(100.0 - totalPercentage)}%"
+                                    if (totalPercentage > 100)
+                                        alertMessage = "The total percentage assigned exceeds by ${abs(100.0 - totalPercentage)}%"
+                                    else
+                                        alertMessage = "The total percentage must be 100%"
                                     showAlert = true
                                 } else {
                                     navController.previousBackStackEntry?.savedStateHandle?.set("selectedData", data)
@@ -135,7 +142,7 @@ fun SplitMethodsScreen(navController: NavController, groupViewModel: GroupViewMo
             if (showAlert) {
                 AlertDialog(
                     onDismissRequest = { showAlert = false },
-                    title = { Text("Invalid Input") },
+                    title = { Text("Oops !! 😶") },
                     text = { Text(alertMessage) },
                     confirmButton = {
                         Button(onClick = { showAlert = false }) {
@@ -298,6 +305,11 @@ fun SplitEqually(
                 }
             }
 
+            // State to manage the "Select All" checkbox
+            val allChecked by remember {
+                derivedStateOf { checkedStates.values.all { it } }
+            }
+
             // Initialize selectedData with initial checked members
             LaunchedEffect(members) {
                 val checkedCount = checkedStates.count { it.value }
@@ -352,12 +364,33 @@ fun SplitEqually(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp),
+                    .padding(top = 30.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "₹${String.format("%.2f", amountPerPerson)}/person", color = Color.White)
-                Text(text = "(${checkedCount} people)", color = Color.White)
+                Column {
+                    Text(text = "₹${String.format("%.2f", amountPerPerson)}/person", color = Color.White)
+                    Text(text = "(${checkedCount} people)", color = Color.White)
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    Text(text = "All")
+                    Checkbox(
+                        checked = allChecked,
+                        onCheckedChange = { isChecked ->
+                            members?.forEach { member ->
+                                checkedStates[member.userUuid] = isChecked
+                                if (isChecked) {
+                                    selectedData["username_" + member.email] = amountPerPerson
+                                } else {
+                                    selectedData.remove("username_" + member.email)
+                                }
+                            }
+                        }
+                    )
+                }
             }
         }
         is NetworkResult.Error -> {
@@ -443,12 +476,11 @@ fun SplitMembersListUnequal(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(top = 30.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(text = "Total assigned: ₹${String.format("%.2f", totalAmount)}", color = Color.White)
-                Text(text = "Remaining: ₹${String.format("%.2f", amount - totalAmount)}", color = Color.White)
+                Text(text = "${UtilMethods.formatAmount(totalAmount)} of ${UtilMethods.formatAmount(amount)}")
             }
         }
         is NetworkResult.Error -> {
@@ -532,12 +564,11 @@ fun SplitMembersListByPercentage(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                    .padding(top = 30.dp),
+                horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Total assigned: ${String.format("%.2f", totalPercentage)}%", color = Color.White)
-                Text(text = "Remaining: ${String.format("%.2f", 100 - totalPercentage)}%", color = Color.White)
+                Text(text = "${totalPercentage}% of 100.0%")
             }
         }
         is NetworkResult.Error -> {
