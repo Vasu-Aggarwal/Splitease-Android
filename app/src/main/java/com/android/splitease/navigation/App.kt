@@ -105,4 +105,8 @@ sealed class Screen(val route: String){
         fun createRoute(name: String) = "newUserScreen/$name"
     }
 
+    data object GroupSettingScreen: Screen("groupSettingScreen/{groupId}"){
+        fun createRoute(groupId: Int) = "groupSettingScreen/$groupId"
+    }
+
 }

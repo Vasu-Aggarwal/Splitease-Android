@@ -5,6 +5,7 @@ import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.requests.AddUsersToGroupRequest
 import com.android.splitease.models.responses.AddUsersToGroupResponse
 import com.android.splitease.models.responses.CreateUserResponse
+import com.android.splitease.models.responses.DeleteResponse
 import com.android.splitease.models.responses.GetGroupMembersV2Response
 import com.android.splitease.models.responses.GetGroupSummaryResponse
 import com.android.splitease.models.responses.GetGroupsByUserResponse
@@ -44,6 +45,9 @@ interface GroupService {
 
     @POST("${AppConstants.GROUP_URL}/addUsersToGroup")
     suspend fun addUsersToGroupApi(@Header("Authorization") token: String, @Body addUsersToGroupRequest: AddUsersToGroupRequest): Response<AddUsersToGroupResponse>
+
+    @POST("${AppConstants.GROUP_URL}/removeUserFromGroup/{groupId}/{userUuid}")
+    suspend fun removeUserFromGroupApi(@Header("Authorization") token: String, @Path("groupId") groupId: Int, @Path("userUuid") userUuid: String): Response<DeleteResponse>
 
     @GET("${AppConstants.GROUP_URL}/getGroupSpendingSummary/{groupId}")
     suspend fun getGroupSpendingSummaryApi(@Header("Authorization") token: String, @Path("groupId") groupId: Int): Response<GetGroupSummaryResponse>

@@ -16,6 +16,7 @@ import com.android.splitease.models.requests.AddUsersToGroupRequest
 import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.responses.AddUsersToGroupResponse
 import com.android.splitease.models.responses.CreateUserResponse
+import com.android.splitease.models.responses.DeleteResponse
 import com.android.splitease.models.responses.GetGroupMembersV2Response
 import com.android.splitease.models.responses.GetGroupSummaryResponse
 import com.android.splitease.models.responses.GetGroupsByUserResponse
@@ -45,6 +46,9 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
 
     val addUsersToGroup: StateFlow<NetworkResult<AddUsersToGroupResponse>>
         get() = groupRepository.addUsersToGroup
+
+    val removeUser: StateFlow<NetworkResult<DeleteResponse>>
+        get() = groupRepository.removeUser
 
     val groupSummary: StateFlow<NetworkResult<GetGroupSummaryResponse>>
         get() = groupRepository.groupSummary
@@ -82,6 +86,12 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
     fun addUsersToGroup(addUsersToGroupRequest: AddUsersToGroupRequest){
         viewModelScope.launch {
             groupRepository.addUsersToGroup(addUsersToGroupRequest)
+        }
+    }
+
+    fun removeUserFromGroup(groupId: Int, userUuid: String){
+        viewModelScope.launch {
+            groupRepository.removeUserFromGroup(groupId, userUuid)
         }
     }
 

@@ -327,6 +327,16 @@ fun BottomNavigationBar(navAppController: NavController) {
                         RegisterNewUserScreen(name = it, navController = navController)
                     }
                 }
+
+                composable(route = Screen.GroupSettingScreen.route,
+                    arguments = listOf(navArgument("groupId") { type = NavType.IntType })
+                )
+                { backStackEntry ->
+                    val groupId = backStackEntry.arguments?.getInt("groupId")
+                    groupId?.let {
+                        GroupSettingScreen(groupId = it, navController = navController)
+                    }
+                }
             }
         }
     }

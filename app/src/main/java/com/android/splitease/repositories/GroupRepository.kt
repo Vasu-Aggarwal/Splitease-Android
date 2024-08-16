@@ -22,6 +22,7 @@ import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.requests.AddUsersToGroupRequest
 import com.android.splitease.models.responses.AddUsersToGroupResponse
 import com.android.splitease.models.responses.CreateUserResponse
+import com.android.splitease.models.responses.DeleteResponse
 import com.android.splitease.models.responses.GetGroupMembersV2Response
 import com.android.splitease.models.responses.GetGroupSummaryResponse
 import com.android.splitease.models.responses.GetGroupsByUserResponse
@@ -74,6 +75,10 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
     private val _download = MutableStateFlow<NetworkResult<Boolean>>(NetworkResult.Idle())
     val download: StateFlow<NetworkResult<Boolean>>
         get() = _download
+
+    private val _removeUser = MutableStateFlow<NetworkResult<DeleteResponse>>(NetworkResult.Idle())
+    val removeUser: StateFlow<NetworkResult<DeleteResponse>>
+        get() = _removeUser
 
     suspend fun groupsByUser(searchBy: String){
         try {
@@ -176,6 +181,23 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
             _addUsersToGroup.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         } catch (e: Exception){
             _addUsersToGroup.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        }
+    }
+
+    suspend fun removeUserFromGroup(groupId: Int, userUuid: String){
+        try {
+            _removeUser.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()!!
+            val response = groupService.removeUserFromGroupApi("Bearer $authToken", groupId, userUuid)
+            if (response.isSuccessful && response.body() != null) {
+                _removeUser.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _removeUser.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+            }
+        } catch (e: NetworkException){
+            _removeUser.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _removeUser.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 

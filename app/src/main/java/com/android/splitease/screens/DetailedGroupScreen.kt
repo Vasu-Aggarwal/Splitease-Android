@@ -31,6 +31,8 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -243,17 +245,25 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = { navController.popBackStack(Screen.GroupScreen.route, true) }) {
+                        IconButton(onClick = {
+                            navController.popBackStack(Screen.GroupScreen.route, inclusive = true)
+                            navController.navigate(Screen.GroupScreen.route)
+                        }) {
                             Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { navController.navigate(Screen.GroupSettingScreen.createRoute(groupId)) }) {
+                            Icon(imageVector = Icons.Outlined.Settings, contentDescription = "group setting")
                         }
                     },
                     scrollBehavior = scrollBehavior,
                     colors = TopAppBarColors(
                         Color.Transparent,
                         Color.Transparent,
+                        Color.White,
                         Color.Transparent,
-                        Color.Transparent,
-                        Color.Transparent
+                        Color.White
                     )
                 )
             }
