@@ -3,6 +3,7 @@ package com.android.splitease.screens
 import android.content.Context
 import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
@@ -28,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
@@ -37,6 +39,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -170,6 +173,11 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
         }
     }
 
+    BackHandler {
+        navController.popBackStack(Screen.GroupScreen.route, inclusive = true)
+        navController.navigate(Screen.GroupScreen.route)
+    }
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -233,6 +241,11 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
                             modifier = Modifier.alpha(revAvatarAlpha),
                             color = Color.White // Change text color for better contrast with background image
                         )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack(Screen.GroupScreen.route, true) }) {
+                            Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
                     },
                     scrollBehavior = scrollBehavior,
                     colors = TopAppBarColors(
