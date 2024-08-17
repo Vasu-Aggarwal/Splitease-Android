@@ -1,5 +1,6 @@
 package com.android.splitease.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -24,6 +25,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -31,6 +33,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -169,6 +172,28 @@ fun RegisterNewUserScreen(
                     focusedIndicatorColor = MaterialTheme.colorScheme.primary
                 )
             )
+        }
+    }
+
+    // Observe the registration result
+    val context = LocalContext.current
+    LaunchedEffect(registerUser.value) {
+        when (registerUser.value) {
+            is NetworkResult.Success -> {
+                // Get the newly registered user's response
+                val newUser = (registerUser.value as NetworkResult.Success<CreateUserResponse>).data
+
+                // Pass the new user data back to the previous screen
+                navController.previousBackStackEntry?.savedStateHandle?.set("registeredUser", newUser!!.email)
+                navController.popBackStack() // Pop back to the previous screen
+            }
+            is NetworkResult.Error -> {
+                // Handle error (e.g., show a toast)
+                Toast.makeText(context, "Failed to register user", Toast.LENGTH_SHORT).show()
+            }
+            else -> {
+                // Loading or Idle state, no action needed
+            }
         }
     }
 }

@@ -75,6 +75,19 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
     val isUserExists: State<NetworkResult<List<GetUserByUuidResponse>>> = userViewModel.isUserExists.collectAsState()
     val groupMembers: State<NetworkResult<List<GetGroupMembersV2Response>>> = groupViewModel.groupMembersV2.collectAsState()
 
+    // Retrieve the selected user's name and UUID from the savedStateHandle
+    val registeredUser = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("registeredUser", "")?.collectAsState()
+
+    // Add registeredUser to emailSet if it's not null or blank
+    LaunchedEffect(registeredUser?.value) {
+        registeredUser?.value?.let { userEmail ->
+            if (userEmail.isNotBlank()) {
+                emailSet = emailSet + userEmail
+                searchQuery = "" // clear the search query
+            }
+        }
+    }
+
     // Debounced search state
     val debouncedSearchQuery by rememberDebounce(searchQuery)
 
@@ -93,7 +106,7 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
         if (addUsersResponse is NetworkResult.Success) {
             val message = (addUsersResponse as NetworkResult.Success).data!!.message as? String
             if (message == "Users added successfully") {
-                navController.popBackStack() // Ensure this is the correct navigation action
+                navController.popBackStack()
             }
         }
     }
@@ -362,7 +375,8 @@ fun FlippingCard(isUserAdded: Boolean, userName: String) {
         }
         Box(
             modifier = Modifier.graphicsLayer(
-                alpha = if (rotationState >= 90f) 1f else 0f // Fade in the back side as it flips
+                alpha = if (rotationState >= 90f) 1f else 0f, // Fade in the back side as it flips
+                rotationY = 180f
             )
         ) {
             Text(
