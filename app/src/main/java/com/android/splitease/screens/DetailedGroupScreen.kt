@@ -385,7 +385,7 @@ fun TransactionItem(
     Card (
         onClick = {
             if (transaction.category == null && transaction.description == null){
-                Toast.makeText(context, "You clicked settleup transaction", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "You clicked settle up transaction", Toast.LENGTH_SHORT).show()
             } else {
                 navController.navigate(Screen.DetailedTransactionScreen.createRoute(transaction.transactionId))
             }
@@ -403,19 +403,22 @@ fun TransactionItem(
                     modifier = Modifier
                         .fillMaxWidth()
                 ) {
-                    val formattedDate = UtilMethods.formatDate(transaction.createdOn)
-                    Text(text = formattedDate, modifier = Modifier
-                        .weight(0.5f)
-                        .padding(5.dp, 0.dp, 0.dp, 0.dp),
-                        textAlign = TextAlign.Justify,
-                        fontSize = 14.sp
-                    )
+                    Box(modifier = Modifier.weight(0.5f), contentAlignment = Alignment.Center){
+                        val formattedDate = UtilMethods.formatDate(transaction.createdOn)
+                        Text(
+                            text = formattedDate, modifier = Modifier
+                                .padding(5.dp, 0.dp, 0.dp, 0.dp),
+                            textAlign = TextAlign.Justify,
+                            fontSize = 14.sp
+                        )
+                    }
 
                     // Image Box
                     Box(
                         modifier = Modifier
-                            .weight(0.65f) // Adjust the weight to control the space occupied by the image
+                            .weight(0.6f) // Adjust the weight to control the space occupied by the image
                             .align(Alignment.CenterVertically)
+                            .padding(start = 3.dp)
                     ) {
                         Image(
                             painter = rememberAsyncImagePainter(
@@ -440,7 +443,7 @@ fun TransactionItem(
 
                     Column(
                         modifier = Modifier
-                            .weight(2f)
+                            .weight(1.5f)
                             .align(Alignment.CenterVertically)
                     ) {
                         Text(text = transaction.description)
@@ -454,7 +457,7 @@ fun TransactionItem(
                     }
 
                     Column(modifier = Modifier
-                        .weight(1.2f)
+                        .weight(1.5f)
                         .align(Alignment.CenterVertically)
                     ) {
                         Text(text = buildAnnotatedString {
@@ -553,19 +556,22 @@ fun SettleUpTransaction(transaction: GetTransactionsByGroupResponse, tokenManage
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        val formattedDate = UtilMethods.formatDate(transaction.createdOn)
-        Text(text = formattedDate, modifier = Modifier
-            .weight(0.5f)
-            .padding(5.dp, 0.dp, 0.dp, 0.dp),
-            textAlign = TextAlign.Justify,
-            fontSize = 14.sp
-        )
+        Box(modifier = Modifier.weight(0.5f), contentAlignment = Alignment.Center){
+            val formattedDate = UtilMethods.formatDate(transaction.createdOn)
+            Text(
+                text = formattedDate, modifier = Modifier
+                    .padding(5.dp, 0.dp, 0.dp, 0.dp),
+                textAlign = TextAlign.Justify,
+                fontSize = 14.sp
+            )
+        }
 
         // Image Box
         Box(
             modifier = Modifier
-                .weight(0.65f) // Adjust the weight to control the space occupied by the image
+                .weight(0.6f) // Adjust the weight to control the space occupied by the image
                 .align(Alignment.CenterVertically)
+                .padding(start = 3.dp)
         ) {
             Image(
                 painter = painterResource(id = R.drawable.money),
