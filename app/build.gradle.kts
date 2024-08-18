@@ -14,8 +14,8 @@ android {
         applicationId = "com.android.splitease"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -116,6 +116,8 @@ dependencies {
     implementation("androidx.compose.material:material:1.6.8")
     implementation ("androidx.work:work-runtime-ktx:2.9.1") // For WorkManager
     implementation ("androidx.hilt:hilt-work:1.2.0")
+
+    implementation ("androidx.compose.material:material-icons-extended:1.6.8")
 }
 kapt {
     correctErrorTypes = true
