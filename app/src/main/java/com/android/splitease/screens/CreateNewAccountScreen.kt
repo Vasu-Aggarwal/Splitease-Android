@@ -117,16 +117,6 @@ fun CreateNewAccountScreen(navController: NavController, userViewModel: UserView
                     loginViewModel.registerUser(registerUserRequest)
                 }
 
-//                // If it's an email, assign it to the email parameter
-//                val registerUserRequest = RegisterUserRequest(
-//                    "",
-//                    name,
-//                    password,
-//                    email,
-//                    if (!phone.isNullOrBlank()) phone else ""
-//                )
-//                loginViewModel.registerUser(registerUserRequest)
-//
                 Thread.sleep(500)
                 loginViewModel.login(email, password)
                 when (user) {
