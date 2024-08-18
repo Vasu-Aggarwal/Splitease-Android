@@ -127,25 +127,25 @@ fun CreateNewAccountScreen(navController: NavController, userViewModel: UserView
 //                )
 //                loginViewModel.registerUser(registerUserRequest)
 //
-//                Thread.sleep(500)
-//                loginViewModel.login(email, password)
-//                when (val resultLogin = user.value) {
-//                    is NetworkResult.Idle -> {
-//
-//                    }
-//
-//                    is NetworkResult.Loading -> {
-//
-//                    }
-//                    is NetworkResult.Success -> {
-//                        navController.navigate(Screen.BottomNavigationBar.route)
-//                    }
-//
-//                    is NetworkResult.Error -> {
-//                    }
-//
-//                    else -> {}
-//                }
+                Thread.sleep(500)
+                loginViewModel.login(email, password)
+                when (user) {
+                    is NetworkResult.Idle -> {
+
+                    }
+
+                    is NetworkResult.Loading -> {
+
+                    }
+                    is NetworkResult.Success -> {
+                        navController.navigate(Screen.BottomNavigationBar.route)
+                    }
+
+                    is NetworkResult.Error -> {
+                    }
+
+                    else -> {}
+                }
             }, shape = RoundedCornerShape(50)) {
                 Icon(imageVector = Icons.Default.Done, contentDescription = "Submit")
             }
