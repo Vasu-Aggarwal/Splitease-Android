@@ -26,7 +26,7 @@ object UtilMethods {
     }
 
     fun formatAmount(amount: Double): String{
-        return NumberFormat.getCurrencyInstance(Locale.getDefault()).format(amount)
+        return NumberFormat.getCurrencyInstance(Locale("en", "IN")).format(amount)
     }
 
     fun abbreviateName(fullName: String): String {
