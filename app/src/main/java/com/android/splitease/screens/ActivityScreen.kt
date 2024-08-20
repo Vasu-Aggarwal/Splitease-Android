@@ -125,7 +125,7 @@ fun ActivityItem(userLog: GetUserLogsResponse){
         ) {
             val formattedDate = formatCreatedOnDate(userLog.createdOn)
             Text(text = groupDetails.description!!)
-            Text(text = formattedDate, fontSize = 12.sp, color = Grey400)
+            Text(text = formattedDate, fontSize = 12.sp, color = Color.Gray)
         }
     }
 }
