@@ -144,7 +144,7 @@ fun formatCreatedOnDate(createdOn: String): String {
     val datePart = when {
         daysBetween == 0L -> "Today"
         daysBetween == 1L -> "Yesterday"
-        daysBetween in 2..3 -> "$daysBetween days ago"
+        daysBetween in 2..4 -> "$daysBetween days ago"
         else -> createdDateTime.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))
     }
 
