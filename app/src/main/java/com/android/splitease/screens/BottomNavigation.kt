@@ -13,8 +13,10 @@ import androidx.compose.material.BottomNavigation
 import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -57,12 +59,12 @@ fun BottomNavigationBar(navAppController: NavController) {
             hasNews = false
         ),
 
-//        BottomNavigationItem(
-//            title = "Friends",
-//            selectedIcon = Icons.Filled.Menu,
-//            unselectedItem = Icons.Outlined.Menu,
-//            hasNews = false
-//        ),
+        BottomNavigationItem(
+            title = "Activities",
+            selectedIcon = Icons.Filled.Menu,
+            unselectedItem = Icons.Outlined.Menu,
+            hasNews = false
+        ),
 
         BottomNavigationItem(
             title = "Account",
@@ -115,10 +117,10 @@ fun BottomNavigationBar(navAppController: NavController) {
                                 selectedItemIndex = index
                                 navController.navigate(
                                     when (index) {
-                                        0 -> "groups"
-//                                    1 -> "friends"
-                                        1 -> "account"
-                                        else -> "home"
+                                        0 -> Screen.GroupScreen.route
+                                        1 -> Screen.ActivityScreen.route
+                                        2 -> Screen.AccountScreen.route
+                                        else -> Screen.GroupScreen.route
                                     }
                                 )
                             },
@@ -172,6 +174,10 @@ fun BottomNavigationBar(navAppController: NavController) {
 
                 composable(route = Screen.AccountScreen.route) {
                     AccountScreen(navController = navAppController)
+                }
+
+                composable(route = Screen.ActivityScreen.route) {
+                    ActivityScreen(navController = navController)
                 }
 
                 composable(route = Screen.NewGroupScreen.route) {

@@ -6,6 +6,7 @@ import com.android.splitease.local.entity.UserEntity
 import com.android.splitease.models.responses.CreateUserResponse
 import com.android.splitease.models.responses.GetOverallUserBalance
 import com.android.splitease.models.responses.GetUserByUuidResponse
+import com.android.splitease.models.responses.GetUserLogsResponse
 import com.android.splitease.services.UserService
 import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.NetworkResult
@@ -34,6 +35,11 @@ class UserRepository @Inject constructor(private val userService: UserService,
         NetworkResult.Idle())
     val isUserExists: StateFlow<NetworkResult<List<GetUserByUuidResponse>>>
         get() = _isUserExists
+
+    private val _userActivities = MutableStateFlow<NetworkResult<List<GetUserLogsResponse>>>(
+        NetworkResult.Idle())
+    val userActivities: StateFlow<NetworkResult<List<GetUserLogsResponse>>>
+        get() = _userActivities
 
     suspend fun getUserByUuid(userUuid: String){
         try {
@@ -104,6 +110,23 @@ class UserRepository @Inject constructor(private val userService: UserService,
             _isUserExists.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         } catch (e: Exception){
             _isUserExists.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        }
+    }
+
+    suspend fun getUserActivities(userUuid: String){
+        try {
+            _userActivities.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()
+            val response = userService.getUserActivitiesApi("Bearer $authToken", userUuid)
+            if (response.isSuccessful && response.body() != null) {
+                _userActivities.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _userActivities.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+            }
+        } catch (e: NetworkException){
+            _userActivities.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _userActivities.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 
