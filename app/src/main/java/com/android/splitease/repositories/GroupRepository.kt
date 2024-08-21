@@ -132,7 +132,7 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
         }
     }
 
-    suspend fun addUpdateGroup(name: String, id: Int?, image: File){
+    suspend fun addUpdateGroup(name: String, id: Int?, image: File?){
         try {
             _addUpdateGroup.emit(NetworkResult.Loading())
             // Create request body for text data
@@ -141,8 +141,8 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
             // Create request body for id if id is not null
             val idRequestBody = id?.let { RequestBody.create(MultipartBody.FORM, it.toString()) }
 
-            // Create multipart body for image
-            val imagePart = image.let {
+            // Create multipart body for image if the image is not null or empty
+            val imagePart = image?.takeIf { it.exists() && it.length() > 0 }?.let {
                 val imageRequestBody = it.asRequestBody("image/jpeg".toMediaTypeOrNull())
                 MultipartBody.Part.createFormData("image", it.name, imageRequestBody)
             }

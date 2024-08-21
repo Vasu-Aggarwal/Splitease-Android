@@ -66,6 +66,7 @@ import com.android.splitease.ui.theme.Grey700
 import com.android.splitease.ui.theme.Grey800
 import com.android.splitease.ui.theme.Grey900
 import com.android.splitease.ui.theme.White
+import com.android.splitease.utils.LoadingOverlay
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.GroupViewModel
 import com.yalantis.ucrop.UCrop
@@ -131,8 +132,10 @@ fun NewGroupScreen(
                             val imageFile = imageUri?.let { uri ->
                                 convertUriToFile(context, uri)
                             }
+
+                            groupViewModel.addUpdateGroup(groupName, null, imageFile)
                             imageFile?.let {
-                                groupViewModel.addUpdateGroup(groupName, null, it)
+
                             }
                         }) {
                             androidx.compose.material3.Icon(
@@ -229,14 +232,7 @@ fun NewGroupScreen(
         }
 
         if (showLoadingOverlay) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f))
-                    .clickable(enabled = false) {}
-            ) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            }
+            LoadingOverlay()
         }
     }
 }
