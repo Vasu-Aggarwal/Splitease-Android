@@ -386,7 +386,7 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
         }
     }
     if (showErrorDialog){
-        ErrorDialog(message = errorMessage) {
+        ErrorDialog(title = null, message = errorMessage) {
             showErrorDialog = false
         }
     }

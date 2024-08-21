@@ -7,14 +7,14 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun ErrorDialog(
-    title: String = "Error",
+    title: String?,
     message: String,
     onDismiss: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(text = title)
+            Text(text = if (title.isNullOrBlank()) "Error" else title)
         },
         text = {
             Text(text = message)

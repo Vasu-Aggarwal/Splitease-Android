@@ -1,5 +1,6 @@
 package com.android.splitease.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -20,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -28,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -37,6 +40,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.android.splitease.models.responses.UserLoginResponse
 import com.android.splitease.navigation.Screen
+import com.android.splitease.utils.ErrorDialog
+import com.android.splitease.utils.LoadingOverlay
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.LoginViewModel
 
@@ -50,6 +55,11 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), navController: NavC
 
     var emailError by remember { mutableStateOf("") }
     var passwordError by remember { mutableStateOf("") }
+    var showLoadingOverlay by remember { mutableStateOf(false) }
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+    var errorTitle by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -124,8 +134,10 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), navController: NavC
                 } else {
                     passwordError = ""
                 }
-                if (valid)
+                if (valid) {
+                    showLoadingOverlay = true
                     viewModel.login(email, password)
+                }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -140,22 +152,36 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), navController: NavC
         }
         when (val result = user.value) {
             is NetworkResult.Idle -> {
-
+                showLoadingOverlay = false
             }
 
             is NetworkResult.Loading -> {
-                CircularProgressIndicator()
+                showLoadingOverlay = true
             }
             is NetworkResult.Success -> {
-                navController.navigate("bottomBar")
-                Text(text = "Logged in successfully !!")
+                showLoadingOverlay = false
+                LaunchedEffect(Unit){
+                    navController.navigate("bottomBar")
+                    Toast.makeText(context, "Logged in", Toast.LENGTH_SHORT).show()
+                }
             }
 
             is NetworkResult.Error -> {
-                Text(text = result.message.toString())
+                showLoadingOverlay = false
+                errorMessage = result.message ?: "Unexpected error occurred"
+                errorTitle = "Test title"
+                showErrorDialog = true
             }
+        }
+    }
+    if (showLoadingOverlay){
+        LoadingOverlay()
+    }
 
-            else -> {}
+    if (showErrorDialog){
+        ErrorDialog(title = null, message = errorMessage) {
+            showErrorDialog = false
+            Toast.makeText(context, "Clicked ${showErrorDialog}", Toast.LENGTH_SHORT).show()
         }
     }
 }
