@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Paint.Align
 import android.util.Log
 import android.widget.ImageButton
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -77,6 +78,7 @@ import com.android.splitease.models.responses.AddTransactionResponse
 import com.android.splitease.navigation.Screen
 import com.android.splitease.ui.theme.Grey800
 import com.android.splitease.ui.theme.White
+import com.android.splitease.utils.ErrorDialog
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.SplitBy
 import com.android.splitease.utils.TokenManager
@@ -113,6 +115,9 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
 
     var contributions by remember { mutableStateOf<Map<String, Double>>(emptyMap()) }
     val contributionsState = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedData", emptyMap<String, Double>())?.collectAsState()
+
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
     // Update contributions whenever contri changes
     LaunchedEffect(contributionsState?.value) {
@@ -223,9 +228,6 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                                 category = selectedCategory!!.value,
                                 usersInvolved = contributions
                             )
-                            val gson = Gson()
-                            val json = gson.toJson(addTransactionRequest)
-                            Log.d("AES", "AddExpenseScreen: $json")
                             transactionViewModel.addTransaction(addTransactionRequest)
                         } else {
                             message = "Please enter a valid description and amount"
@@ -332,17 +334,18 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
             }
             when (val result = addTransaction.value) {
                 is NetworkResult.Success -> {
-                    message = "Transaction added successfully"
+                    Toast.makeText(context, "Transaction added successfully", Toast.LENGTH_SHORT).show()
                     navController.popBackStack(Screen.DetailedGroupScreen.createRoute(groupId), false)
                 }
                 is NetworkResult.Error -> {
-                    message = result.message ?: "An error occurred"
+                    errorMessage = result.message ?: "Unexpected error occurred"
+                    showErrorDialog = true
                 }
                 is NetworkResult.Loading -> {
                     message = "Adding transaction..."
                 }
 
-                is NetworkResult.Idle -> message = "Idle"
+                is NetworkResult.Idle -> message = ""
             }
 
             Row(
@@ -380,6 +383,11 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                     Text(text = if(selectedSplitBy!!.value == SplitBy.EQUAL) "equally" else "unequally" , maxLines = 1, fontSize = 12.sp)
                 }
             }
+        }
+    }
+    if (showErrorDialog){
+        ErrorDialog(message = errorMessage) {
+            showErrorDialog = false
         }
     }
 }

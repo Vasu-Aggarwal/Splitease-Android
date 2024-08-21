@@ -185,10 +185,6 @@ fun CreateNewAccountScreen(navController: NavController, userViewModel: UserView
                 .padding(padding)
                 .padding(16.dp) // Add overall padding
         ) {
-            Text(
-                text = "Name",
-                style = MaterialTheme.typography.bodyLarge // Slightly larger font for labels
-            )
 
             if (nameError.isNotEmpty()) {
                 Text(text = nameError, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
@@ -197,7 +193,7 @@ fun CreateNewAccountScreen(navController: NavController, userViewModel: UserView
             TextField(
                 value = name,
                 onValueChange = { name = it },
-                placeholder = { Text("", fontSize = 14.sp) },
+                placeholder = { Text("Name", fontSize = 14.sp) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp) // Space between text fields
@@ -225,11 +221,6 @@ fun CreateNewAccountScreen(navController: NavController, userViewModel: UserView
                 }
             )
 
-            Text(
-                text = "Email",
-                style = MaterialTheme.typography.bodyLarge
-            )
-
             if (emailError.isNotEmpty()) {
                 Text(text = emailError, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
             }
@@ -237,7 +228,8 @@ fun CreateNewAccountScreen(navController: NavController, userViewModel: UserView
             TextField(
                 value = email,
                 onValueChange = { email = it },
-                placeholder = { Text("", fontSize = 14.sp) },
+                placeholder = { Text("Email", fontSize = 14.sp) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
@@ -266,15 +258,10 @@ fun CreateNewAccountScreen(navController: NavController, userViewModel: UserView
             )
 
 
-            Text(
-                text = "Phone Number",
-                style = MaterialTheme.typography.bodyLarge
-            )
-
             TextField(
                 value = phone,
                 onValueChange = { phone = it },
-                placeholder = { Text("(Optional)", fontSize = 14.sp) },
+                placeholder = { Text("Phone Number (Optional)", fontSize = 14.sp) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -293,11 +280,6 @@ fun CreateNewAccountScreen(navController: NavController, userViewModel: UserView
                 )
             )
 
-            Text(
-                text = "Password",
-                style = MaterialTheme.typography.bodyLarge
-            )
-
             if (passwordError.isNotEmpty()) {
                 Text(text = passwordError, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
             }
@@ -305,7 +287,7 @@ fun CreateNewAccountScreen(navController: NavController, userViewModel: UserView
             TextField(
                 value = password,
                 onValueChange = { password = it },
-                placeholder = { Text("", fontSize = 14.sp) },
+                placeholder = { Text("Password", fontSize = 14.sp) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 16.dp)
@@ -331,9 +313,11 @@ fun CreateNewAccountScreen(navController: NavController, userViewModel: UserView
                             tint = MaterialTheme.colorScheme.error
                         )
                     } else {
-                        val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(imageVector = image, contentDescription = null)
+                        if (!password.isNullOrBlank()){
+                            val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(imageVector = image, contentDescription = null)
+                            }
                         }
                     }
                 },
