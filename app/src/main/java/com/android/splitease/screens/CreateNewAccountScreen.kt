@@ -11,8 +11,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -68,6 +70,10 @@ fun CreateNewAccountScreen(navController: NavController, userViewModel: UserView
     val coroutineScope = rememberCoroutineScope()
     var passwordVisible by remember { mutableStateOf(false) }
 
+    var nameError by remember { mutableStateOf("") }
+    var emailError by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf("") }
+
     // Handle registration and login
     LaunchedEffect(registerUser) {
         if (registerUser is NetworkResult.Success) {
@@ -104,17 +110,48 @@ fun CreateNewAccountScreen(navController: NavController, userViewModel: UserView
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 coroutineScope.launch {
-                    // Prepare the request object
-                    val registerUserRequest = RegisterUserRequest(
-                        "", // Placeholder for actual value
-                        name,
-                        password,
-                        email,
-                        phone.takeIf { it.isNotBlank() } ?: ""
-                    )
+                    var valid = true
 
-                    // Start registration
-                    loginViewModel.registerUser(registerUserRequest)
+                    if (name.isBlank()) {
+                        nameError = "Name cannot be empty"
+                        valid = false
+                    } else {
+                        nameError = ""
+                    }
+
+                    if (email.isBlank()) {
+                        emailError = "Email cannot be empty"
+                        valid = false
+                    } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                        emailError = "Invalid email address"
+                        valid = false
+                    } else {
+                        emailError = ""
+                    }
+
+                    if (password.isBlank()) {
+                        passwordError = "Password cannot be empty"
+                        valid = false
+                    } else if (password.length < 6) {
+                        passwordError = "Password must be at least 6 characters"
+                        valid = false
+                    } else {
+                        passwordError = ""
+                    }
+
+                    if (valid) {
+                        // Prepare the request object
+                        val registerUserRequest = RegisterUserRequest(
+                            "",
+                            name,
+                            password,
+                            email,
+                            phone.takeIf { it.isNotBlank() } ?: ""
+                        )
+
+                        // Start registration
+                        loginViewModel.registerUser(registerUserRequest)
+                    }
                 }
 
                 Thread.sleep(500)
@@ -153,6 +190,10 @@ fun CreateNewAccountScreen(navController: NavController, userViewModel: UserView
                 style = MaterialTheme.typography.bodyLarge // Slightly larger font for labels
             )
 
+            if (nameError.isNotEmpty()) {
+                Text(text = nameError, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+            }
+
             TextField(
                 value = name,
                 onValueChange = { name = it },
@@ -171,13 +212,27 @@ fun CreateNewAccountScreen(navController: NavController, userViewModel: UserView
                     focusedContainerColor = MaterialTheme.colorScheme.background,
                     unfocusedIndicatorColor = MaterialTheme.colorScheme.outline, // Subtle outline for the text field
                     focusedIndicatorColor = MaterialTheme.colorScheme.primary
-                )
+                ),
+                isError = nameError.isNotEmpty(),
+                trailingIcon = {
+                    if (nameError.isNotEmpty()) {
+                        Icon(
+                            imageVector = Icons.Filled.Error,
+                            contentDescription = "Error",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
             )
 
             Text(
                 text = "Email",
                 style = MaterialTheme.typography.bodyLarge
             )
+
+            if (emailError.isNotEmpty()) {
+                Text(text = emailError, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+            }
 
             TextField(
                 value = email,
@@ -197,7 +252,17 @@ fun CreateNewAccountScreen(navController: NavController, userViewModel: UserView
                     focusedContainerColor = MaterialTheme.colorScheme.background,
                     unfocusedIndicatorColor = MaterialTheme.colorScheme.outline,
                     focusedIndicatorColor = MaterialTheme.colorScheme.primary
-                )
+                ),
+                isError = emailError.isNotEmpty(),
+                trailingIcon = {
+                    if (emailError.isNotEmpty()) {
+                        Icon(
+                            imageVector = Icons.Filled.Error,
+                            contentDescription = "Error",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
             )
 
 
@@ -233,6 +298,10 @@ fun CreateNewAccountScreen(navController: NavController, userViewModel: UserView
                 style = MaterialTheme.typography.bodyLarge
             )
 
+            if (passwordError.isNotEmpty()) {
+                Text(text = passwordError, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+            }
+
             TextField(
                 value = password,
                 onValueChange = { password = it },
@@ -252,11 +321,20 @@ fun CreateNewAccountScreen(navController: NavController, userViewModel: UserView
                     unfocusedIndicatorColor = MaterialTheme.colorScheme.outline,
                     focusedIndicatorColor = MaterialTheme.colorScheme.primary
                 ),
+                isError = passwordError.isNotEmpty(),
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, contentDescription = null)
+                    if (passwordError.isNotEmpty()) {
+                        Icon(
+                            imageVector = Icons.Filled.Error,
+                            contentDescription = "Error",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    } else {
+                        val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(imageVector = image, contentDescription = null)
+                        }
                     }
                 },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)

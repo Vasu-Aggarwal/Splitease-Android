@@ -184,7 +184,10 @@ fun RegisterNewUserScreen(
                 val newUser = (registerUser.value as NetworkResult.Success<CreateUserResponse>).data
 
                 // Pass the new user data back to the previous screen
-                navController.previousBackStackEntry?.savedStateHandle?.set("registeredUser", newUser!!.email)
+                if(newUser!!.email == null){
+                    navController.previousBackStackEntry?.savedStateHandle?.set("registeredUser", newUser!!.name)
+                } else
+                    navController.previousBackStackEntry?.savedStateHandle?.set("registeredUser", newUser!!.email)
                 navController.popBackStack() // Pop back to the previous screen
             }
             is NetworkResult.Error -> {
