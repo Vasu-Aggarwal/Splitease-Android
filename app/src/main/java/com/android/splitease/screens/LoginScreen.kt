@@ -168,9 +168,11 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), navController: NavC
 
             is NetworkResult.Error -> {
                 showLoadingOverlay = false
-                errorMessage = result.message ?: "Unexpected error occurred"
-                errorTitle = "Test title"
-                showErrorDialog = true
+                LaunchedEffect(Unit){
+                    errorMessage = result.message ?: "Unexpected error occurred"
+                    errorTitle = "Test title"
+                    showErrorDialog = true
+                }
             }
         }
     }
@@ -181,7 +183,6 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel(), navController: NavC
     if (showErrorDialog){
         ErrorDialog(title = null, message = errorMessage) {
             showErrorDialog = false
-            Toast.makeText(context, "Clicked ${showErrorDialog}", Toast.LENGTH_SHORT).show()
         }
     }
 }
