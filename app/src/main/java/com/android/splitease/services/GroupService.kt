@@ -15,6 +15,7 @@ import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Multipart
@@ -54,6 +55,13 @@ interface GroupService {
 
     @GET("${AppConstants.GROUP_URL}/getGroupInfo/{groupId}")
     suspend fun getGroupInfoApi(@Header("Authorization") token: String, @Path("groupId") groupId: Int): Response<AddGroupResponse>
+
+    @DELETE("${AppConstants.GROUP_URL}/deleteGroup/{groupId}/{userUuid}")
+    suspend fun deleteGroupApi(
+        @Header("Authorization") token: String,
+        @Path("groupId") groupId: Int,
+        @Path("userUuid") userUuid: String
+    ): Response<DeleteResponse>
 
     @GET("${AppConstants.GROUP_URL}/export/{groupId}")
     @Streaming

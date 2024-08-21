@@ -50,6 +50,9 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
     val removeUser: StateFlow<NetworkResult<DeleteResponse>>
         get() = groupRepository.removeUser
 
+    val deleteGroup: StateFlow<NetworkResult<DeleteResponse>>
+        get() = groupRepository.deleteGroup
+
     val groupSummary: StateFlow<NetworkResult<GetGroupSummaryResponse>>
         get() = groupRepository.groupSummary
 
@@ -92,6 +95,12 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
     fun removeUserFromGroup(groupId: Int, userUuid: String){
         viewModelScope.launch {
             groupRepository.removeUserFromGroup(groupId, userUuid)
+        }
+    }
+
+    fun deleteGroup(groupId: Int){
+        viewModelScope.launch {
+            groupRepository.deleteGroup(groupId)
         }
     }
 

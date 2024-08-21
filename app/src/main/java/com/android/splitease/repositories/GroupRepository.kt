@@ -80,6 +80,10 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
     val removeUser: StateFlow<NetworkResult<DeleteResponse>>
         get() = _removeUser
 
+    private val _deleteGroup = MutableStateFlow<NetworkResult<DeleteResponse>>(NetworkResult.Idle())
+    val deleteGroup: StateFlow<NetworkResult<DeleteResponse>>
+        get() = _deleteGroup
+
     suspend fun groupsByUser(searchBy: String){
         try {
             _groups.emit(NetworkResult.Loading())
@@ -232,6 +236,24 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
             _groupInfo.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         } catch (e: Exception){
             _groupInfo.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        }
+    }
+
+    suspend fun deleteGroup(groupId: Int){
+        try {
+            _deleteGroup.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()!!
+            val userUuid = tokenManager.getUserUuid()!!
+            val response = groupService.deleteGroupApi("Bearer $authToken", groupId, userUuid)
+            if (response.isSuccessful && response.body() != null) {
+                _deleteGroup.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _deleteGroup.emit(NetworkResult.Error(response.errorBody()?.string()!!))
+            }
+        } catch (e: NetworkException){
+            _deleteGroup.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _deleteGroup.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 

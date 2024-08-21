@@ -98,6 +98,8 @@ import com.android.splitease.ui.theme.Grey900
 import com.android.splitease.ui.theme.Red100
 import com.android.splitease.ui.theme.White
 import com.android.splitease.utils.AppConstants
+import com.android.splitease.utils.ErrorDialog
+import com.android.splitease.utils.LoadingOverlay
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.UtilMethods
 import com.android.splitease.viewmodels.GroupViewModel
@@ -128,6 +130,11 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
             isRefreshing = false
         }
     })
+
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+    var errorTitle = remember { mutableStateOf("") }
+    var loading by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.getGroupsByUser("")
@@ -180,6 +187,8 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                         item {
                             when (val result = userBalance.value) {
                                 is NetworkResult.Success -> {
+                                    loading = false
+                                    showErrorDialog = false
                                     val balance = result.data!!.netBalance
                                     Card(
                                         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -293,15 +302,20 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                                 }
 
                                 is NetworkResult.Error -> {
+                                    loading = false
+                                    errorMessage = result.message.toString()
+                                    showErrorDialog = true
                                     Text(text = "Error loading balance")
                                 }
 
                                 is NetworkResult.Loading -> {
-                                    Text(text = "")
+                                    loading = true
+                                    showErrorDialog = false
                                 }
 
                                 is NetworkResult.Idle -> {
-                                    // Do nothing or show some idle state
+                                    loading = false
+                                    showErrorDialog = false
                                 }
                             }
                         }
@@ -316,6 +330,15 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                     }
                 }
             }
+        }
+    }
+
+    if (loading)
+        LoadingOverlay()
+
+    if (showErrorDialog){
+        ErrorDialog(title = null, message = errorMessage) {
+            showErrorDialog = false
         }
     }
 }

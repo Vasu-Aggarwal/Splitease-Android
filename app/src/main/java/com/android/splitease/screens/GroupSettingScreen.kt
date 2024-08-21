@@ -20,6 +20,8 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -69,6 +71,7 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
 
     val groupMembers: State<NetworkResult<List<GetGroupMembersV2Response>>> = groupViewModel.groupMembersV2.collectAsState()
     val removeUser by groupViewModel.removeUser.collectAsState()
+    val deleteGroup by groupViewModel.deleteGroup.collectAsState()
 
     // State to control the bottom sheet
     var selectedMember by remember { mutableStateOf<GetGroupMembersV2Response?>(null) }
@@ -115,7 +118,7 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
         }
     ) { padding ->
 
-        Box(
+        Column(
             modifier = Modifier.padding(padding)
         ) {
             when (val result = groupMembers.value) {
@@ -152,6 +155,31 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
                         }
                     }
                 }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .clickable {
+
+                    },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arr
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete group",
+                    tint = Red800,
+                    modifier = Modifier
+                        .padding(end = 12.dp)
+                        .size(30.dp)
+                )
+                Text(text = buildAnnotatedString {
+                    withStyle(style = SpanStyle(color = Red800)){
+                        append("Delete Group")
+                    }
+                })
             }
         }
 
