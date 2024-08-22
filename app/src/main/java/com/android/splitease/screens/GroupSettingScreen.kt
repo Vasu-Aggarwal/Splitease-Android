@@ -101,14 +101,19 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
         mutableStateOf(false)
     }
 
+    // New flag to control if a toast should be shown
+    var shouldShowUserRemovedToast by remember { mutableStateOf(false) }
+
     // Observe the remove user state to hide the loading overlay once the operation is complete
     LaunchedEffect(removeUser) {
-        if (removeUser is NetworkResult.Success) {
-            groupViewModel.getGroupMembersV2(groupId)
-            showLoadingOverlay = false
-            Toast.makeText(context, "User removed from the group", Toast.LENGTH_SHORT).show()
-        } else if (removeUser is NetworkResult.Error) {
-            showLoadingOverlay = false
+        if (shouldShowUserRemovedToast){
+            if (removeUser is NetworkResult.Success) {
+                groupViewModel.getGroupMembersV2(groupId)
+                showLoadingOverlay = false
+                Toast.makeText(context, "User removed from the group", Toast.LENGTH_SHORT).show()
+            } else if (removeUser is NetworkResult.Error) {
+                showLoadingOverlay = false
+            }
         }
     }
 
@@ -161,7 +166,10 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 8.dp, vertical = 8.dp),
-                                onClick = { navController.navigate(Screen.AddUsersToGroupScreen.createRoute(groupId)) },
+                                onClick = {
+                                    navController.navigate(Screen.AddUsersToGroupScreen.createRoute(groupId))
+                                    shouldShowUserRemovedToast = false
+                                },
                                 colors = CardDefaults.cardColors(containerColor = Color.Transparent)
                             ) {
 
@@ -244,6 +252,7 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
 //                        sheetState.hide()
                         showBottomSheet = false // Reset this when the bottom sheet is dismissed
                         selectedMember = null
+                        shouldShowUserRemovedToast = false
                     }
                 },
                 sheetState = sheetState,
@@ -252,11 +261,13 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
                     BottomSheetContent(member = it, userUuid, onRemoveClick = {
                         showLoadingOverlay = true
                         groupViewModel.removeUserFromGroup(groupId, selectedMember!!.userUuid)
+                        shouldShowUserRemovedToast = true
                     }) {
                         scope.launch {
                             sheetState.hide()
                             showBottomSheet = false // Reset this when the bottom sheet is dismissed
                             selectedMember = null
+                            shouldShowUserRemovedToast = false
                         }
                     }
                 }
