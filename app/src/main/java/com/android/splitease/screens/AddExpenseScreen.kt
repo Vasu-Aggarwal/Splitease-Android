@@ -79,6 +79,7 @@ import com.android.splitease.navigation.Screen
 import com.android.splitease.ui.theme.Grey800
 import com.android.splitease.ui.theme.White
 import com.android.splitease.utils.ErrorDialog
+import com.android.splitease.utils.LoadingOverlay
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.SplitBy
 import com.android.splitease.utils.TokenManager
@@ -110,13 +111,14 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
     val selectedSplitBy = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedSplitBy", SplitBy.EQUAL)?.collectAsState()
 
     // Retrieve the selected user's name and UUID from the savedStateHandle
-    val selectedCategory = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedCategory", "")?.collectAsState()
+    val selectedCategory = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedCategory", "General")?.collectAsState()
     val selectedCategoryImg = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedCategoryImg", "")?.collectAsState()
 
     var contributions by remember { mutableStateOf<Map<String, Double>>(emptyMap()) }
     val contributionsState = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedData", emptyMap<String, Double>())?.collectAsState()
 
     var showErrorDialog by remember { mutableStateOf(false) }
+    var loading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
     // Update contributions whenever contri changes
@@ -334,18 +336,25 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
             }
             when (val result = addTransaction.value) {
                 is NetworkResult.Success -> {
-                    Toast.makeText(context, "Transaction added successfully", Toast.LENGTH_SHORT).show()
-                    navController.popBackStack(Screen.DetailedGroupScreen.createRoute(groupId), false)
+                    loading = false
+                    LaunchedEffect(Unit) {
+                        Toast.makeText(context, "Transaction added successfully", Toast.LENGTH_SHORT).show()
+                        navController.popBackStack(Screen.DetailedGroupScreen.createRoute(groupId), false)
+                    }
                 }
                 is NetworkResult.Error -> {
+                    loading = false
                     errorMessage = result.message ?: "Unexpected error occurred"
                     showErrorDialog = true
                 }
                 is NetworkResult.Loading -> {
-                    message = "Adding transaction..."
+                    loading = true
                 }
 
-                is NetworkResult.Idle -> message = ""
+                is NetworkResult.Idle -> {
+                    loading = false
+                    message = ""
+                }
             }
 
             Row(
@@ -390,4 +399,10 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
             showErrorDialog = false
         }
     }
+
+
+    if(loading){
+        LoadingOverlay()
+    }
+
 }
