@@ -5,7 +5,7 @@ import com.android.splitease.ui.theme.Green300
 import java.util.concurrent.TimeUnit
 
 object AppConstants {
-    const val OFFICE_BASE_URL = "http://10.100.102.124:9090"
+    const val OFFICE_BASE_URL = "http://10.100.103.17:9090"
     const val HOME_BASE_URL = "http://192.168.1.24:9090"
     const val TRANSACTION_URL = "/api/transaction"
     const val AUTH_URL = "/auth"

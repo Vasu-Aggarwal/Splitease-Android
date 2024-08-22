@@ -5,12 +5,14 @@ import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -21,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -33,6 +36,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -55,8 +59,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.android.splitease.models.responses.DeleteResponse
 import com.android.splitease.models.responses.GetGroupMembersV2Response
+import com.android.splitease.navigation.Screen
 import com.android.splitease.ui.theme.Red800
+import com.android.splitease.utils.ErrorDialog
+import com.android.splitease.utils.LoadingOverlay
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.TokenManager
 import com.android.splitease.utils.UtilMethods
@@ -71,7 +79,7 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
 
     val groupMembers: State<NetworkResult<List<GetGroupMembersV2Response>>> = groupViewModel.groupMembersV2.collectAsState()
     val removeUser by groupViewModel.removeUser.collectAsState()
-    val deleteGroup by groupViewModel.deleteGroup.collectAsState()
+    val deleteGroup : State<NetworkResult<DeleteResponse>> = groupViewModel.deleteGroup.collectAsState()
 
     // State to control the bottom sheet
     var selectedMember by remember { mutableStateOf<GetGroupMembersV2Response?>(null) }
@@ -86,6 +94,11 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
     val sharedPreferences = context.getSharedPreferences("secure_prefs", Context.MODE_PRIVATE)
     val tokenManager = TokenManager(sharedPreferences)
     val userUuid = tokenManager.getUserUuid()
+
+    var showAlertOnDelete by remember { mutableStateOf(false) }
+    var loading by remember {
+        mutableStateOf(false)
+    }
 
     // Observe the remove user state to hide the loading overlay once the operation is complete
     LaunchedEffect(removeUser) {
@@ -161,11 +174,12 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)
+                    .height(50.dp)
                     .clickable {
-
+                        showAlertOnDelete = true
                     },
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arr
+                horizontalArrangement = Arrangement.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
@@ -185,14 +199,7 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
 
         // Show a loading overlay when removing a user
         if (showLoadingOverlay) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f)),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
+            LoadingOverlay()
         }
 
         // Only show the bottom sheet if showBottomSheet is true
@@ -219,6 +226,52 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
                         }
                     }
                 }
+            }
+        }
+    }
+
+    if (showAlertOnDelete){
+        AlertDialog(
+            title = { Text(text = "Confirm Group Deletion") },
+            text = { Text(text = "Are you sure you want to permanently delete this group? " +
+                    "This action cannot be undone, and all group data will be lost. " +
+                    "Once deleted, the group cannot be restored.") },
+            onDismissRequest = { showAlertOnDelete = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    showAlertOnDelete = false
+                    groupViewModel.deleteGroup(groupId)
+                }) {
+                    Text("YES")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showAlertOnDelete = false
+                }) {
+                    Text("CANCEL")
+                }
+            }
+        )
+    }
+
+    if (loading){
+        LoadingOverlay()
+    }
+
+    LaunchedEffect(deleteGroup.value) {
+        when(deleteGroup.value){
+            is NetworkResult.Error -> {
+                loading = false
+            }
+            is NetworkResult.Idle -> { loading = false }
+            is NetworkResult.Loading -> { loading = true }
+            is NetworkResult.Success -> {
+                loading = false
+                navController.navigate(Screen.GroupScreen.route) {
+                    popUpTo(Screen.GroupScreen.route) { inclusive = true } // Clear back stack
+                }
+                Toast.makeText(context, "Group deleted successfully", Toast.LENGTH_SHORT).show()
             }
         }
     }
