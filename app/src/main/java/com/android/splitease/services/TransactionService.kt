@@ -33,6 +33,9 @@ interface TransactionService {
     @POST("${AppConstants.TRANSACTION_URL}/updateTransaction")
     suspend fun updateTransactionApi(@Header("Authorization") token: String, @Body addTransactionRequest: AddTransactionRequest): Response<AddTransactionResponse>
 
+    @POST("${AppConstants.TRANSACTION_URL}/restoreTransaction/{transactionId}")
+    suspend fun restoreTransactionApi(@Header("Authorization") token: String, @Path("transactionId") transactionId: Int): Response<GetTransactionByIdResponse>
+
     @GET("${AppConstants.TRANSACTION_URL}/calculateDebt/{groupId}")
     suspend fun calculateDebtApi(@Header("Authorization") token: String, @Path("groupId") groupId: Int): Response<CalculateDebtResponse>
 

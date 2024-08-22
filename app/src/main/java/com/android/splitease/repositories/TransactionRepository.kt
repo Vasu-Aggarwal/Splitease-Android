@@ -34,6 +34,10 @@ class TransactionRepository @Inject constructor(private val transactionService: 
     val updateTransaction: StateFlow<NetworkResult<AddTransactionResponse>>
         get() = _updateTransaction
 
+    private val _restoreTransaction = MutableStateFlow<NetworkResult<GetTransactionByIdResponse>>(NetworkResult.Idle())
+    val restoreTransaction: StateFlow<NetworkResult<GetTransactionByIdResponse>>
+        get() = _restoreTransaction
+
     private val _deleteTransaction = MutableStateFlow<NetworkResult<DeleteResponse>>(NetworkResult.Idle())
     val deleteTransaction: StateFlow<NetworkResult<DeleteResponse>>
         get() = _deleteTransaction
@@ -166,6 +170,23 @@ class TransactionRepository @Inject constructor(private val transactionService: 
             _getTransaction.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         } catch (e: Exception){
             _getTransaction.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        }
+    }
+
+    suspend fun restoreTransaction(transactionId: Int){
+        try {
+            _restoreTransaction.emit(NetworkResult.Loading())
+            val authToken = tokenManager.getAuthToken()
+            val response = transactionService.restoreTransactionApi("Bearer $authToken", transactionId)
+            if (response.isSuccessful && response.body() != null) {
+                _restoreTransaction.emit(NetworkResult.Success(response.body()!!))
+            } else {
+                _restoreTransaction.emit(NetworkResult.Error(response.errorBody()?.string()))
+            }
+        } catch (e: NetworkException){
+            _restoreTransaction.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
+        } catch (e: Exception){
+            _restoreTransaction.emit(NetworkResult.Error(e.message ?: AppConstants.UNEXPECTED_ERROR))
         }
     }
 }

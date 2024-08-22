@@ -33,6 +33,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -42,7 +46,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -54,6 +61,8 @@ import com.android.splitease.models.responses.GetTransactionByIdResponse
 import com.android.splitease.navigation.Screen
 import com.android.splitease.ui.theme.Grey300
 import com.android.splitease.ui.theme.Grey400
+import com.android.splitease.utils.AppConstants
+import com.android.splitease.utils.LoadingOverlay
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.TokenManager
 import com.android.splitease.utils.UtilMethods
@@ -64,14 +73,18 @@ import com.android.splitease.viewmodels.TransactionViewModel
 fun DetailedTransactionScreen(transactionId: Int, transactionViewModel: TransactionViewModel = hiltViewModel(), navController: NavController) {
 
     val transaction: State<NetworkResult<GetTransactionByIdResponse>> = transactionViewModel.getTransaction.collectAsState()
+    val restore: State<NetworkResult<GetTransactionByIdResponse>> = transactionViewModel.restoreTransaction.collectAsState()
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("secure_prefs", Context.MODE_PRIVATE)
     val tokenManager = TokenManager(sharedPreferences)
     val userUuid = tokenManager.getUserUuid()
 
+    var loading by remember { mutableStateOf(false) }
+
 
     LaunchedEffect(transactionId) {
         transactionViewModel.getTransactionById(transactionId)
+        loading = true
     }
 
     Scaffold(
@@ -109,7 +122,11 @@ fun DetailedTransactionScreen(transactionId: Int, transactionViewModel: Transact
                 }
 
                 TopAppBar(
-                    colors = TopAppBarColors(containerColor = Color.White, scrolledContainerColor = Color.White, navigationIconContentColor = Color.Black, titleContentColor = Color.White, actionIconContentColor = Color.Black),
+                    colors =
+                            if (transaction.value.data?.status != 0)
+                                TopAppBarColors(containerColor = Color.White, scrolledContainerColor = Color.White, navigationIconContentColor = Color.Black, titleContentColor = Color.White, actionIconContentColor = Color.Black)
+                            else
+                                TopAppBarColors(containerColor = Grey400, scrolledContainerColor = Grey400, navigationIconContentColor = Color.Black, titleContentColor = Color.White, actionIconContentColor = Color.Black),
                     title = {
                     },
                     navigationIcon = {
@@ -120,12 +137,15 @@ fun DetailedTransactionScreen(transactionId: Int, transactionViewModel: Transact
                     actions = {
                         if (transaction.value.data?.status == 0){
                             IconButton(onClick = {
-                                Toast.makeText(context, "Restore transaction", Toast.LENGTH_SHORT).show()
+                                loading = true
+                                transactionViewModel.restoreTransaction(transactionId)
+                                navController.popBackStack()
                             }) {
                                 Icon(imageVector = Icons.Default.Restore, contentDescription = "Delete")
                             }
                         } else {
                             IconButton(onClick = {
+                                loading = true
                                 transactionViewModel.deleteTransaction(transactionId)
                                 navController.popBackStack()
                             }) {
@@ -145,18 +165,42 @@ fun DetailedTransactionScreen(transactionId: Int, transactionViewModel: Transact
             modifier = Modifier.padding(padding)
         ) {
 
+            when (restore.value) {
+                is NetworkResult.Loading -> { loading = true }
+                is NetworkResult.Success, is NetworkResult.Error, is NetworkResult.Idle -> { loading = false }
+            }
+
             when(val result = transaction.value){
-                is NetworkResult.Error -> {}
-                is NetworkResult.Idle -> {}
-                is NetworkResult.Loading -> {}
+                is NetworkResult.Error -> {loading = false}
+                is NetworkResult.Idle -> {loading = false}
+                is NetworkResult.Loading -> {loading = true}
                 is NetworkResult.Success -> {
+                    loading = false
                     result.data?.let { transactionData ->
                         Column(
                             modifier = Modifier.padding(start = 60.dp, top = 30.dp)
                         ) {
-                            Text(text = transactionData.description, fontSize = 25.sp)
-                            Text(text = UtilMethods.formatAmount(transactionData.amount), fontSize = 25.sp)
+                            if (transactionData.status == 0){ //means deleted
+                                Text(text = transactionData.description, fontSize = 25.sp, textDecoration = TextDecoration.LineThrough)
+                                Text(text = UtilMethods.formatAmount(transactionData.amount), fontSize = 25.sp, textDecoration = TextDecoration.LineThrough)
+                            }
+                            else {
+                                Text(text = transactionData.description, fontSize = 25.sp)
+                                Text(text = UtilMethods.formatAmount(transactionData.amount), fontSize = 25.sp)
+                            }
                             Text(text = "Added on ${transactionData.createdOn}", fontSize = 13.sp, modifier = Modifier.padding(top = 15.dp), color = Grey400)
+                            Text(text = buildAnnotatedString {
+                                if(transaction.value.data?.status == 0) {
+                                    withStyle(style = SpanStyle(color = AppConstants.OWE_COLOR)){
+                                        append("Deleted on ${transactionData.modifiedOn}")
+                                    }
+                                }
+                                else if (transactionData.modifiedOn != transactionData.createdOn){
+                                    append("Modified on ${transactionData.modifiedOn}")
+                                } else {
+                                    append("")
+                                }
+                            }, fontSize = 13.sp, color = Grey400)
 
                             Text(text = buildAnnotatedString {
                                 if(transactionData.userUuid == userUuid)
@@ -181,6 +225,9 @@ fun DetailedTransactionScreen(transactionId: Int, transactionViewModel: Transact
                     }
                 }
             }
+        }
+        if (loading){
+            LoadingOverlay()
         }
     }
 }

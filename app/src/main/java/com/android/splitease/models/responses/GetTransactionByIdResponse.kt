@@ -11,7 +11,8 @@ data class GetTransactionByIdResponse(
     val payerName: String,
     val category: AddCategoryResponse,
     val userLedgerDetails: List<UserLedgerDetails>,
-    val createdOn: String
+    val createdOn: String,
+    val modifiedOn: String
 )
 
 data class UserLedgerDetails(

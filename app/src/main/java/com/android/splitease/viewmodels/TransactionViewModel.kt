@@ -33,6 +33,9 @@ class TransactionViewModel @Inject constructor(private val transactionRepository
     val getTransaction: StateFlow<NetworkResult<GetTransactionByIdResponse>>
         get() = transactionRepository.getTransaction
 
+    val restoreTransaction: StateFlow<NetworkResult<GetTransactionByIdResponse>>
+        get() = transactionRepository.restoreTransaction
+
     fun getTransactionsByUser(groupId: String) {
         viewModelScope.launch {
             transactionRepository.transactionByGroupId(groupId)
@@ -66,6 +69,12 @@ class TransactionViewModel @Inject constructor(private val transactionRepository
     fun getTransactionById(transactionId: Int){
         viewModelScope.launch {
             transactionRepository.getTransactionById(transactionId)
+        }
+    }
+
+    fun restoreTransaction(transactionId: Int){
+        viewModelScope.launch {
+            transactionRepository.restoreTransaction(transactionId)
         }
     }
 }
