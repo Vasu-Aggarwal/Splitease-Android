@@ -187,7 +187,7 @@ fun BottomNavigationBar(navAppController: NavController) {
                     )
                 ) { backStackEntry ->
                     val mode = backStackEntry.arguments?.getString("mode")
-                    val groupId = backStackEntry.arguments?.getInt("groupId")
+                    val groupId = backStackEntry.arguments?.getInt("groupId", 0)
                     mode?.let {
                         NewGroupScreen(navController = navController, mode = it, groupId = groupId)
                     }

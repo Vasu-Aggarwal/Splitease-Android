@@ -80,7 +80,7 @@ fun NewGroupScreen(
 
     var nameError by remember { mutableStateOf("") }
 
-    if (mode.equals("update", ignoreCase = true) && groupId != null) {
+    if (mode.equals("update", ignoreCase = true) && groupId != null && groupId != 0) {
         LaunchedEffect(groupId) {
             groupViewModel.getGroupInfo(groupId);
         }
@@ -150,7 +150,11 @@ fun NewGroupScreen(
                                     convertUriToFile(context, uri)
                                 }
 
-                                groupViewModel.addUpdateGroup(groupName, groupId, imageFile)
+                                if (groupId == null || groupId == 0){
+                                    groupViewModel.addUpdateGroup(groupName, null, imageFile)
+                                } else {
+                                    groupViewModel.addUpdateGroup(groupName, groupId, imageFile)
+                                }
                             }
                         }) {
                             Icon(

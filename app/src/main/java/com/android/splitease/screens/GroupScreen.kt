@@ -123,7 +123,7 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                 },
                 navigationIcon = { /* TODO */ },
                 actions = {
-                    IconButton(onClick = { navController.navigate(Screen.NewGroupScreen.createRoute("add", null)) }) {
+                    IconButton(onClick = { navController.navigate(Screen.NewGroupScreen.createRoute("add", 0)) }) {
                         Icon(painter = painterResource(id = R.drawable.add_people), contentDescription = "Settings")
                     }
                 },
@@ -373,7 +373,7 @@ fun StartNewGroup(navController: NavController) {
             .fillMaxSize()
     ){
         OutlinedButton(
-            onClick = { navController.navigate(Screen.NewGroupScreen.createRoute("add", null)) },
+            onClick = { navController.navigate(Screen.NewGroupScreen.createRoute("add", 0)) },
             modifier = Modifier.align(Alignment.Center),
             shape = RectangleShape
         ) {
