@@ -1,10 +1,13 @@
 package com.android.splitease.viewmodels
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
@@ -119,42 +122,48 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
     @RequiresApi(Build.VERSION_CODES.Q)
     fun downloadExcel(context: Context, groupId: Int){
         viewModelScope.launch(Dispatchers.Main) {
-            showDownloadNotification(context, "Downloading File", "Download in progress", 1)
-
             try {
                 val success = withContext(Dispatchers.IO) {
                     // Replace with your actual download logic
                     val fileDownloaded = groupRepository.downloadExcelFileToDownloads(context, groupId)
                     fileDownloaded
                 }
+                // Show notification when the download is complete
+                if (success.containsKey(false)){
+                    showDownloadNotification(context, "Download Failed", "An error occurred", 1, success[success.keys.first()])
+                } else {
+                    showDownloadNotification(context, "Download Complete", "Tap to open the file", 2,
+                        success[success.keys.first()]
+                    )
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
-                showDownloadNotification(context, "Download Failed", "An error occurred: ${e.message}", 1)
+                showDownloadNotification(context, "Download Failed", "An error occurred: ${e.message}", 1, null)
             }
         }
     }
 
-    private fun showDownloadNotification(context: Context, title: String, content: String, notificationId: Int) {
+    private fun showDownloadNotification(context: Context, title: String, content: String, notificationId: Int, file: Uri?) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        // Set the sound URI (optional, but replace with your own sound)
+        val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 "download_channel",
                 "File Download",
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Channel for file download notifications"
+                setSound(soundUri, Notification.AUDIO_ATTRIBUTES_DEFAULT) // Set the sound for the notification channel
             }
             notificationManager.createNotificationChannel(channel)
         }
 
-        // Define file and URI
-        val file = File(context.getExternalFilesDir(null), "transactions_${System.currentTimeMillis()}.xlsx")
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-
         // Create Intent to open the file
         val openFileIntent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            setDataAndType(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
             flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
         }
 
@@ -175,6 +184,7 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
             setOnlyAlertOnce(true)
             setContentIntent(pendingIntent)
             setAutoCancel(true)
+            setSound(soundUri) // Set sound for the notification
         }
 
         // Notify

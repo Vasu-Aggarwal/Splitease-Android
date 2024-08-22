@@ -303,8 +303,10 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
 
                                 is NetworkResult.Error -> {
                                     loading = false
-                                    errorMessage = result.message.toString()
-                                    showErrorDialog = true
+                                    LaunchedEffect(Unit){
+                                        errorMessage = result.message.toString()
+                                        showErrorDialog = true
+                                    }
                                     Text(text = "Error loading balance")
                                 }
 

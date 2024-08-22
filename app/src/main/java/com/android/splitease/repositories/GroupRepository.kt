@@ -258,7 +258,7 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    suspend fun downloadExcelFileToDownloads(context: Context, groupId: Int): Boolean {
+    suspend fun downloadExcelFileToDownloads(context: Context, groupId: Int): Map<Boolean, Uri?> {
         return try {
             val authToken = tokenManager.getAuthToken()!!
             _download.emit(NetworkResult.Loading())
@@ -284,72 +284,30 @@ class GroupRepository @Inject constructor(private val groupService: GroupService
                                 val copiedBytes = inputStream.copyTo(outputStream)
                                 Log.d("DownloadFile", "File copied: $copiedBytes bytes")
                             }
-                            // Notify user with a notification
-                            sendNotification(context, uri)
                         }
                         // Verify the file existence
                         val savedFile = File(uri.path)
                         Log.d("DownloadFile", "File saved at: ${savedFile.absolutePath}")
-                        true
+                        mapOf(true to uri)
                     } ?: run {
                         Log.e("DownloadFile", "Failed to create URI for file")
-                        false
+                        mapOf(false to null)
                     }
                 } ?: run {
                     Log.e("DownloadFile", "Response body is null")
-                    false
+                    mapOf(false to null)
                 }
             } else {
                 _download.emit(NetworkResult.Success(false))
                 Log.e("DownloadError", "Failed: ${response.code()} - ${response.message()}")
-                false
+                mapOf(false to null)
             }
         } catch (e: Exception) {
             e.printStackTrace()
             _download.emit(NetworkResult.Success(false))
             Log.e("DownloadFile", "Exception occurred: ${e.message}")
-            false
+            mapOf(false to null)
         }
     }
-
-    private fun sendNotification(context: Context, fileUri: Uri) {
-        val openFileIntent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(fileUri, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-        }
-
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            0,
-            openFileIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val notificationBuilder = NotificationCompat.Builder(context, "download_channel")
-            .setSmallIcon(R.drawable.download)
-            .setContentTitle("File Ready")
-            .setContentText("Tap to open the file")
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setOnlyAlertOnce(true)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return
-        }
-        NotificationManagerCompat.from(context).notify(1, notificationBuilder.build())
-    }
-
 
 }

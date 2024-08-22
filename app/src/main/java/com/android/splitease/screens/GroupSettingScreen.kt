@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -153,6 +154,39 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
                                     .fillMaxWidth()
                                     .padding(16.dp)
                             )
+                        }
+                        
+                        item {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                                onClick = { navController.navigate(Screen.AddUsersToGroupScreen.createRoute(groupId)) },
+                                colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+                            ) {
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(start = 16.dp, bottom = 10.dp)
+                                ) {
+
+                                    Surface(
+                                        modifier = Modifier.size(45.dp),
+                                        shape = MaterialTheme.shapes.small
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                imageVector = Icons.Default.GroupAdd,
+                                                contentDescription = "Add users"
+                                            )
+                                        }
+                                    }
+                                    
+                                    Spacer(modifier = Modifier.width(16.dp))
+
+                                    Text(text = "Add people")
+                                }
+                            }
                         }
 
                         result.data?.let {
