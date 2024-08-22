@@ -271,7 +271,7 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
                                 if (!user.email.isNullOrBlank()){
                                     emailSet = emailSet + user.email
                                 } else {
-                                    emailSet = emailSet + user.mobile
+                                    emailSet = emailSet + user.name
                                 }
                                 searchQuery = "" // clear the text field after adding
                             }
@@ -291,12 +291,17 @@ fun UserItem(
     onUserSelected: (String) -> Unit
 ) {
 
-    val isUserAdded = emailSet.contains(user.email)
+    val isUserAddedEmail = emailSet.contains(user.email)
+    val isUserAddedMobile = emailSet.contains(user.mobile)
 
     Card (
         onClick = {
-            if (!isUserAdded) {
-                onUserSelected(user.email) // Add the user's email to the selected list
+            if (!isUserAddedEmail || !isUserAddedMobile) {
+                if (!user.email.isNullOrBlank()){
+                    onUserSelected(user.email) // Add the user's email to the selected list
+                } else {
+                    onUserSelected(user.mobile) // Add the user's mobile to the selected list
+                }
             }
         },
         modifier = Modifier
@@ -307,14 +312,14 @@ fun UserItem(
     ){
 
         Row{
-            FlippingCard(isUserAdded = !isUserAdded, userName = user.name.first().toString().uppercase())
+            FlippingCard(isUserAdded = !isUserAddedEmail, userName = user.name.first().toString().uppercase())
 
             Spacer(modifier = Modifier.padding(5.dp))
 
             Column {
-                Text(text = user.name, color = if (isUserAdded) Color.Gray else if (isAlreadyInGroup) Color.Gray else White) // Change color if user is added)
+                Text(text = user.name, color = if (isUserAddedEmail) Color.Gray else if (isAlreadyInGroup) Color.Gray else White) // Change color if user is added)
                 if (!user.email.isNullOrBlank()) {
-                    Text(text = if (isAlreadyInGroup) "already in group" else user.email, color = if (isUserAdded) Color.Gray else if (isAlreadyInGroup) Color.Gray else White)
+                    Text(text = if (isAlreadyInGroup) "already in group" else user.email, color = if (isUserAddedEmail) Color.Gray else if (isAlreadyInGroup) Color.Gray else White)
                 }
             }
         }

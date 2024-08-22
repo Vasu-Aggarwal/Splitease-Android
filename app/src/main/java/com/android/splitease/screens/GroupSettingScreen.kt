@@ -65,6 +65,7 @@ import com.android.splitease.models.responses.DeleteResponse
 import com.android.splitease.models.responses.GetGroupMembersV2Response
 import com.android.splitease.navigation.Screen
 import com.android.splitease.ui.theme.Red800
+import com.android.splitease.utils.ErrorDialog
 import com.android.splitease.utils.LoadingOverlay
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.TokenManager
@@ -101,6 +102,8 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
     var loading by remember {
         mutableStateOf(false)
     }
+
+    var errorDialog by remember { mutableStateOf(false) }
 
     // New flag to control if a toast should be shown
     var shouldShowUserRemovedToast by remember { mutableStateOf(false) }
@@ -154,7 +157,12 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
                                 .fillMaxWidth()
                                 .padding(8.dp)
                                 .clickable {
-                                    navController.navigate(Screen.NewGroupScreen.createRoute("update", groupId))
+                                    navController.navigate(
+                                        Screen.NewGroupScreen.createRoute(
+                                            "update",
+                                            groupId
+                                        )
+                                    )
                                 },
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
@@ -318,6 +326,32 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
                     }
                 }
             }
+        }
+    }
+
+    LaunchedEffect(removeUser) {
+        when(removeUser){
+            is NetworkResult.Error -> {errorDialog = true}
+            is NetworkResult.Idle -> {errorDialog = false}
+            is NetworkResult.Loading -> {errorDialog = false}
+            is NetworkResult.Success -> {
+                errorDialog = false
+                if(selectedMember!!.userUuid == userUuid){
+                    navController.navigate(Screen.GroupScreen.route) {
+                        // Clear the back stack and navigate to GroupScreen
+                        popUpTo(Screen.GroupScreen.route) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                }
+            }
+        }
+    }
+
+    if (errorDialog){
+        ErrorDialog(title = null, message = "You are the last member of this group. Delete the group instead.") {
+            errorDialog = false
         }
     }
 
