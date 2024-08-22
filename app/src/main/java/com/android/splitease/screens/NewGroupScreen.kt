@@ -220,6 +220,7 @@ fun NewGroupScreen(
                             value = groupName,
                             onValueChange = { groupName = it },
                             maxLines = 1,
+                            singleLine = true,
                             label = { Text("Enter Group Name") },
                             isError = nameError.isNotEmpty(),
                             trailingIcon = {
