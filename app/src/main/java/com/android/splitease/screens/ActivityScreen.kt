@@ -1,19 +1,14 @@
 package com.android.splitease.screens
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -25,14 +20,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.android.splitease.models.responses.GetUserLogsResponse
 import com.android.splitease.models.util.LogDetailedJson
-import com.android.splitease.ui.theme.Grey400
+import com.android.splitease.navigation.Screen
 import com.android.splitease.utils.ActivityType
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.TokenManager
@@ -78,7 +72,7 @@ fun ActivityScreen(navController: NavController, userViewModel: UserViewModel = 
                             Text(text = "Activity", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(16.dp))
                         }
                         items(it) { userLog ->
-                            ActivityItem(userLog = userLog)
+                            ActivityItem(userLog = userLog, navController)
                         }
                     }
                 }
@@ -88,7 +82,11 @@ fun ActivityScreen(navController: NavController, userViewModel: UserViewModel = 
 }
 
 @Composable
-fun ActivityItem(userLog: GetUserLogsResponse){
+fun ActivityItem(userLog: GetUserLogsResponse, navController: NavController){
+
+    val gson = Gson()
+    val groupDetails = gson.fromJson(userLog.details, LogDetailedJson::class.java)
+
     Card(
         modifier = Modifier
             .fillMaxWidth(),
@@ -96,30 +94,28 @@ fun ActivityItem(userLog: GetUserLogsResponse){
         onClick = {
             when (userLog.activityType) {
                 //Add group
-                ActivityType.ADD_GROUP.name -> {  }
+                ActivityType.ADD_GROUP.name -> { navController.navigate(Screen.DetailedGroupScreen.createRoute(groupDetails.groupId!!)) }
 
                 //Add user to group
-                ActivityType.ADD_USER_TO_GROUP.name -> {  }
+                ActivityType.ADD_USER_TO_GROUP.name -> { navController.navigate(Screen.DetailedGroupScreen.createRoute(groupDetails.groupId!!)) }
 
                 //Remove user from the group
-                ActivityType.REMOVE_USER_FROM_GROUP.name -> {  }
+                ActivityType.REMOVE_USER_FROM_GROUP.name -> { navController.navigate(Screen.DetailedGroupScreen.createRoute(groupDetails.groupId!!)) }
 
                 //Delete the group
                 ActivityType.DELETE_GROUP.name -> {  }
 
                 //Add transaction
-                ActivityType.ADD_TRANSACTION.name -> {  }
+                ActivityType.ADD_TRANSACTION.name -> { navController.navigate(Screen.DetailedTransactionScreen.createRoute(groupDetails.transactionId!!)) }
 
                 //When transaction is settled
-                ActivityType.SETTLED.name -> {  }
+                ActivityType.SETTLED.name -> { navController.navigate(Screen.DetailedTransactionScreen.createRoute(groupDetails.settleId!!)) }
 
                 //When transaction is deleted
-                ActivityType.DELETE_TRANSACTION.name -> {  }
+                ActivityType.DELETE_TRANSACTION.name -> { navController.navigate(Screen.DetailedTransactionScreen.createRoute(groupDetails.transactionId!!)) }
             }
         }
     ) {
-        val gson = Gson()
-        val groupDetails = gson.fromJson(userLog.details, LogDetailedJson::class.java)
         Column(
             modifier = Modifier.padding(16.dp)
         ) {

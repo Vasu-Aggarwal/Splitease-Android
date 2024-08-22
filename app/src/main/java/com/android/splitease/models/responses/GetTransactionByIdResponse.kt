@@ -6,6 +6,7 @@ data class GetTransactionByIdResponse(
     val amount: Double,
     val splitBy: String,
     val groupId: Int,
+    val status: Int,
     val userUuid: String,
     val payerName: String,
     val category: AddCategoryResponse,
