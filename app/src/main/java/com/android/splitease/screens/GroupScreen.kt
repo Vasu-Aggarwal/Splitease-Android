@@ -1,10 +1,7 @@
 package com.android.splitease.screens
 
-import android.graphics.Paint.Align
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,46 +14,28 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.RadioButton
-import androidx.compose.material.RadioButtonColors
 import androidx.compose.material.RadioButtonDefaults
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.containerColor
-import androidx.compose.material3.pulltorefresh.PullToRefreshState
-import androidx.compose.material3.pulltorefresh.pullToRefresh
-import androidx.compose.material3.pulltorefresh.pullToRefreshIndicator
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -83,20 +62,12 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.android.splitease.R
-import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.responses.GetGroupsByUserResponse
 import com.android.splitease.models.responses.GetOverallUserBalance
 import com.android.splitease.navigation.Screen
 import com.android.splitease.ui.theme.Black
-import com.android.splitease.ui.theme.DeepOrange400
-import com.android.splitease.ui.theme.Green300
 import com.android.splitease.ui.theme.Grey400
-import com.android.splitease.ui.theme.Grey600
-import com.android.splitease.ui.theme.Grey700
 import com.android.splitease.ui.theme.Grey800
-import com.android.splitease.ui.theme.Grey900
-import com.android.splitease.ui.theme.Red100
-import com.android.splitease.ui.theme.White
 import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.ErrorDialog
 import com.android.splitease.utils.LoadingOverlay
@@ -152,7 +123,7 @@ fun GroupScreen(viewModel: GroupViewModel = hiltViewModel(), navController: NavC
                 },
                 navigationIcon = { /* TODO */ },
                 actions = {
-                    IconButton(onClick = { navController.navigate(Screen.NewGroupScreen.route) }) {
+                    IconButton(onClick = { navController.navigate(Screen.NewGroupScreen.createRoute("add", null)) }) {
                         Icon(painter = painterResource(id = R.drawable.add_people), contentDescription = "Settings")
                     }
                 },
@@ -402,7 +373,7 @@ fun StartNewGroup(navController: NavController) {
             .fillMaxSize()
     ){
         OutlinedButton(
-            onClick = { navController.navigate(Screen.NewGroupScreen.route) },
+            onClick = { navController.navigate(Screen.NewGroupScreen.createRoute("add", null)) },
             modifier = Modifier.align(Alignment.Center),
             shape = RectangleShape
         ) {

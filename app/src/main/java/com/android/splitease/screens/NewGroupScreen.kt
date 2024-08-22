@@ -3,33 +3,27 @@ package com.android.splitease.screens
 import android.app.Activity.RESULT_OK
 import android.content.Context
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,8 +31,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -47,14 +39,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
@@ -62,10 +53,7 @@ import com.android.splitease.R
 import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.navigation.Screen
 import com.android.splitease.ui.theme.Grey200
-import com.android.splitease.ui.theme.Grey700
 import com.android.splitease.ui.theme.Grey800
-import com.android.splitease.ui.theme.Grey900
-import com.android.splitease.ui.theme.White
 import com.android.splitease.utils.LoadingOverlay
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.GroupViewModel
@@ -79,16 +67,36 @@ import java.io.InputStream
 @Composable
 fun NewGroupScreen(
     groupViewModel: GroupViewModel = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
+    mode: String,
+    groupId: Int?
 ) {
     var groupName by remember { mutableStateOf("") }
     val addUpdateGroup : State<NetworkResult<AddGroupResponse>> = groupViewModel.addUpdateGroup.collectAsState()
+    val groupInfo: State<NetworkResult<AddGroupResponse>> = groupViewModel.groupInfo.collectAsState()
     var imageUri by remember { mutableStateOf<Uri?>(null) }
-    var isButtonEnabled by remember { mutableStateOf(true) }
     var showLoadingOverlay by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    var nameError by remember { mutableStateOf("") }
+
+    if (mode.equals("update", ignoreCase = true) && groupId != null) {
+        LaunchedEffect(groupId) {
+            groupViewModel.getGroupInfo(groupId);
+        }
+    }
+
+    when(val result = groupInfo.value){
+        is NetworkResult.Error -> {}
+        is NetworkResult.Idle -> {}
+        is NetworkResult.Loading -> {}
+        is NetworkResult.Success -> {
+            groupName = result.data?.name ?: ""
+            imageUri = result.data?.imageUrl?.let { Uri.parse(it) }
+        }
+    }
 
     // Activity result launcher for image picking
-    val context = LocalContext.current
     val cropLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             val resultUri = UCrop.getOutput(result.data!!)
@@ -116,7 +124,7 @@ fun NewGroupScreen(
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
-                            text = "Create a group",
+                            text = if (mode.equals("add", ignoreCase = true)) "Create a group" else "Customize group",
                             style = MaterialTheme.typography.titleLarge, // Adjust text style if needed
                         )
                     },
@@ -127,18 +135,25 @@ fun NewGroupScreen(
                     },
                     actions = {
                         IconButton(onClick = {
-                            showLoadingOverlay = true
-                            // Convert Uri to File if necessary and pass it to the ViewModel
-                            val imageFile = imageUri?.let { uri ->
-                                convertUriToFile(context, uri)
+                            var valid = true
+
+                            if (groupName.isNullOrBlank()){
+                                nameError = "Group name cannot be empty"
+                                valid = false
+                            } else {
+                                nameError = ""
                             }
+                            if (valid){
+                                showLoadingOverlay = true
+                                // Convert Uri to File if necessary and pass it to the ViewModel
+                                val imageFile = imageUri?.let { uri ->
+                                    convertUriToFile(context, uri)
+                                }
 
-                            groupViewModel.addUpdateGroup(groupName, null, imageFile)
-                            imageFile?.let {
-
+                                groupViewModel.addUpdateGroup(groupName, groupId, imageFile)
                             }
                         }) {
-                            androidx.compose.material3.Icon(
+                            Icon(
                                 imageVector = Icons.Default.Done,
                                 contentDescription = "Done"
                             )
@@ -189,16 +204,31 @@ fun NewGroupScreen(
                             }
                         }
                     }
-
-                    OutlinedTextField(
-                        value = groupName,
-                        onValueChange = { groupName = it },
-                        maxLines = 1,
-                        label = { Text("Enter Group Name") },
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp)
-                    )
+                    ) {
+                        if (nameError.isNotEmpty()) {
+                            Text(text = nameError, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                        }
+                        OutlinedTextField(
+                            value = groupName,
+                            onValueChange = { groupName = it },
+                            maxLines = 1,
+                            label = { Text("Enter Group Name") },
+                            isError = nameError.isNotEmpty(),
+                            trailingIcon = {
+                                if (nameError.isNotEmpty()) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Error,
+                                        contentDescription = "Error",
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+                        )
+                    }
                 }
 
                 // Handling response

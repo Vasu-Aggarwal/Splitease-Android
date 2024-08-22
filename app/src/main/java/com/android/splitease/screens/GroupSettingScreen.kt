@@ -3,14 +3,13 @@ package com.android.splitease.screens
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,13 +22,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ExitToApp
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -57,14 +56,15 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.responses.DeleteResponse
 import com.android.splitease.models.responses.GetGroupMembersV2Response
 import com.android.splitease.navigation.Screen
 import com.android.splitease.ui.theme.Red800
-import com.android.splitease.utils.ErrorDialog
 import com.android.splitease.utils.LoadingOverlay
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.TokenManager
@@ -81,6 +81,7 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
     val groupMembers: State<NetworkResult<List<GetGroupMembersV2Response>>> = groupViewModel.groupMembersV2.collectAsState()
     val removeUser by groupViewModel.removeUser.collectAsState()
     val deleteGroup : State<NetworkResult<DeleteResponse>> = groupViewModel.deleteGroup.collectAsState()
+    val groupInfo: State<NetworkResult<AddGroupResponse>> = groupViewModel.groupInfo.collectAsState()
 
     // State to control the bottom sheet
     var selectedMember by remember { mutableStateOf<GetGroupMembersV2Response?>(null) }
@@ -121,6 +122,7 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
     var showBottomSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
+        groupViewModel.getGroupInfo(groupId)
         groupViewModel.getGroupMembersV2(groupId)
     }
 
@@ -140,6 +142,50 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
         Column(
             modifier = Modifier.padding(padding)
         ) {
+            
+            when(val result = groupInfo.value){
+                is NetworkResult.Error -> {}
+                is NetworkResult.Idle -> {}
+                is NetworkResult.Loading -> {}
+                is NetworkResult.Success -> {
+                    result.data?.let {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                                .clickable {
+                                    navController.navigate(Screen.NewGroupScreen.createRoute("update", groupId))
+                                },
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ){
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ){
+                                Image(
+                                    painter = rememberAsyncImagePainter(
+                                        ImageRequest.Builder(LocalContext.current)
+                                            .data(data = it.imageUrl)
+                                            .apply(block = fun ImageRequest.Builder.() {
+                                                crossfade(true)
+                                            }).build()
+                                    ),
+                                    contentDescription = "Image",
+                                    modifier = Modifier
+                                        .size(60.dp) // Adjust size as needed
+                                        .padding(end = 8.dp)
+                                )
+
+                                Text(text = it.name, modifier = Modifier.padding(start = 10.dp))
+                            }
+
+                            Icon(imageVector = Icons.Default.Edit, contentDescription = "Edit group")
+                        }
+                    }
+                    HorizontalDivider()
+                }
+            }
+            
             when (val result = groupMembers.value) {
                 is NetworkResult.Error -> {
                     // Handle error state

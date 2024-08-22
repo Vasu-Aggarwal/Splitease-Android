@@ -180,8 +180,17 @@ fun BottomNavigationBar(navAppController: NavController) {
                     ActivityScreen(navController = navController)
                 }
 
-                composable(route = Screen.NewGroupScreen.route) {
-                    NewGroupScreen(navController = navController)
+                composable(route = Screen.NewGroupScreen.route,
+                    arguments = listOf(
+                        navArgument("mode") { type = NavType.StringType },
+                        navArgument("groupId") { type = NavType.IntType }
+                    )
+                ) { backStackEntry ->
+                    val mode = backStackEntry.arguments?.getString("mode")
+                    val groupId = backStackEntry.arguments?.getInt("groupId")
+                    mode?.let {
+                        NewGroupScreen(navController = navController, mode = it, groupId = groupId)
+                    }
                 }
 
 
