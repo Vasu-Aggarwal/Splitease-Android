@@ -87,6 +87,7 @@ import com.android.splitease.utils.UtilMethods
 import com.android.splitease.viewmodels.GroupViewModel
 import com.android.splitease.viewmodels.TransactionViewModel
 import com.google.gson.Gson
+import java.text.DecimalFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,6 +105,7 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
     val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
     var description by remember { mutableStateOf(savedStateHandle?.get<String>("description") ?: "") }
     var amount by remember { mutableDoubleStateOf(savedStateHandle?.get<Double>("amount") ?: 0.0) }
+    val decimalFormat = remember { DecimalFormat("#.##") }
 
     // Retrieve the selected user's name and UUID from the savedStateHandle
     val selectedUserName = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedUserName", "You")?.collectAsState()
@@ -291,8 +293,9 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                 TextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Enter a description") },
+                    placeholder = { Text("Enter a description") },
                     maxLines = 1,
+                    singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                     modifier = Modifier
                         .width(200.dp)
@@ -317,10 +320,14 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                 Spacer(modifier = Modifier.width(15.dp))
 
                 TextField(
-                    value = if (amount == 0.0) "" else amount.toString(),
-                    onValueChange = { it.toDoubleOrNull()?.let { amt -> amount = amt } },
-                    label = { Text("0.00") },
+                    value = if (amount == 0.0) "" else decimalFormat.format(amount),
+                    onValueChange = {
+                        val newAmount = it.toDoubleOrNull()
+                        amount = newAmount ?: 0.0
+                    },
+                    placeholder = { Text("0.00") },
                     maxLines = 1,
+                    singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier
                         .width(200.dp)
