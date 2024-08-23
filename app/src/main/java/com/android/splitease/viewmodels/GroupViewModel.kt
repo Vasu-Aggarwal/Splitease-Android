@@ -6,9 +6,11 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Icon
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
+import android.service.chooser.ChooserAction
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.content.FileProvider
@@ -143,48 +145,73 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     private fun showDownloadNotification(context: Context, title: String, content: String, notificationId: Int, file: Uri?) {
+
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Set the sound URI (optional, but replace with your own sound)
-        val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-
+        // Create Notification Channel if necessary
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                "download_channel",
-                "File Download",
+                "file_actions_channel",
+                "File Actions",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Channel for file download notifications"
-                setSound(soundUri, Notification.AUDIO_ATTRIBUTES_DEFAULT) // Set the sound for the notification channel
+                description = "Channel for file actions notifications"
             }
             notificationManager.createNotificationChannel(channel)
         }
 
-        // Create Intent to open the file
+        // Intent to open the file
         val openFileIntent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(file, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
             flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
         }
 
-        // Create PendingIntent
-        val pendingIntent = PendingIntent.getActivity(
+        //Showing two buttons -> open and share to allow user to either share or open or do both.
+        // PendingIntent to open the file
+        val openFilePendingIntent = PendingIntent.getActivity(
             context,
             0,
             openFileIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Build Notification
-        val notificationBuilder = NotificationCompat.Builder(context, "download_channel").apply {
+        // Intent to share the file
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            putExtra(Intent.EXTRA_STREAM, file)
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        }
+
+        // PendingIntent to share the file
+        val sharePendingIntent = PendingIntent.getActivity(
+            context,
+            1,
+            Intent.createChooser(shareIntent, "Share File"),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Build Notification with actions
+        val notificationBuilder = NotificationCompat.Builder(context, "file_actions_channel").apply {
             setSmallIcon(R.drawable.download)
-            setContentTitle(title) // Ensure `title` is not null
-            setContentText(content) // Ensure `content` is not null
-            setPriority(NotificationCompat.PRIORITY_LOW)
+            setContentTitle(title)
+            setContentText(content)
+            setPriority(NotificationCompat.PRIORITY_HIGH)
             setOnlyAlertOnce(true)
-            setContentIntent(pendingIntent)
             setAutoCancel(true)
-            setSound(soundUri) // Set sound for the notification
+
+            // Add actions
+            addAction(NotificationCompat.Action(
+                R.drawable.download,
+                "Open",
+                openFilePendingIntent
+            ))
+            addAction(NotificationCompat.Action(
+                R.drawable.add_people,
+                "Share",
+                sharePendingIntent
+            ))
         }
 
         // Notify
