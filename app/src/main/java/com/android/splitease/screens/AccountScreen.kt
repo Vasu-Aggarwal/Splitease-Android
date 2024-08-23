@@ -19,6 +19,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -54,6 +59,19 @@ fun AccountScreen(navController: NavController) {
         "Unknown"
     }
 
+    var shouldNavigate by remember { mutableStateOf(false) }
+
+    LaunchedEffect(shouldNavigate) {
+        if (shouldNavigate) {
+            navController.navigate(Screen.LoginScreen.route) {
+                popUpTo(navController.graph.startDestinationId) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+        }
+    }
+
     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()){
         Column(horizontalAlignment = Alignment.CenterHorizontally){
             Row(
@@ -63,13 +81,10 @@ fun AccountScreen(navController: NavController) {
                     .height(60.dp)
                     .clickable {
                         tokenManager.clearTokens()
-                        navController.navigate(Screen.LoginScreen.route) {
-                            // This clears the entire back stack
-                            popUpTo(navController.graph.startDestinationId) {
-                                inclusive = true
-                            }
-                            // Ensure that the back stack is completely cleared
-                            launchSingleTop = true
+
+                        // Check if the tokens are really cleared before navigating
+                        if (tokenManager.getAuthToken().isNullOrEmpty()) {
+                            shouldNavigate = true
                         }
                     },
                 verticalAlignment = Alignment.CenterVertically

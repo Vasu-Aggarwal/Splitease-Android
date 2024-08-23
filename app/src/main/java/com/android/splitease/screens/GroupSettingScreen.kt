@@ -360,6 +360,7 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
                 selectedMember?.let {
                     BottomSheetContent(member = it, userUuid, onRemoveClick = {
                         showLoadingOverlay = true
+                        errorMessage = "Something went wrong"
                         groupViewModel.removeUserFromGroup(groupId, selectedMember!!.userUuid)
                         shouldShowUserRemovedToast = true
                     }) {
