@@ -2,17 +2,22 @@ package com.android.splitease.screens
 
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,6 +25,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -31,9 +37,12 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.BottomAppBarScrollBehavior
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -84,10 +93,19 @@ import com.android.splitease.R
 import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.responses.CalculateDebtResponse
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
-import com.android.splitease.models.responses.GetUserByUuidResponse
 import com.android.splitease.navigation.Screen
+import com.android.splitease.ui.theme.Amber200
+import com.android.splitease.ui.theme.Amber300
+import com.android.splitease.ui.theme.Amber500
+import com.android.splitease.ui.theme.AmberA400
+import com.android.splitease.ui.theme.DeepOrange300
 import com.android.splitease.ui.theme.Grey400
+import com.android.splitease.ui.theme.Grey500
+import com.android.splitease.ui.theme.Grey600
+import com.android.splitease.ui.theme.Grey800
+import com.android.splitease.ui.theme.YellowA200
 import com.android.splitease.utils.AppConstants
+import com.android.splitease.utils.LoadingOverlay
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.TokenManager
 import com.android.splitease.utils.UtilMethods
@@ -112,12 +130,32 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
 
     val transactions: State<NetworkResult<List<GetTransactionsByGroupResponse>>> = transactionViewModel.transactions.collectAsState()
     val calculateDebt by transactionViewModel.calculateDebt.collectAsState()
+    var loading by remember {
+        mutableStateOf(false)
+    }
+
+    var isFeatureEnable by remember {
+        mutableStateOf(true)
+    }
 
     LaunchedEffect(groupId) {
         groupViewModel.getGroupInfo(groupId)
         transactionViewModel.getTransactionsByUser(groupId.toString())
         transactionViewModel.calculateDebt(groupId)
     }
+
+
+    when(groupInfo.value){
+        is NetworkResult.Error -> {}
+        is NetworkResult.Idle -> {}
+        is NetworkResult.Loading -> {loading = true}
+        is NetworkResult.Success -> {
+            loading = false
+            if (groupInfo.value.data?.status?.toInt() == 0)
+                isFeatureEnable = false
+        }
+    }
+
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
 
@@ -267,6 +305,23 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
                     )
                 )
             }
+        },
+        bottomBar = {
+            if(!isFeatureEnable){
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth() // Ensure the Row takes the full width
+                        .background(color = Grey800)
+                        .alpha(0.75f)
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically, // Center the content vertically
+                    horizontalArrangement = Arrangement.Center, // Center the content horizontally
+                ) {
+                    Icon(imageVector = Icons.Outlined.Info, contentDescription = "Info")
+                    Spacer(modifier = Modifier.width(8.dp)) // Add spacing between icon and text
+                    Text(text = "You can't add transactions to this group as you're no longer a member.", fontSize = 12.sp)
+                }
+            }
         }
     ) { innerPadding ->
         Column(
@@ -278,30 +333,47 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
                 modifier = Modifier.fillMaxSize()
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    GroupTransactions(transactionViewModel, transactions, tokenManager, userViewModel, navController, groupInfo, avatarAlpha, calculateDebt, scrollState, groupViewModel)
+                    GroupTransactions(
+                        transactionViewModel,
+                        transactions,
+                        tokenManager,
+                        userViewModel,
+                        navController,
+                        groupInfo,
+                        avatarAlpha,
+                        calculateDebt,
+                        scrollState,
+                        groupViewModel,
+                        isFeatureEnable
+                    )
                 }
 
-                Crossfade(targetState = isFabCollapsed, modifier = Modifier.align(Alignment.BottomEnd)) { scrolling ->
-                    if (scrolling) {
-                        FloatingActionButton(
-                            onClick = {
-                                navController.navigate(Screen.AddExpenseScreen.createRoute(groupId))
+                if (isFeatureEnable){
+                    Crossfade(targetState = isFabCollapsed, modifier = Modifier.align(Alignment.BottomEnd)) { scrolling ->
+                        if (scrolling) {
+                            FloatingActionButton(
+                                onClick = {
+                                    navController.navigate(Screen.AddExpenseScreen.createRoute(groupId))
+                                }
+                            ) {
+                                Icon(Icons.Filled.Add, contentDescription = "Add Expense")
                             }
-                        ) {
-                            Icon(Icons.Filled.Add, contentDescription = "Add Expense")
+                        } else {
+                            ExtendedFloatingActionButton(
+                                onClick = {
+                                    navController.navigate(Screen.AddExpenseScreen.createRoute(groupId))
+                                },
+                                text = { Text("Add Expense") },
+                                icon = { Icon(Icons.Filled.Add, contentDescription = "Add Expense") }
+                            )
                         }
-                    } else {
-                        ExtendedFloatingActionButton(
-                            onClick = {
-                                navController.navigate(Screen.AddExpenseScreen.createRoute(groupId))
-                            },
-                            text = { Text("Add Expense") },
-                            icon = { Icon(Icons.Filled.Add, contentDescription = "Add Expense") }
-                        )
                     }
                 }
             }
         }
+    }
+    if (loading){
+        LoadingOverlay()
     }
 }
 
@@ -318,7 +390,8 @@ fun GroupTransactions(
     avatarAlpha: Float,
     calculateDebt: NetworkResult<CalculateDebtResponse>,
     scrollState: LazyListState,
-    groupViewModel: GroupViewModel
+    groupViewModel: GroupViewModel,
+    isFeatureEnable: Boolean
 ) {
 
     var isRefreshing by remember { mutableStateOf(false) }
@@ -357,7 +430,8 @@ fun GroupTransactions(
                         data = groupInfo.value.data,
                         avatarAlpha,
                         calculateDebt,
-                        groupViewModel
+                        groupViewModel,
+                        isFeatureEnable
                     )
                     Spacer(modifier = Modifier.height(15.dp))
                 }
@@ -509,7 +583,8 @@ fun GroupInfo(
     data: AddGroupResponse?,
     avatarAlpha: Float,
     calculateDebt: NetworkResult<CalculateDebtResponse>,
-    groupViewModel: GroupViewModel
+    groupViewModel: GroupViewModel,
+    isFeatureEnable: Boolean
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
@@ -527,23 +602,23 @@ fun GroupInfo(
                 .horizontalScroll(scrollState)
                 .padding(start = 5.dp, end = 5.dp, top = 10.dp)
         ) {
-            Button(onClick = { navController.navigate(Screen.AddUsersToGroupScreen.createRoute(data.groupId)) }) {
+            Button(onClick = { navController.navigate(Screen.AddUsersToGroupScreen.createRoute(data.groupId)) }, enabled = isFeatureEnable) {
                 Text(text = "Add Users")
             }
             Spacer(modifier = Modifier.width(8.dp)) // Optional spacing between buttons
-            Button(onClick = { navController.navigate(Screen.UserDebtScreen.createRoute(data.groupId)) }) {
+            Button(onClick = { navController.navigate(Screen.UserDebtScreen.createRoute(data.groupId)) }, enabled = isFeatureEnable) {
                 Text(text = "Balances")
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { navController.navigate(Screen.SettleUpPayerScreen.createRoute(data.groupId)) }) {
+            Button(onClick = { navController.navigate(Screen.SettleUpPayerScreen.createRoute(data.groupId)) }, enabled = isFeatureEnable) {
                 Text(text = "Settle Up")
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { navController.navigate(Screen.GroupSummaryScreen.createRoute(data.groupId)) }) {
+            Button(onClick = { navController.navigate(Screen.GroupSummaryScreen.createRoute(data.groupId)) }, enabled = isFeatureEnable) {
                 Text(text = "Totals")
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { scope.launch { groupViewModel.downloadExcel(context, groupId = data.groupId) } }) {
+            Button(onClick = { scope.launch { groupViewModel.downloadExcel(context, groupId = data.groupId) } }, enabled = isFeatureEnable) {
                 Text(text = "Export")
             }
         }

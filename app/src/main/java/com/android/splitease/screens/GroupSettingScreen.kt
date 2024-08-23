@@ -104,6 +104,12 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
     }
 
     var errorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember {
+        mutableStateOf("")
+    }
+    var isFeatureEnable by remember {
+        mutableStateOf(true)
+    }
 
     // New flag to control if a toast should be shown
     var shouldShowUserRemovedToast by remember { mutableStateOf(false) }
@@ -151,18 +157,27 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
                 is NetworkResult.Idle -> {}
                 is NetworkResult.Loading -> {}
                 is NetworkResult.Success -> {
+                    if (groupInfo.value.data?.status?.toInt() == 0)
+                        isFeatureEnable = false
+
                     result.data?.let {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(8.dp)
                                 .clickable {
-                                    navController.navigate(
-                                        Screen.NewGroupScreen.createRoute(
-                                            "update",
-                                            groupId
+                                    if (isFeatureEnable) {
+                                        errorDialog = false
+                                        navController.navigate(
+                                            Screen.NewGroupScreen.createRoute(
+                                                "update",
+                                                groupId
+                                            )
                                         )
-                                    )
+                                    } else {
+                                        errorMessage = "You can't edit this group as you're no longer a member"
+                                        errorDialog = true
+                                    }
                                 },
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
@@ -350,7 +365,7 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
     }
 
     if (errorDialog){
-        ErrorDialog(title = null, message = "You are the last member of this group. Delete the group instead.") {
+        ErrorDialog(title = null, message = errorMessage) {
             errorDialog = false
         }
     }
