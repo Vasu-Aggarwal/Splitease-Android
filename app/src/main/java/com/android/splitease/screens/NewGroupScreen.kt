@@ -2,7 +2,11 @@ package com.android.splitease.screens
 
 import android.app.Activity.RESULT_OK
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -23,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -31,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -46,6 +52,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
@@ -96,6 +104,8 @@ fun NewGroupScreen(
         }
     }
 
+    var shouldShowPermissionDialog by remember { mutableStateOf(false) }
+
     // Activity result launcher for image picking
     val cropLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
@@ -112,11 +122,52 @@ fun NewGroupScreen(
             // Start UCrop activity for cropping
             val destinationUri = Uri.fromFile(File(context.cacheDir, "cropped_image.jpg"))
             val uCropIntent = UCrop.of(it, destinationUri)
-                .withAspectRatio(1f, 1f) // Set aspect ratio here if needed
+                .withAspectRatio(1f, 1f)
                 .getIntent(context)
             cropLauncher.launch(uCropIntent)
         }
     }
+
+    // Permission launcher for requesting permissions
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            launcher.launch("image/*")
+        } else {
+            shouldShowPermissionDialog = true
+        }
+    }
+
+    // Function to check permission before launching image picker
+    fun checkAndRequestPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_MEDIA_IMAGES)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                permissionLauncher.launch(android.Manifest.permission.READ_MEDIA_IMAGES)
+            } else {
+                launcher.launch("image/*")
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                permissionLauncher.launch(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+            } else {
+                launcher.launch("image/*")
+            }
+        }
+    }
+
+    if (shouldShowPermissionDialog) {
+        PermissionDialog(
+            onDismissRequest = { shouldShowPermissionDialog = false },
+            onConfirm = { checkAndRequestPermission() },
+            onGoToSettings = { openAppSettings(context) }
+        )
+    }
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -198,7 +249,9 @@ fun NewGroupScreen(
                             )
                         } else {
                             IconButton(onClick = {
-                                launcher.launch("image/*") // Open image picker
+//                                launcher.launch("image/*") // Open image picker
+//                                permissionLauncher.launch(getPermissionType())
+                                                 checkAndRequestPermission()
                             }, modifier = Modifier.fillMaxSize()) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.add_photo),
@@ -289,5 +342,34 @@ fun getInputStreamFromUri(context: Context, uri: Uri): InputStream? {
         e.printStackTrace()
         null
     }
+}
+
+@Composable
+fun PermissionDialog(
+    onDismissRequest: () -> Unit,
+    onConfirm: () -> Unit,
+    onGoToSettings: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text(text = "Permission Required") },
+        text = { Text(text = "This app requires permission to access your images. Please grant the permission to continue.") },
+        confirmButton = {
+            TextButton(onClick = onGoToSettings) {
+                Text("Go to Settings")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text("Close")
+            }
+        }
+    )
+}
+
+fun openAppSettings(context: Context) {
+    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+    intent.data = Uri.parse("package:${context.packageName}")
+    context.startActivity(intent)
 }
 
