@@ -2,7 +2,6 @@ package com.android.splitease.screens
 
 import android.content.Context
 import android.os.Build
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
@@ -10,14 +9,12 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,7 +22,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -37,12 +33,9 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.BottomAppBarScrollBehavior
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -92,19 +85,13 @@ import coil.request.ImageRequest
 import com.android.splitease.R
 import com.android.splitease.models.responses.AddGroupResponse
 import com.android.splitease.models.responses.CalculateDebtResponse
+import com.android.splitease.models.responses.GetGroupMembersV2Response
 import com.android.splitease.models.responses.GetTransactionsByGroupResponse
 import com.android.splitease.navigation.Screen
-import com.android.splitease.ui.theme.Amber200
-import com.android.splitease.ui.theme.Amber300
-import com.android.splitease.ui.theme.Amber500
-import com.android.splitease.ui.theme.AmberA400
-import com.android.splitease.ui.theme.DeepOrange300
 import com.android.splitease.ui.theme.Grey400
-import com.android.splitease.ui.theme.Grey500
-import com.android.splitease.ui.theme.Grey600
 import com.android.splitease.ui.theme.Grey800
-import com.android.splitease.ui.theme.YellowA200
 import com.android.splitease.utils.AppConstants
+import com.android.splitease.utils.ErrorDialog
 import com.android.splitease.utils.LoadingOverlay
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.TokenManager
@@ -126,8 +113,9 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("secure_prefs", Context.MODE_PRIVATE)
     val tokenManager = TokenManager(sharedPreferences)
+    val currentUserUuid = tokenManager.getUserUuid()!!
     val groupInfo: State<NetworkResult<AddGroupResponse>> = groupViewModel.groupInfo.collectAsState()
-
+    val members: State<NetworkResult<List<GetGroupMembersV2Response>>> = groupViewModel.groupMembersV2.collectAsState()
     val transactions: State<NetworkResult<List<GetTransactionsByGroupResponse>>> = transactionViewModel.transactions.collectAsState()
     val calculateDebt by transactionViewModel.calculateDebt.collectAsState()
     var loading by remember {
@@ -138,7 +126,16 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
         mutableStateOf(true)
     }
 
+    var isUserAuthorized by remember {
+        mutableStateOf(true)
+    }
+    var errorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember {
+        mutableStateOf("")
+    }
+
     LaunchedEffect(groupId) {
+        groupViewModel.getGroupMembersV2(groupId)
         groupViewModel.getGroupInfo(groupId)
         transactionViewModel.getTransactionsByUser(groupId.toString())
         transactionViewModel.calculateDebt(groupId)
@@ -153,6 +150,20 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
             loading = false
             if (groupInfo.value.data?.status?.toInt() == 0)
                 isFeatureEnable = false
+        }
+    }
+
+    when(members.value){
+        is NetworkResult.Error -> {}
+        is NetworkResult.Idle -> {}
+        is NetworkResult.Loading -> {loading = true}
+        is NetworkResult.Success -> {
+            loading = false
+            val memberList = (members.value as NetworkResult.Success<List<GetGroupMembersV2Response>>).data
+            val isCurrentUserPresent = memberList!!.any { it.userUuid == currentUserUuid }
+            if (!isCurrentUserPresent) {
+                isUserAuthorized = false
+            }
         }
     }
 
@@ -291,7 +302,14 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
                         }
                     },
                     actions = {
-                        IconButton(onClick = { navController.navigate(Screen.GroupSettingScreen.createRoute(groupId)) }) {
+                        IconButton(onClick = {
+                            if(isFeatureEnable && isUserAuthorized)
+                                navController.navigate(Screen.GroupSettingScreen.createRoute(groupId))
+                            else {
+                                errorMessage = "You can't edit this group as you're no longer a member"
+                                errorDialog = true
+                            }
+                        }) {
                             Icon(imageVector = Icons.Outlined.Settings, contentDescription = "group setting")
                         }
                     },
@@ -307,7 +325,7 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
             }
         },
         bottomBar = {
-            if(!isFeatureEnable){
+            if(!isFeatureEnable || !isUserAuthorized){
                 Row(
                     modifier = Modifier
                         .fillMaxWidth() // Ensure the Row takes the full width
@@ -344,11 +362,12 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
                         calculateDebt,
                         scrollState,
                         groupViewModel,
-                        isFeatureEnable
+                        isFeatureEnable,
+                        isUserAuthorized
                     )
                 }
 
-                if (isFeatureEnable){
+                if (isFeatureEnable && isUserAuthorized){
                     Crossfade(targetState = isFabCollapsed, modifier = Modifier.align(Alignment.BottomEnd)) { scrolling ->
                         if (scrolling) {
                             FloatingActionButton(
@@ -375,6 +394,11 @@ fun DetailedGroupScreen(groupId: Int, transactionViewModel: TransactionViewModel
     if (loading){
         LoadingOverlay()
     }
+    if (errorDialog){
+        ErrorDialog(title = null, message = errorMessage) {
+            errorDialog = false
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
@@ -391,7 +415,8 @@ fun GroupTransactions(
     calculateDebt: NetworkResult<CalculateDebtResponse>,
     scrollState: LazyListState,
     groupViewModel: GroupViewModel,
-    isFeatureEnable: Boolean
+    isFeatureEnable: Boolean,
+    isUserAuthorized: Boolean
 ) {
 
     var isRefreshing by remember { mutableStateOf(false) }
@@ -431,13 +456,14 @@ fun GroupTransactions(
                         avatarAlpha,
                         calculateDebt,
                         groupViewModel,
-                        isFeatureEnable
+                        isFeatureEnable,
+                        isUserAuthorized
                     )
                     Spacer(modifier = Modifier.height(15.dp))
                 }
                 transactions.value.data?.let { transactionList ->
                     items(transactionList) { transaction ->
-                        TransactionItem(transaction, tokenManager, navController)
+                        TransactionItem(transaction, tokenManager, navController, isFeatureEnable, isUserAuthorized)
                     }
                 }
                 item {
@@ -453,7 +479,9 @@ fun GroupTransactions(
 fun TransactionItem(
     transaction: GetTransactionsByGroupResponse,
     tokenManager: TokenManager,
-    navController: NavController
+    navController: NavController,
+    isFeatureEnable: Boolean,
+    isUserAuthorized: Boolean
 ) {
     val context = LocalContext.current
     Card (
@@ -464,10 +492,11 @@ fun TransactionItem(
                 navController.navigate(Screen.DetailedTransactionScreen.createRoute(transaction.transactionId))
             }
         },
+        enabled = isFeatureEnable && isUserAuthorized,
         modifier = Modifier
             .fillMaxSize()
             .padding(5.dp, 1.dp, 5.dp, 1.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent, disabledContainerColor = Color.Transparent, disabledContentColor = Color.White)
     ){
         Box {
             if (transaction.description == null && transaction.category == null){
@@ -584,7 +613,8 @@ fun GroupInfo(
     avatarAlpha: Float,
     calculateDebt: NetworkResult<CalculateDebtResponse>,
     groupViewModel: GroupViewModel,
-    isFeatureEnable: Boolean
+    isFeatureEnable: Boolean,
+    isUserAuthorized: Boolean
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
@@ -602,23 +632,23 @@ fun GroupInfo(
                 .horizontalScroll(scrollState)
                 .padding(start = 5.dp, end = 5.dp, top = 10.dp)
         ) {
-            Button(onClick = { navController.navigate(Screen.AddUsersToGroupScreen.createRoute(data.groupId)) }, enabled = isFeatureEnable) {
+            Button(onClick = { navController.navigate(Screen.AddUsersToGroupScreen.createRoute(data.groupId)) }, enabled = (isFeatureEnable && isUserAuthorized)) {
                 Text(text = "Add Users")
             }
             Spacer(modifier = Modifier.width(8.dp)) // Optional spacing between buttons
-            Button(onClick = { navController.navigate(Screen.UserDebtScreen.createRoute(data.groupId)) }, enabled = isFeatureEnable) {
+            Button(onClick = { navController.navigate(Screen.UserDebtScreen.createRoute(data.groupId)) }, enabled = (isFeatureEnable && isUserAuthorized)) {
                 Text(text = "Balances")
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { navController.navigate(Screen.SettleUpPayerScreen.createRoute(data.groupId)) }, enabled = isFeatureEnable) {
+            Button(onClick = { navController.navigate(Screen.SettleUpPayerScreen.createRoute(data.groupId)) }, enabled = (isFeatureEnable && isUserAuthorized)) {
                 Text(text = "Settle Up")
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { navController.navigate(Screen.GroupSummaryScreen.createRoute(data.groupId)) }, enabled = isFeatureEnable) {
+            Button(onClick = { navController.navigate(Screen.GroupSummaryScreen.createRoute(data.groupId)) }, enabled = (isFeatureEnable && isUserAuthorized)) {
                 Text(text = "Totals")
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { scope.launch { groupViewModel.downloadExcel(context, groupId = data.groupId) } }, enabled = isFeatureEnable) {
+            Button(onClick = { scope.launch { groupViewModel.downloadExcel(context, groupId = data.groupId) } }, enabled = (isFeatureEnable && isUserAuthorized)) {
                 Text(text = "Export")
             }
         }

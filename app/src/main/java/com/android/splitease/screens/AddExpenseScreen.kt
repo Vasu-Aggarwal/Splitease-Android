@@ -341,9 +341,11 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
             if (message.isNotEmpty()) {
                 Text(text = message)
             }
+
             when (val result = addTransaction.value) {
                 is NetworkResult.Success -> {
                     loading = false
+                    showErrorDialog = false
                     LaunchedEffect(Unit) {
                         Toast.makeText(context, "Transaction added successfully", Toast.LENGTH_SHORT).show()
                         navController.popBackStack(Screen.DetailedGroupScreen.createRoute(groupId), false)
@@ -351,16 +353,19 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                 }
                 is NetworkResult.Error -> {
                     loading = false
-                    errorMessage = result.message ?: "Unexpected error occurred"
-                    showErrorDialog = true
+                    LaunchedEffect(Unit) {
+                        errorMessage = result.message ?: "Unexpected error occurred"
+                        showErrorDialog = true
+                    }
                 }
                 is NetworkResult.Loading -> {
                     loading = true
+                    showErrorDialog = false
                 }
 
                 is NetworkResult.Idle -> {
                     loading = false
-                    message = ""
+                    showErrorDialog = false
                 }
             }
 
@@ -406,7 +411,6 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
             showErrorDialog = false
         }
     }
-
 
     if(loading){
         LoadingOverlay()

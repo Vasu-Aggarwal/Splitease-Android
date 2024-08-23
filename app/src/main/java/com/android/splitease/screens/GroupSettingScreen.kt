@@ -99,9 +99,6 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
     val userUuid = tokenManager.getUserUuid()
 
     var showAlertOnDelete by remember { mutableStateOf(false) }
-    var loading by remember {
-        mutableStateOf(false)
-    }
 
     var errorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember {
@@ -111,8 +108,26 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
         mutableStateOf(true)
     }
 
+    var isUserAuthorized by remember {
+        mutableStateOf(true)
+    }
+
     // New flag to control if a toast should be shown
     var shouldShowUserRemovedToast by remember { mutableStateOf(false) }
+
+    when(groupMembers.value){
+        is NetworkResult.Error -> {showLoadingOverlay = false}
+        is NetworkResult.Idle -> {showLoadingOverlay = false}
+        is NetworkResult.Loading -> {showLoadingOverlay = true}
+        is NetworkResult.Success -> {
+            showLoadingOverlay = false
+            val memberList = (groupMembers.value as NetworkResult.Success<List<GetGroupMembersV2Response>>).data
+            val isCurrentUserPresent = memberList!!.any { it.userUuid == userUuid }
+            if (!isCurrentUserPresent) {
+                isUserAuthorized = false
+            }
+        }
+    }
 
     // Observe the remove user state to hide the loading overlay once the operation is complete
     LaunchedEffect(removeUser) {
@@ -166,7 +181,7 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
                                 .fillMaxWidth()
                                 .padding(8.dp)
                                 .clickable {
-                                    if (isFeatureEnable) {
+                                    if (isFeatureEnable && isUserAuthorized) {
                                         errorDialog = false
                                         navController.navigate(
                                             Screen.NewGroupScreen.createRoute(
@@ -175,7 +190,8 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
                                             )
                                         )
                                     } else {
-                                        errorMessage = "You can't edit this group as you're no longer a member"
+                                        errorMessage =
+                                            "You can't edit this group as you're no longer a member"
                                         errorDialog = true
                                     }
                                 },
@@ -236,8 +252,13 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
                                     .fillMaxWidth()
                                     .padding(horizontal = 8.dp, vertical = 8.dp),
                                 onClick = {
-                                    navController.navigate(Screen.AddUsersToGroupScreen.createRoute(groupId))
-                                    shouldShowUserRemovedToast = false
+                                    if(!isUserAuthorized){
+                                        errorMessage = "You can't edit this group as you're no longer a member"
+                                        errorDialog = true
+                                    } else {
+                                        navController.navigate(Screen.AddUsersToGroupScreen.createRoute(groupId))
+                                        shouldShowUserRemovedToast = false
+                                    }
                                 },
                                 colors = CardDefaults.cardColors(containerColor = Color.Transparent)
                             ) {
@@ -269,10 +290,15 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
                         result.data?.let {
                             items(it) { member ->
                                 GroupMemberItem(member) {
-                                    selectedMember = member
-                                    showBottomSheet = true // Set this to true when a member is clicked
-                                    scope.launch {
-                                        sheetState.show()
+                                    if (isUserAuthorized){
+                                        selectedMember = member
+                                        showBottomSheet = true // Set this to true when a member is clicked
+                                        scope.launch {
+                                            sheetState.show()
+                                        }
+                                    } else {
+                                        errorMessage = "You can't edit this group as you're no longer a member"
+                                        errorDialog = true
                                     }
                                 }
                             }
@@ -287,7 +313,12 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
                     .padding(8.dp)
                     .height(50.dp)
                     .clickable {
-                        showAlertOnDelete = true
+                        if (!isUserAuthorized) {
+                            errorMessage = "You can't edit this group as you're no longer a member"
+                            errorDialog = true
+                        } else {
+                            showAlertOnDelete = true
+                        }
                     },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
@@ -395,19 +426,15 @@ fun GroupSettingScreen(navController: NavController, groupId: Int, groupViewMode
         )
     }
 
-    if (loading){
-        LoadingOverlay()
-    }
-
     LaunchedEffect(deleteGroup.value) {
         when(deleteGroup.value){
             is NetworkResult.Error -> {
-                loading = false
+                showLoadingOverlay = false
             }
-            is NetworkResult.Idle -> { loading = false }
-            is NetworkResult.Loading -> { loading = true }
+            is NetworkResult.Idle -> { showLoadingOverlay = false }
+            is NetworkResult.Loading -> { showLoadingOverlay = true }
             is NetworkResult.Success -> {
-                loading = false
+                showLoadingOverlay = false
                 navController.navigate(Screen.GroupScreen.route) {
                     popUpTo(Screen.GroupScreen.route) { inclusive = true } // Clear back stack
                 }
