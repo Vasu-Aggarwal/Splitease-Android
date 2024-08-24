@@ -12,12 +12,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.automirrored.outlined.TrendingUp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.StackedLineChart
+import androidx.compose.material.icons.filled.TableChart
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.StackedLineChart
+import androidx.compose.material.icons.outlined.TrendingUp
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -61,8 +68,8 @@ fun BottomNavigationBar(navAppController: NavController) {
 
         BottomNavigationItem(
             title = "Activities",
-            selectedIcon = Icons.Filled.Menu,
-            unselectedItem = Icons.Outlined.Menu,
+            selectedIcon = Icons.AutoMirrored.Filled.TrendingUp,
+            unselectedItem = Icons.AutoMirrored.Outlined.TrendingUp,
             hasNews = false
         ),
 
