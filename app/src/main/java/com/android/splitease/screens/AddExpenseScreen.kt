@@ -199,7 +199,6 @@ fun AddExpenseScreen(
         if (debouncedSearchQuery.isNotBlank()) {
             categoryViewModel.findCategory(debouncedSearchQuery)
         }
-        Toast.makeText(context, selectedAutoCategory, Toast.LENGTH_SHORT).show()
     }
 
     // Fetch category details
