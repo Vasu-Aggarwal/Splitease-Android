@@ -1,6 +1,7 @@
 package com.android.splitease.screens
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -45,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -75,6 +77,7 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
     var searchQuery by remember { mutableStateOf("") }
     val isUserExists: State<NetworkResult<List<GetUserByUuidResponse>>> = userViewModel.isUserExists.collectAsState()
     val groupMembers: State<NetworkResult<List<GetGroupMembersV2Response>>> = groupViewModel.groupMembersV2.collectAsState()
+    val context = LocalContext.current
 
     // Retrieve the selected user's name and UUID from the savedStateHandle
     val registeredUser = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("registeredUser", "")?.collectAsState()
@@ -108,6 +111,7 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
             val message = (addUsersResponse as NetworkResult.Success).data!!.message as? String
             if (message == "Users added successfully") {
                 navController.popBackStack()
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -176,7 +180,7 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
                                     shape = RoundedCornerShape(50)
                                 )
                                 .size(50.dp),
-                            contentAlignment = androidx.compose.ui.Alignment.Center
+                            contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = addedEmail.first().toString().uppercase(), // Placeholder for the first letter of the email
@@ -186,7 +190,7 @@ fun AddUsersToGroupScreen(groupId: Int, groupViewModel: GroupViewModel = hiltVie
                             IconButton(
                                 onClick = { emailSet = emailSet - addedEmail },
                                 modifier = Modifier
-                                    .align(androidx.compose.ui.Alignment.TopEnd)
+                                    .align(Alignment.TopEnd)
                                     .background(
                                         MaterialTheme.colorScheme.onPrimary,
                                         shape = RoundedCornerShape(50)
