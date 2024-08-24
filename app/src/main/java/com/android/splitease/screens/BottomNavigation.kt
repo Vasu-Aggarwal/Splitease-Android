@@ -4,11 +4,14 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
@@ -105,7 +108,9 @@ fun BottomNavigationBar(navAppController: NavController) {
         val currentBackStackEntry = navController.currentBackStackEntryAsState().value
         val currentDestination = currentBackStackEntry?.destination?.route
         if (currentDestination !in bottomNavExcludedScreens) {
-            Column{
+            Column(
+                modifier = Modifier.padding(bottom = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding())
+            ){
                 Divider(
                     color = Color.Gray,
                     thickness = 1.dp,
