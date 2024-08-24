@@ -27,6 +27,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Menu
@@ -73,8 +74,10 @@ import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import com.android.splitease.R
+import com.android.splitease.local.dao.CategoryDao
 import com.android.splitease.models.requests.AddTransactionRequest
 import com.android.splitease.models.responses.AddTransactionResponse
+import com.android.splitease.models.responses.DeleteResponse
 import com.android.splitease.navigation.Screen
 import com.android.splitease.ui.theme.Grey800
 import com.android.splitease.ui.theme.White
@@ -84,6 +87,7 @@ import com.android.splitease.utils.NetworkResult
 import com.android.splitease.utils.SplitBy
 import com.android.splitease.utils.TokenManager
 import com.android.splitease.utils.UtilMethods
+import com.android.splitease.viewmodels.CategoryViewModel
 import com.android.splitease.viewmodels.GroupViewModel
 import com.android.splitease.viewmodels.TransactionViewModel
 import com.google.gson.Gson
@@ -91,10 +95,20 @@ import java.text.DecimalFormat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = hiltViewModel(), groupViewModel: GroupViewModel = hiltViewModel(), navController: NavController){
+fun AddExpenseScreen(
+    groupId: Int,
+    transactionViewModel: TransactionViewModel = hiltViewModel(),
+    groupViewModel: GroupViewModel = hiltViewModel(),
+    categoryViewModel: CategoryViewModel = hiltViewModel(),
+    navController: NavController
+){
+
     val addTransaction: State<NetworkResult<AddTransactionResponse>> = transactionViewModel.addTransaction.collectAsState()
     var message by remember { mutableStateOf("") }
     val groupMembers by groupViewModel.groupMembersV2.collectAsState()
+
+    //find the category according to the transaction description
+    val findCategory: State<NetworkResult<DeleteResponse>> = categoryViewModel.findCategory.collectAsState()
 
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("secure_prefs", Context.MODE_PRIVATE)
@@ -113,8 +127,11 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
     val selectedSplitBy = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedSplitBy", SplitBy.EQUAL)?.collectAsState()
 
     // Retrieve the selected user's name and UUID from the savedStateHandle
-    val selectedCategory = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedCategory", "General")?.collectAsState()
+    val selectedCategory = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedCategory", "")?.collectAsState()
     val selectedCategoryImg = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedCategoryImg", "")?.collectAsState()
+
+    var selectedAutoCategory by remember { mutableStateOf("") }
+    var selectedAutoCategoryImg by remember { mutableStateOf("") }
 
     var contributions by remember { mutableStateOf<Map<String, Double>>(emptyMap()) }
     val contributionsState = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedData", emptyMap<String, Double>())?.collectAsState()
@@ -171,6 +188,17 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
         groupViewModel.getGroupMembersV2(groupId)
     }
 
+    // Debounced search state
+    val debouncedSearchQuery by rememberDebounce(description)
+
+    // Launch API call whenever debounced query changes
+    LaunchedEffect(debouncedSearchQuery) {
+        if (debouncedSearchQuery.isNotBlank()) {
+            categoryViewModel.findCategory(debouncedSearchQuery)
+        }
+        Toast.makeText(context, selectedAutoCategory, Toast.LENGTH_SHORT).show()
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -212,7 +240,7 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                                         group = groupId,
                                         userUuid = if (selectedUserName!!.value.equals("You", ignoreCase = true)) userUuid!! else selectedUserUuid!!.value,
                                         description = description,
-                                        category = selectedCategory!!.value,
+                                        category = if(selectedCategory!!.value.isNotEmpty()) selectedCategory.value else selectedAutoCategory,
                                         usersInvolved = contributionsEqual
                                     )
                                     val gson = Gson()
@@ -229,7 +257,7 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                                 group = groupId,
                                 userUuid = if (selectedUserName!!.value.equals("You", ignoreCase = true)) userUuid!! else selectedUserUuid!!.value,
                                 description = description,
-                                category = selectedCategory!!.value,
+                                category = if(selectedCategory!!.value.isNotEmpty()) selectedCategory.value else selectedAutoCategory,
                                 usersInvolved = contributions
                             )
                             transactionViewModel.addTransaction(addTransactionRequest)
@@ -284,6 +312,24 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
                                 .size(50.dp)
                                 .clip(RoundedCornerShape(8.dp))
                         )
+                    } else if (selectedAutoCategory.isNotEmpty()){
+                        Log.d("AI Category GPT", "AddExpenseScreen: $selectedAutoCategory")
+//                        Image(
+//                            painter = rememberAsyncImagePainter(
+//                                ImageRequest.Builder(LocalContext.current)
+//                                    .data(data = selectedAutoCategoryImg)
+//                                    .apply(block = fun ImageRequest.Builder.() {
+//                                        crossfade(true)
+//                                    }).build()
+//                            ),
+//                            contentDescription = "Background Image",
+//                            contentScale = ContentScale.Crop,
+//                            modifier = Modifier
+//                                .fillMaxSize()
+//                                .size(50.dp)
+//                                .clip(RoundedCornerShape(8.dp))
+//                        )
+                        Icon(imageVector = Icons.Default.Category, contentDescription = "category")
                     } else {
                         Icon(imageVector = Icons.Default.Menu, contentDescription = "category")
                     }
@@ -340,6 +386,23 @@ fun AddExpenseScreen(groupId: Int, transactionViewModel: TransactionViewModel = 
 
             if (message.isNotEmpty()) {
                 Text(text = message)
+            }
+
+            when(val result = findCategory.value){
+                is NetworkResult.Error -> {}
+                is NetworkResult.Idle -> {}
+                is NetworkResult.Loading -> {}
+                is NetworkResult.Success -> {
+                    val categoryName = result.data?.message
+
+                    // Query the DAO to get the category details using the extracted name
+                    LaunchedEffect(categoryName) {
+
+                        // Update the state with the retrieved category details
+                        selectedAutoCategory = categoryName!!
+                        selectedAutoCategoryImg = categoryName
+                    }
+                }
             }
 
             when (val result = addTransaction.value) {

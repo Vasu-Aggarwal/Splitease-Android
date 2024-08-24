@@ -63,6 +63,7 @@ import com.android.splitease.utils.AppConstants
 import com.android.splitease.utils.NetworkResult
 import com.android.splitease.viewmodels.GroupViewModel
 import com.android.splitease.viewmodels.UserViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -330,19 +331,21 @@ fun UserItem(
 @Composable
 fun rememberDebounce(
     input: String,
-    delayMillis: Long = 300L // Adjust delay time as needed
+    delayMillis: Long = 500L // Adjust delay time as needed
 ): State<String> {
-    val state = remember { mutableStateOf(input) }
+    val debouncedValue = remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
+    var debounceJob by remember { mutableStateOf<Job?>(null) }
 
     LaunchedEffect(input) {
-        coroutineScope.launch {
+        debounceJob?.cancel() // Cancel the previous job if it exists
+        debounceJob = coroutineScope.launch {
             delay(delayMillis)
-            state.value = input
+            debouncedValue.value = input // Update the debounced value after the delay
         }
     }
 
-    return state
+    return debouncedValue
 }
 
 @Composable

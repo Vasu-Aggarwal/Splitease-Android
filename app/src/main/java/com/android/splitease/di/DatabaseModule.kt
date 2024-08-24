@@ -3,6 +3,7 @@ package com.android.splitease.di
 import android.content.Context
 import androidx.room.Room
 import com.android.splitease.local.AppDatabase
+import com.android.splitease.local.dao.CategoryDao
 import com.android.splitease.local.dao.UserDao
 import dagger.Module
 import dagger.Provides
@@ -28,6 +29,11 @@ object DatabaseModule {
     @Provides
     fun provideUserDao(database: AppDatabase): UserDao {
         return database.userDao()
+    }
+
+    @Provides
+    fun provideCategoryDao(database: AppDatabase): CategoryDao {
+        return database.categoryDao()
     }
 
 //    @Provides

@@ -2,6 +2,7 @@ package com.android.splitease.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.android.splitease.models.responses.DeleteResponse
 import com.android.splitease.models.responses.GetCategoryResponse
 import com.android.splitease.models.responses.GetGroupsByUserResponse
 import com.android.splitease.repositories.CategoryRepository
@@ -17,9 +18,18 @@ class CategoryViewModel @Inject constructor(private val categoryRepository: Cate
     val categories: StateFlow<NetworkResult<List<GetCategoryResponse>>>
         get() = categoryRepository.categories
 
+    val findCategory: StateFlow<NetworkResult<DeleteResponse>>
+        get() = categoryRepository.findCategory
+
     fun getCategories() {
         viewModelScope.launch {
             categoryRepository.getCategories()
+        }
+    }
+
+    fun findCategory(prompt: String) {
+        viewModelScope.launch {
+            categoryRepository.findCategory(prompt)
         }
     }
 }
