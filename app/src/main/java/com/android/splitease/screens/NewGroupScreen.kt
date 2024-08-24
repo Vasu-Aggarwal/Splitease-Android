@@ -13,6 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -113,6 +114,9 @@ fun NewGroupScreen(
             if (resultUri != null) {
                 imageUri = resultUri
             }
+        } else if (result.resultCode == 0) {
+            // Reset imageUri when cropping is canceled
+            imageUri = null
         }
     }
 
@@ -246,12 +250,13 @@ fun NewGroupScreen(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .clip(RoundedCornerShape(8.dp))
+                                    .clickable {
+                                        checkAndRequestPermission()
+                                    }
                             )
                         } else {
                             IconButton(onClick = {
-//                                launcher.launch("image/*") // Open image picker
-//                                permissionLauncher.launch(getPermissionType())
-                                                 checkAndRequestPermission()
+                                checkAndRequestPermission()
                             }, modifier = Modifier.fillMaxSize()) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.add_photo),
