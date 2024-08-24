@@ -199,7 +199,8 @@ class GroupViewModel @Inject constructor(private val groupRepository: GroupRepos
             setContentText(content)
             setPriority(NotificationCompat.PRIORITY_HIGH)
             setOnlyAlertOnce(true)
-            setAutoCancel(true)
+            setAutoCancel(false)
+            setContentIntent(openFilePendingIntent)
 
             // Add actions
             addAction(NotificationCompat.Action(
