@@ -50,6 +50,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -133,6 +134,8 @@ fun AddExpenseScreen(
     var selectedAutoCategory by remember { mutableStateOf("") }
     var selectedAutoCategoryImg by remember { mutableStateOf("") }
 
+    val category by categoryViewModel.category.observeAsState()
+
     var contributions by remember { mutableStateOf<Map<String, Double>>(emptyMap()) }
     val contributionsState = navController.currentBackStackEntry?.savedStateHandle?.getStateFlow("selectedData", emptyMap<String, Double>())?.collectAsState()
 
@@ -197,6 +200,20 @@ fun AddExpenseScreen(
             categoryViewModel.findCategory(debouncedSearchQuery)
         }
         Toast.makeText(context, selectedAutoCategory, Toast.LENGTH_SHORT).show()
+    }
+
+    // Fetch category details
+    LaunchedEffect(selectedAutoCategory) {
+        if (selectedAutoCategory.isNotEmpty()) {
+            categoryViewModel.fetchCategoryByName(selectedAutoCategory)
+        }
+    }
+
+    // Handle fetched category data
+    LaunchedEffect(category) {
+        category?.let {
+            selectedAutoCategoryImg = it.imageUrl // Update image URL or other category details
+        }
     }
 
     Scaffold(
@@ -313,25 +330,24 @@ fun AddExpenseScreen(
                                 .clip(RoundedCornerShape(8.dp))
                         )
                     } else if (selectedAutoCategory.isNotEmpty()){
-                        Log.d("AI Category GPT", "AddExpenseScreen: $selectedAutoCategory")
-//                        Image(
-//                            painter = rememberAsyncImagePainter(
-//                                ImageRequest.Builder(LocalContext.current)
-//                                    .data(data = selectedAutoCategoryImg)
-//                                    .apply(block = fun ImageRequest.Builder.() {
-//                                        crossfade(true)
-//                                    }).build()
-//                            ),
-//                            contentDescription = "Background Image",
-//                            contentScale = ContentScale.Crop,
-//                            modifier = Modifier
-//                                .fillMaxSize()
-//                                .size(50.dp)
-//                                .clip(RoundedCornerShape(8.dp))
-//                        )
-                        Icon(imageVector = Icons.Default.Category, contentDescription = "category")
+                        Log.d("AI Category GPT", "AddExpenseScreen: $selectedAutoCategoryImg")
+                        Image(
+                            painter = rememberAsyncImagePainter(
+                                ImageRequest.Builder(LocalContext.current)
+                                    .data(data = selectedAutoCategoryImg)
+                                    .apply(block = fun ImageRequest.Builder.() {
+                                        crossfade(true)
+                                    }).build()
+                            ),
+                            contentDescription = "Background Image",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .size(50.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                        )
                     } else {
-                        Icon(imageVector = Icons.Default.Menu, contentDescription = "category")
+                        Icon(imageVector = Icons.Default.Category, contentDescription = "category")
                     }
                 }
                 Spacer(modifier = Modifier.width(15.dp))

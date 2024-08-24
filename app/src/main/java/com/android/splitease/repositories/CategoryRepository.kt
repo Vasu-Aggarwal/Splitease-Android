@@ -87,6 +87,10 @@ class CategoryRepository @Inject constructor(
         }
     }
 
+    suspend fun getCategoryByName(categoryName: String): SubCategoryEntity {
+        return categoryDao.getCategoryByName(categoryName)
+    }
+
 }
 
 fun GetCategoryResponse.toCategoryEntity(): CategoryWithSubcategories {

@@ -48,8 +48,8 @@ interface CategoryDao {
     @Query("SELECT * FROM category WHERE categoryId = :categoryId AND lastUpdated >= :minValidTimestamp")
     suspend fun getCategoryByIdWithTTL(categoryId: Int, minValidTimestamp: Long): CategoryEntity
 
-    @Query("SELECT * FROM category where category = :name")
-    suspend fun getCategoryByName(name: String): CategoryEntity
+    @Query("SELECT * FROM subcategory where name = :name")
+    suspend fun getCategoryByName(name: String): SubCategoryEntity
 
     @Query("SELECT * FROM category WHERE category = :name AND lastUpdated >= :minValidTimestamp")
     suspend fun getCategoryByNameWithTTL(name: String, minValidTimestamp: Long): CategoryEntity
