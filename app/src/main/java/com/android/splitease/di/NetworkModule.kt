@@ -1,24 +1,17 @@
 package com.android.splitease.di
 
-import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import android.widget.Toast
 import com.android.splitease.services.AuthService
 import com.android.splitease.services.CategoryService
 import com.android.splitease.services.GroupService
 import com.android.splitease.services.TransactionService
 import com.android.splitease.services.UserService
-import com.android.splitease.utils.AppConstants
-import com.android.splitease.utils.UrlProvider
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 @Module
@@ -27,9 +20,10 @@ class NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(sharedPreferences: SharedPreferences): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(NetworkExceptionInterceptor())
+            .addInterceptor(BaseUrlInterceptor(sharedPreferences))
             .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
             .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
