@@ -25,8 +25,8 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 class NetworkModule {
 
-    @Singleton
     @Provides
+    @Singleton
     fun provideOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(NetworkExceptionInterceptor())
@@ -36,62 +36,42 @@ class NetworkModule {
             .build()
     }
 
-//    @Provides
-//    @Singleton
-//    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
-//        return Retrofit.Builder()
-//            .baseUrl("http://3.94.187.63:9090")
-//            .addConverterFactory(GsonConverterFactory.create())
-//            .client(okHttpClient)
-//            .build();
-//    }
-
     @Provides
     @Singleton
-    fun provideRetrofit(
-        okHttpClient: OkHttpClient,
-        sharedPreferences: SharedPreferences
-    ): Retrofit {
-        val baseUrl = sharedPreferences.getString("AWS_BASE_URL", AppConstants.AWS_BASE_URL)
-            ?: AppConstants.AWS_BASE_URL
-
-        // Log the base URL for debugging
-        Log.d("NetworkModule", "Using base URL: $baseUrl")
-
-        return Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .addConverterFactory(GsonConverterFactory.create())
-            .client(okHttpClient)
-            .build()
+    fun provideRetrofitManager(
+        sharedPreferences: SharedPreferences,
+        okHttpClient: OkHttpClient
+    ): RetrofitManager {
+        return RetrofitManager(sharedPreferences, okHttpClient)
     }
 
     @Provides
     @Singleton
-    fun provideAuthService(retrofit: Retrofit): AuthService {
-        return retrofit.create(AuthService::class.java)
+    fun provideAuthService(retrofitManager: RetrofitManager): AuthService {
+        return retrofitManager.getRetrofit().create(AuthService::class.java)
     }
 
     @Provides
     @Singleton
-    fun provideGroupService(retrofit: Retrofit): GroupService {
-        return retrofit.create(GroupService::class.java)
+    fun provideGroupService(retrofitManager: RetrofitManager): GroupService {
+        return retrofitManager.getRetrofit().create(GroupService::class.java)
     }
 
     @Provides
     @Singleton
-    fun provideTransactionService(retrofit: Retrofit): TransactionService {
-        return retrofit.create(TransactionService::class.java)
+    fun provideTransactionService(retrofitManager: RetrofitManager): TransactionService {
+        return retrofitManager.getRetrofit().create(TransactionService::class.java)
     }
 
     @Provides
     @Singleton
-    fun provideUserService(retrofit: Retrofit): UserService{
-        return retrofit.create(UserService::class.java)
+    fun provideUserService(retrofitManager: RetrofitManager): UserService {
+        return retrofitManager.getRetrofit().create(UserService::class.java)
     }
 
     @Provides
     @Singleton
-    fun provideCategoryService(retrofit: Retrofit): CategoryService{
-        return retrofit.create(CategoryService::class.java)
+    fun provideCategoryService(retrofitManager: RetrofitManager): CategoryService {
+        return retrofitManager.getRetrofit().create(CategoryService::class.java)
     }
 }

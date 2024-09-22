@@ -2,6 +2,7 @@ package com.android.splitease
 
 import android.app.Application
 import android.util.Log
+import com.android.splitease.di.RetrofitManager
 import com.android.splitease.services.S3Helper
 import com.android.splitease.utils.AppConstants
 import dagger.hilt.android.HiltAndroidApp
@@ -9,6 +10,9 @@ import javax.inject.Inject
 
 @HiltAndroidApp
 class SplitEase : Application(){
+
+    @Inject lateinit var retrofitManager: RetrofitManager
+
     override fun onCreate() {
         super.onCreate()
         // Initialize AWS client
@@ -28,6 +32,8 @@ class SplitEase : Application(){
                 putString("AWS_BASE_URL", AppConstants.AWS_BASE_URL)
                 apply()
             }
+            // Refresh Retrofit instance
+            retrofitManager.refreshRetrofit()
         }
     }
 }
