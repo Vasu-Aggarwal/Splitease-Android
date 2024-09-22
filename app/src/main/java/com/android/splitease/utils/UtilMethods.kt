@@ -2,12 +2,8 @@ package com.android.splitease.utils
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import java.text.DecimalFormat
-import java.text.Format
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.TextStyle
 import java.util.Date
 import java.util.Locale
 

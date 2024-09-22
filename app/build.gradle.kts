@@ -118,6 +118,10 @@ dependencies {
     implementation ("androidx.hilt:hilt-work:1.2.0")
 
     implementation ("androidx.compose.material:material-icons-extended:1.6.8")
+    implementation("com.amazonaws:aws-android-sdk-core:2.77.0")
+    implementation ("com.amazonaws:aws-android-sdk-s3:2.77.0")
+    implementation ("com.amazonaws:aws-android-sdk-cognito:2.20.1")
+
 }
 kapt {
     correctErrorTypes = true
