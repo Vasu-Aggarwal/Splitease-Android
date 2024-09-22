@@ -42,6 +42,7 @@ class NetworkModule {
         sharedPreferences: SharedPreferences,
         okHttpClient: OkHttpClient
     ): RetrofitManager {
+        Log.d("RetrofitManager", "Reinitialized")
         return RetrofitManager(sharedPreferences, okHttpClient)
     }
 
