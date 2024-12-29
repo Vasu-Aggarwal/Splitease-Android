@@ -17,7 +17,7 @@ class SplitEase : Application(){
         super.onCreate()
         // Initialize AWS client
         val s3Helper = S3Helper(this@SplitEase) // Pass the context to the S3Helper
-        s3Helper.fetchIpFromS3("myconfigbucketone", "config.txt") { ipAddress ->
+        s3Helper.fetchIpFromS3("myconfigbuckettwo", "config.txt") { ipAddress ->
             if (ipAddress != null) {
                 println("Fetched IP Address: $ipAddress")
             } else {
